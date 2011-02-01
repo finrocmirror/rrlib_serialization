@@ -1,0 +1,40 @@
+/*
+This is a rrlib documentation file. It should contain a doxygen "mainpage" section and supports the following special keywords:
+
+This descriptions is printed in the api table of content:
+#DESCR# Classes for handling serialization in rrlibs and finroc.
+(Additional keywords go here..)
+*/
+
+/*! \mainpage
+
+This is the RRLib for serializing objects.
+
+They can be seriliazed binary, to text, or to XML.
+It supports non-intrusive serialization, is safe regarding endianess and 32/64 bit systems. Binary serialization is also pretty efficient.
+
+Every class to be serialized needs to implement at least binary serialization.
+If no specific text serialization is provided, the hex code representation of the binary serialization is used as a fallback
+If no special XML-serialization ist implemented, the string from text serialization is used.
+
+There are two ways of making classes serializable:
+- The class can implement the tSerializable interface.
+- The stream-operator with a tOutputStream and a tInputStream can be overloaded.
+
+With the operator overloading, the class does not need to be changed (and the object won't get a vtable pointer).
+However, it typically does not work in places, where an abstract base class is used during serialization.
+Therefore, the stream operator should only be overloaded for classes, which won't be derived from (as a rule of thumb, these typically do not have virtual destructor or vitual functions).
+
+The same is basically true for text (tStringOutputStream, tStringInputStream) and XML (tXMLNode) serialization.
+
+Binary serialization is designed to be as efficient as reasonably possible.
+Serialization is performed to Sinks (classes implementing tSink interface) .
+The tOutputStream class writes data directly to buffers it obtains from the Sink, so no unnecessary copying is done.
+When large buffers are serialized, tOutputStream hands these buffers directly to the sink - which can in turn decide what to do (e.g. it might perform a network send with such a buffer directly).
+tInputStream obtains the buffers for deserialization directly from sources (tSource) - without copying them.
+
+The library can serialize STL containers containing shared pointers. These pointers can contain subclasses. Therefore, RRLib serialization needs to know which types are available and how to handle them.
+A type T becomes known as soon as the first object of tDataType<T> is created.
+
+ */
+
