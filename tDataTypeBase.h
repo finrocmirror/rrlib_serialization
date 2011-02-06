@@ -22,6 +22,7 @@
 #ifndef __rrlib__serialization__tDataTypeBase_h__
 #define __rrlib__serialization__tDataTypeBase_h__
 
+#include <assert.h>
 #include <boost/utility.hpp>
 #include <memory>
 #include <stdint.h>
@@ -29,10 +30,13 @@
 #include <typeinfo>
 #include <vector>
 
+#include <boost/type_traits/is_base_of.hpp>
+
 namespace rrlib
 {
 namespace serialization
 {
+class tGenericObjectManager;
 class tGenericObject;
 class tFactory;
 class tInputStream;
@@ -112,9 +116,10 @@ public:
 
     /*!
      * \param placement (Optional) Destination for placement new
+     * \param manager_size Size of management info
      * \return Instance of Datatype as Generic object
      */
-    virtual tGenericObject* CreateInstanceGeneric(void* placement = NULL) const
+    virtual tGenericObject* CreateInstanceGeneric(void* placement = NULL, size_t manager_size = 0) const
     {
       return NULL;
     }
@@ -224,11 +229,26 @@ public:
    */
   void* CreateInstance(void* placement = NULL) const;
 
+  template < typename M = tGenericObjectManager >
   /*!
    * \param placement (Optional) Destination for placement new
    * \return Instance of Datatype as Generic object
    */
-  tGenericObject* CreateInstanceGeneric(void* placement = NULL) const;
+  inline tGenericObject* CreateInstanceGeneric(void* placement = NULL) const
+  {
+    if (info == NULL)
+    {
+      return NULL;
+    }
+
+    static const size_t cMANAGER_OFFSET = (sizeof(void*) == 4) ? 16 : 24; // must be identical to MANAGER_OFFSET in GenericObject
+
+    static_assert(boost::is_base_of<tGenericObjectManager, M>::value, "only GenericObjectManagers allowed as M");
+    tGenericObject* result = info->CreateInstanceGeneric(placement, sizeof(M));
+    new(reinterpret_cast<char*>(result) + cMANAGER_OFFSET) M();
+    return result;
+
+  }
 
   // \return rtti name of data type
   const char* GetRttiName() const

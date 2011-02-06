@@ -22,7 +22,6 @@
 #include "rrlib/serialization/sSerialization.h"
 
 #include "rrlib/serialization/tDataTypeBase.h"
-#include <assert.h>
 
 namespace rrlib
 {
@@ -46,15 +45,6 @@ void* tDataTypeBase::CreateInstance(void* placement) const
     return NULL;
   }
   return info->CreateInstance(placement);
-}
-
-tGenericObject* tDataTypeBase::CreateInstanceGeneric(void* placement) const
-{
-  if (info == NULL)
-  {
-    return NULL;
-  }
-  return info->CreateInstanceGeneric(placement);
 }
 
 tDataTypeBase tDataTypeBase::FindType(const std::string& name)

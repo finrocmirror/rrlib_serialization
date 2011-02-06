@@ -33,17 +33,20 @@ namespace rrlib
 namespace serialization
 {
 class tFactory;
+class tGenericObjectManager;
 
 /*!
  * \author Max Reichardt
  *
- * Container for an arbitrary object.
+ * Container/wrapper for an arbitrary object.
  *
  * Provides base functionality such as deep copying, type information
  * and serialization.
  * It also assert that casting back is only possible to the original type.
  *
  * This allows to handle objects in a uniform way.
+ *
+ * Memory Layout of all subclasses: vtable ptr | datatype ptr | object ptr | management info raw memory of size M
  */
 class tGenericObject : public boost::noncopyable, public tSerializable
 {
@@ -54,7 +57,7 @@ private:
 
 protected:
 
-  /*! Pointer to wrapped object */
+  /*! Wrapped object */
   void* wrapped;
 
   /*!
@@ -65,7 +68,17 @@ protected:
    */
   virtual void DeepCopyFrom(const void* source, tFactory* f = NULL) = 0;
 
+  /*!
+   * \return Management information for this generic object.
+   */
+  inline tGenericObjectManager* GetManager()
+  {
+    return reinterpret_cast<tGenericObjectManager*>(reinterpret_cast<char*>(this) + cMANAGER_OFFSET);
+  }
+
 public:
+
+  static const size_t cMANAGER_OFFSET = (sizeof(void*) == 4) ? 16 : 24;
 
   /*!
    * \param wrapped Wrapped object
@@ -99,8 +112,15 @@ public:
   template <typename T>
   inline void DeepCopyFrom(const T* source, tFactory* f = NULL)
   {
-    assert(tDataType<T>() == type);
+    assert(typeid(T).name() == type.GetRttiName());
     DeepCopyFrom((void*)source);
+  }
+
+  template <typename T>
+  T* GetData()
+  {
+    assert(typeid(T).name() == type.GetRttiName());
+    return static_cast<T*>(wrapped);
   }
 
   /*!
@@ -109,15 +129,8 @@ public:
   template <typename T>
   inline const T* GetData() const
   {
-    assert(strcmp(typeid(T).name(), type.GetRttiName()) == 0 && "T must match original type");
-    return static_cast<T*>(wrapped);
-  }
-
-  template <typename T>
-  inline T* GetData()
-  {
-    assert(strcmp(typeid(T).name(), type.GetRttiName()) == 0 && "T must match original type");
-    return static_cast<T*>(wrapped);
+    assert(typeid(T).name() == type.GetRttiName());
+    return static_cast<const T*>(wrapped);
   }
 
   /*!

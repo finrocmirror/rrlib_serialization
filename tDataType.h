@@ -83,7 +83,7 @@ class tDataType : public tDataTypeBase
       }
     }
 
-    virtual tGenericObject* CreateInstanceGeneric(void* placement) const;
+    virtual tGenericObject* CreateInstanceGeneric(void* placement, int manager_size) const;
 
     virtual void DeepCopy(const void* src, void* dest, tFactory* f) const;
 

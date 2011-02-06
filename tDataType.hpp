@@ -22,6 +22,7 @@
 
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/sSerialization.h"
+#include <stdexcept>
 
 namespace rrlib
 {
@@ -39,15 +40,61 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
 }
 
 template<typename T>
-tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placement) const
+tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placement, int manager_size) const
 {
   if (placement != NULL)
   {
-    return new(placement) tGenericObjectInstance<T>();
+    if (manager_size <= 8)
+    {
+      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<8> >();
+    }
+    else if (manager_size <= 16)
+    {
+      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<16> >();
+    }
+    else if (manager_size <= 24)
+    {
+      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<24> >();
+    }
+    else if (manager_size <= 32)
+    {
+      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<32> >();
+    }
+    else if (manager_size <= 40)
+    {
+      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<40> >();
+    }
+    else
+    {
+      throw std::invalid_argument("Management info larger than 40 bytes not allowed");
+    }
   }
   else
   {
-    return new tGenericObjectInstance<T>();
+    if (manager_size <= 8)
+    {
+      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<8> >();
+    }
+    else if (manager_size <= 16)
+    {
+      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<16> >();
+    }
+    else if (manager_size <= 24)
+    {
+      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<24> >();
+    }
+    else if (manager_size <= 32)
+    {
+      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<32> >();
+    }
+    else if (manager_size <= 40)
+    {
+      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<40> >();
+    }
+    else
+    {
+      throw std::invalid_argument("Management info larger than 40 bytes not allowed");
+    }
   }
 }
 

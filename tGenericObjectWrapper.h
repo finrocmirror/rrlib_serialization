@@ -19,10 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __rrlib__serialization__tGenericObjectInstance_h__
-#define __rrlib__serialization__tGenericObjectInstance_h__
+#ifndef __rrlib__serialization__tGenericObjectWrapper_h__
+#define __rrlib__serialization__tGenericObjectWrapper_h__
 
-#include "rrlib/serialization/sSerialization.h"
 #include "rrlib/serialization/tGenericObject.h"
 #include <assert.h>
 
@@ -47,24 +46,21 @@ class tStringOutputStream;
 /*!
  * \author Max Reichardt
  *
- * Used for initially creating/instantiating GenericObject.
+ * Allows wrapping any object as GenericObject
  */
 template<typename T, typename M>
-class tGenericObjectInstance : public tGenericObject
+class tGenericObjectWrapper : public tGenericObject
 {
 private:
 
   /*! Manager */
   M manager;
 
-  /*! Instantiated data */
-  T data;
-
 protected:
 
   virtual void DeepCopyFrom(const void* source, tFactory* f)
   {
-    DeepCopyFromImpl(*static_cast<T*>(source), f);
+    DeepCopyFromImpl(static_cast<T*>(source), f);
   }
 
 public:
@@ -74,45 +70,45 @@ public:
    *
    * \param source Source object
    */
-  inline void DeepCopyFromImpl(const T& source, tFactory* f = NULL)
+  inline void DeepCopyFromImpl(const T* source, tFactory* f = NULL)
   {
-    sSerialization::DeepCopy(source, data, f);
+    tSerialization::DeepCopy(source, GetData<T>(), f);
   }
 
   virtual void Deserialize(tInputStream& is)
   {
-    is >> data;
+    is >> GetData<T>();
   }
 
   virtual void Deserialize(tStringInputStream& is)
   {
-    is >> data;
+    is >> GetData<T>();
   }
 
   virtual void Deserialize(const xml2::tXMLNode& node)
   {
-    node >> data;
+    node >> GetData<T>();
   }
 
-  tGenericObjectInstance() : tGenericObject(tDataType<T>()), manager(), data()
+  tGenericObjectInstance(T* wrapped_object) : tGenericObject(tDataType<T>()), manager()
   {
     static_assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == cMANAGER_OFFSET, "Manager offset invalid");
-    wrapped = &data;
+    wrapped = wrapped_object;
   }
 
   virtual void Serialize(tOutputStream& os) const
   {
-    os << data;
+    os << GetData<T>();
   }
 
   virtual void Serialize(tStringOutputStream& os) const
   {
-    os << data;
+    os << GetData<T>();
   }
 
   virtual void Serialize(xml2::tXMLNode& node) const
   {
-    node << data;
+    node << GetData<T>();
   }
 
 };
@@ -120,4 +116,4 @@ public:
 } // namespace rrlib
 } // namespace serialization
 
-#endif // __rrlib__serialization__tGenericObjectInstance_h__
+#endif // __rrlib__serialization__tGenericObjectWrapper_h__
