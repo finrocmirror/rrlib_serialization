@@ -22,9 +22,13 @@
 #ifndef __rrlib__serialization__tGenericObjectInstance_h__
 #define __rrlib__serialization__tGenericObjectInstance_h__
 
+#include "rrlib/serialization/tStringInputStream.h"
+#include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/sSerialization.h"
 #include "rrlib/serialization/tGenericObject.h"
 #include <assert.h>
+
+#include "rrlib/serialization/clear.h"
 
 namespace rrlib
 {
@@ -40,9 +44,7 @@ namespace serialization
 {
 class tFactory;
 class tInputStream;
-class tStringInputStream;
 class tOutputStream;
-class tStringOutputStream;
 
 /*!
  * \author Max Reichardt
@@ -64,10 +66,15 @@ protected:
 
   virtual void DeepCopyFrom(const void* source, tFactory* f)
   {
-    DeepCopyFromImpl(*static_cast<T*>(source), f);
+    DeepCopyFromImpl(*static_cast<const T*>(source), f);
   }
 
 public:
+
+  virtual void Clear()
+  {
+    clear::Clear(&data);
+  }
 
   /*!
    * Deep copy source object to this object
@@ -96,7 +103,7 @@ public:
 
   tGenericObjectInstance() : tGenericObject(tDataType<T>()), manager(), data()
   {
-    static_assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == cMANAGER_OFFSET, "Manager offset invalid");
+    assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == cMANAGER_OFFSET && "Manager offset invalid");
     wrapped = &data;
   }
 

@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "rrlib/serialization/tMemoryBuffer.h"
+#include "rrlib/serialization/tDataType.h"
 #include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tOutputStream.h"
 #include <stdexcept>
@@ -30,6 +31,7 @@ namespace serialization
 const size_t tMemoryBuffer::cTEMP_ARRAY_SIZE;
 const size_t tMemoryBuffer::cDEFAULT_SIZE;
 const float tMemoryBuffer::cDEFAULT_RESIZE_FACTOR;
+const tDataTypeBase tMemoryBuffer::cTYPE = tDataType<tMemoryBuffer>();
 
 tMemoryBuffer::tMemoryBuffer(size_t size, float resize_factor) :
     backend(new tFixedBuffer(size)),

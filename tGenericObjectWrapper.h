@@ -22,8 +22,12 @@
 #ifndef __rrlib__serialization__tGenericObjectWrapper_h__
 #define __rrlib__serialization__tGenericObjectWrapper_h__
 
+#include "rrlib/serialization/tStringInputStream.h"
+#include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/tGenericObject.h"
 #include <assert.h>
+
+#include "rrlib/serialization/clear.h"
 
 namespace rrlib
 {
@@ -39,9 +43,7 @@ namespace serialization
 {
 class tFactory;
 class tInputStream;
-class tStringInputStream;
 class tOutputStream;
-class tStringOutputStream;
 
 /*!
  * \author Max Reichardt
@@ -60,55 +62,60 @@ protected:
 
   virtual void DeepCopyFrom(const void* source, tFactory* f)
   {
-    DeepCopyFromImpl(static_cast<T*>(source), f);
+    DeepCopyFromImpl(*static_cast<const T*>(source), f);
   }
 
 public:
+
+  virtual void Clear()
+  {
+    clear::Clear(GetData<T>());
+  }
 
   /*!
    * Deep copy source object to this object
    *
    * \param source Source object
    */
-  inline void DeepCopyFromImpl(const T* source, tFactory* f = NULL)
+  inline void DeepCopyFromImpl(const T& source, tFactory* f = NULL)
   {
-    tSerialization::DeepCopy(source, GetData<T>(), f);
+    tSerialization::DeepCopy(source, *GetData<T>(), f);
   }
 
   virtual void Deserialize(tInputStream& is)
   {
-    is >> GetData<T>();
+    is >> *GetData<T>();
   }
 
   virtual void Deserialize(tStringInputStream& is)
   {
-    is >> GetData<T>();
+    is >> *GetData<T>();
   }
 
   virtual void Deserialize(const xml2::tXMLNode& node)
   {
-    node >> GetData<T>();
+    node >> *GetData<T>();
   }
 
   tGenericObjectInstance(T* wrapped_object) : tGenericObject(tDataType<T>()), manager()
   {
-    static_assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == cMANAGER_OFFSET, "Manager offset invalid");
+    assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == cMANAGER_OFFSET && "Manager offset invalid");
     wrapped = wrapped_object;
   }
 
   virtual void Serialize(tOutputStream& os) const
   {
-    os << GetData<T>();
+    os << *GetData<T>();
   }
 
   virtual void Serialize(tStringOutputStream& os) const
   {
-    os << GetData<T>();
+    os << *GetData<T>();
   }
 
   virtual void Serialize(xml2::tXMLNode& node) const
   {
-    node << GetData<T>();
+    node << *GetData<T>();
   }
 
 };

@@ -38,7 +38,7 @@ class tStringOutputStreamFallback : public tStringOutputStream
 {
   xml2::tXMLNode& wrapped;
 public:
-  tStringOutputStreamFallback(xml2::tXMLNode node) :
+  tStringOutputStreamFallback(xml2::tXMLNode& node) :
       wrapped(node)
   {}
 
@@ -48,15 +48,15 @@ public:
   }
 };
 
+} // namespace
+} // namespace
+} // namespace
+
 template <typename T>
-inline tStringOutputStream& operator<< (tStringOutputStreamFallback os, const T& t)
+inline rrlib::serialization::tStringOutputStream& operator<< (rrlib::serialization::detail::tStringOutputStreamFallback && os, const T& t)
 {
   os << t;
   return os;
 }
-
-} // namespace
-} // namespace
-} // namespace
 
 #endif // __rrlib__serialization__detail__tStringOutputStreamFallback_h__

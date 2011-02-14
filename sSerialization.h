@@ -104,7 +104,7 @@ public:
     tInputStream ci(&(buf));
     ci.SetFactory(f);
 
-    ci >> src;
+    ci >> dest;
 
     ci.Close();
   }

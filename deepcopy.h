@@ -42,27 +42,42 @@ namespace serialization
 namespace deepcopy
 {
 
-template <typename T>
-struct any
+struct any_source
 {
-  T& wrapped;
-  any(T& t) : wrapped(t) {}
+  tDataTypeBase type;
+  tStackMemoryBuffer<65536> buffer;
+
+  template <typename T>
+  any_source(const T& t) : type(NULL), buffer()
+  {
+    type = tDataType<T>();
+    tOutputStream os(&buffer);
+    os << t;
+    os.Close();
+  }
 };
 
-template <typename T>
-struct any_const
+struct any_dest
 {
-  const T& wrapped;
-  any_const(const T& t) : wrapped(t) {}
+  tDataTypeBase type;
+  void* dest_ptr;
+
+  template <typename T>
+  any_dest(T& t) : type(NULL), dest_ptr(&t)
+  {
+    type = tDataType<T>();
+  }
 };
 
 // fallback: use serialization, if nothing else matches
 // (uses wrappers, so that compiler chooses this last)
-template <typename T>
-inline void Copy(any_const<T> src, any<T> target, tFactory* f)
+inline void Copy(any_source src, any_dest dest, tFactory* f)
 {
-  tStackMemoryBuffer<65536> mb;
-  sSerialization::DeepCopyImpl(src.wrapped, target.wrapped, f, mb);
+  assert(src.type == dest.type);
+  tInputStream ci(&(src.buffer));
+  ci.SetFactory(f);
+  dest.type.Deserialize(ci, dest.dest_ptr);
+  ci.Close();
 }
 
 inline void Copy(const char src, char dest, tFactory* f)

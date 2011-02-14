@@ -91,6 +91,12 @@ public:
   }
 
   /*!
+   * Clear any shared resources that this object holds on to
+   * (e.g. for reusing object in pool)
+   */
+  virtual void Clear() = 0;
+
+  /*!
    * Deep copy source object to this object
    * (types MUST match)
    *

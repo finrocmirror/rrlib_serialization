@@ -79,10 +79,7 @@ public:
     const char* rtti_name;
 
     // sizeof(T)
-    const size_t size;
-
-    // sizeof(GenericObjectInstance<T>)
-    const size_t generic_object_size;
+    size_t size;
 
     /*! New info? */
     bool new_info;
@@ -160,7 +157,6 @@ public:
         name(),
         rtti_name(NULL),
         size(-1),
-        generic_object_size(-1),
         new_info(true),
         default_name(true),
         uid(-1),
@@ -269,19 +265,6 @@ public:
     if (info != NULL)
     {
       return info->size;
-    }
-    else
-    {
-      return 0;
-    }
-  }
-
-  // \return size of data type as generic object (as returned from sizeof(GeneicObjectInstance<T>))
-  size_t GetSizeAsGenericObject() const
-  {
-    if (info != NULL)
-    {
-      return info->generic_object_size;
     }
     else
     {

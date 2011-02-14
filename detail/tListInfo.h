@@ -50,7 +50,7 @@ struct tListInfo
   typedef std::vector<T> tListType;
   typedef std::vector<std::shared_ptr<T> > tSharedPtrListType;
   typedef tNothing tElementType;
-  std::string GetName()
+  static std::string GetName()
   {
     return tDataTypeBase::GetDataTypeNameFromRtti(typeid(T).name());
   }
@@ -63,7 +63,7 @@ struct tListInfoBase
   typedef tNothing tListType;
   typedef tNothing tSharedPtrListType;
   typedef T tElementType;
-  std::string GetName()
+  static std::string GetName()
   {
     return std::string("List<") + tListInfo<T>::GetName() + ">";
   }
@@ -76,7 +76,7 @@ struct tListInfoBase<std::shared_ptr<T> >
   typedef tNothing tListType;
   typedef tNothing tSharedPtrListType;
   typedef T tElementType;
-  std::string GetName()
+  static std::string GetName()
   {
     return std::string("List<") + tListInfo<T>::GetName() + "*>";
   }

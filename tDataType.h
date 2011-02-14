@@ -22,12 +22,14 @@
 #ifndef __rrlib__serialization__tDataType_h__
 #define __rrlib__serialization__tDataType_h__
 
+#include "rrlib/serialization/tGenericObjectManager.h"
 #include "rrlib/serialization/tDataTypeBase.h"
 #include <assert.h>
 #include <string>
 #include <typeinfo>
 
 #include "rrlib/serialization/detail/tListInfo.h"
+#include <boost/type_traits/has_virtual_destructor.hpp>
 
 namespace rrlib
 {
@@ -83,39 +85,46 @@ class tDataType : public tDataTypeBase
       }
     }
 
-    virtual tGenericObject* CreateInstanceGeneric(void* placement, int manager_size) const;
+    virtual tGenericObject* CreateInstanceGeneric(void* placement, size_t manager_size) const;
 
     virtual void DeepCopy(const void* src, void* dest, tFactory* f) const;
 
     virtual void Deserialize(tInputStream& is, void* obj) const
     {
-      assert(typeid(*obj).name() == typeid(T).name());
       T* s = static_cast<T*>(obj);
+      if (boost::has_virtual_destructor<T>::value)
+      {
+        assert(typeid(*s).name() == typeid(T).name());
+      }
       is >> *s;
     }
 
     virtual void Serialize(tOutputStream& os, const void* obj) const
     {
-      assert(typeid(*obj).name() == typeid(T).name());
-      T* s = static_cast<T*>(obj);
+      const T* s = static_cast<const T*>(obj);
+      if (boost::has_virtual_destructor<T>::value)
+      {
+        assert(typeid(*s).name() == typeid(T).name());
+      }
       os << *s;
     }
 
   };
-
-  tDataType() : tDataTypeBase(GetDataTypeInfo()) {}
-
-  // \param name Name data type should get (if different from default)
-  tDataType(const std::string& name) : tDataTypeBase(GetDataTypeInfo())
-  {
-    info->SetName(name);
-  }
 
   // \return DataTypeInfo for this type T
   static tDataTypeInfoRaw* GetDataTypeInfo()
   {
     static tDataTypeInfo info;
     return &info;
+  }
+
+public:
+  tDataType() : tDataTypeBase(GetDataTypeInfo()) {}
+
+  // \param name Name data type should get (if different from default)
+  tDataType(const std::string& name) : tDataTypeBase(GetDataTypeInfo())
+  {
+    info->SetName(name);
   }
 
   // Lookup data type by rtti name

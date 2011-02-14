@@ -37,21 +37,21 @@ namespace detail
 class tStringInputStreamFallback : public tStringInputStream
 {
 public:
-  tStringInputStreamFallback(xml2::tXMLNode  node) :
+  tStringInputStreamFallback(const xml2::tXMLNode& node) :
       tStringInputStream(node.GetTextContent())
   {}
 
 };
 
+} // namespace
+} // namespace
+} // namespace
+
 template <typename T>
-inline tStringInputStream& operator>> (tStringInputStreamFallback is, T& t)
+inline rrlib::serialization::tStringInputStream& operator>> (rrlib::serialization::detail::tStringInputStreamFallback && is, T& t)
 {
   is >> t;
   return is;
 }
-
-} // namespace
-} // namespace
-} // namespace
 
 #endif // __rrlib__serialization__detail__tStringInputStreamFallback_h__

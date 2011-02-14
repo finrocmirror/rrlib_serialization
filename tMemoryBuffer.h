@@ -22,6 +22,7 @@
 #ifndef __rrlib__serialization__tMemoryBuffer_h__
 #define __rrlib__serialization__tMemoryBuffer_h__
 
+#include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tFixedBuffer.h"
 #include "rrlib/serialization/tSerializable.h"
@@ -75,6 +76,9 @@ public:
 
   /*! Default factor for buffer size increase */
   static const float cDEFAULT_RESIZE_FACTOR = 2;
+
+  /*! Data type of this class */
+  static const tDataTypeBase cTYPE;
 
 protected:
 

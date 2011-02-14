@@ -22,12 +22,12 @@
 #ifndef __rrlib__serialization__tGenericObjectManager_h__
 #define __rrlib__serialization__tGenericObjectManager_h__
 
+#include "rrlib/serialization/tGenericObject.h"
+
 namespace rrlib
 {
 namespace serialization
 {
-class tGenericObject;
-
 /*!
  * \author Max Reichardt
  *
@@ -46,13 +46,10 @@ public:
   /*!
    * \return Generic object that this class manages
    */
-  virtual tGenericObject GetObject()
+  virtual tGenericObject* GetObject()
   {
     return reinterpret_cast<tGenericObject*>(reinterpret_cast<char*>(this) - tGenericObject::cMANAGER_OFFSET);
   }
-
-protected:
-  ~tGenericObjectManager() {}
 
 };
 
@@ -64,7 +61,7 @@ namespace rrlib
 namespace serialization
 {
 /*! Helper class for factory */
-template <typename SIZE>
+template <size_t SIZE>
 class tGenericObjectManagerPlaceHolder : public tGenericObjectManager
 {
   // placeholder for actual manager object

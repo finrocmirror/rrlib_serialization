@@ -34,13 +34,12 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
   type = detail::tListInfo<T>::type;
   rtti_name = typeid(T).name();
   size = sizeof(T);
-  generic_object_size = sizeof(tGenericObjectInstance<T>());
   name = detail::tListInfo<T>::GetName();
 
 }
 
 template<typename T>
-tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placement, int manager_size) const
+tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placement, size_t manager_size) const
 {
   if (placement != NULL)
   {
@@ -101,12 +100,16 @@ tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placeme
 template<typename T>
 void tDataType<T>::tDataTypeInfo::DeepCopy(const void* src, void* dest, tFactory* f) const
 {
-  assert(typeid(*src).name() == typeid(T).name());
-  assert(typeid(*dest).name() == typeid(T).name());
-
-  T* s = static_cast<T*>(src);
+  const T* s = static_cast<const T*>(src);
   T* d = static_cast<T*>(dest);
-  sSerialization::DeepCopy(s, d, f);
+
+  if (boost::has_virtual_destructor<T>::value)
+  {
+    assert(typeid(*s).name() == typeid(T).name());
+    assert(typeid(*d).name() == typeid(T).name());
+  }
+
+  sSerialization::DeepCopy(*s, *d, f);
 }
 
 } // namespace rrlib

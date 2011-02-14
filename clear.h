@@ -18,18 +18,56 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include "rrlib/serialization/sSerialization.h"
+
+#ifndef __rrlib__serialization__clear_h__
+#define __rrlib__serialization__clear_h__
+
+#include <vector>
+#include <list>
+#include <deque>
+
+/*!
+ * \author Max Reichardt
+ *
+ * This file contains the clear namespace with diverse
+ * functions for releasing any shared objects an object might hold on to.
+ *
+ * More functions for custom types may be added to this namespace
+ * by a user of this library.
+ */
 
 namespace rrlib
 {
 namespace serialization
 {
-template<typename T>
-void tGenericObjectInstance<T>::DeepCopyFromImpl(const T& source, tFactory* f)
+namespace clear
 {
-  sSerialization::DeepCopy(source, data, f);
+
+inline void Clear(void* p)
+{
+  // do nothing by default
 }
 
-} // namespace rrlib
-} // namespace serialization
+template <typename T>
+inline void Clear(std::vector<std::shared_ptr<T> >* v)
+{
+  v.clear();
+}
 
+template <typename T>
+inline void Clear(std::list<std::shared_ptr<T> >* v)
+{
+  v.clear();
+}
+
+template <typename T>
+inline void Clear(std::deque<std::shared_ptr<T> >* v)
+{
+  v.clear();
+}
+
+} // namespace
+} // namespace
+} // namespace
+
+#endif // __rrlib__serialization__clear_h__
