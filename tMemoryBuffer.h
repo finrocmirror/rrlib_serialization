@@ -28,6 +28,8 @@
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tConstSource.h"
 #include "rrlib/serialization/tSink.h"
+#include "rrlib/serialization/tGenericChangeable.h"
+#include <stdint.h>
 
 #include "rrlib/logging/definitions.h"
 
@@ -48,7 +50,7 @@ class tOutputStream;
  *
  * Writing and reading concurrently is not supported - due to resize.
  */
-class tMemoryBuffer : public tSerializable, public tConstSource, public tSink
+class tMemoryBuffer : public tSerializable, public tConstSource, public tSink, public tGenericChangeable<tMemoryBuffer>
 {
 private:
 
@@ -120,6 +122,8 @@ public:
    */
   tMemoryBuffer(size_t size = cDEFAULT_SIZE, float resize_factor = cDEFAULT_RESIZE_FACTOR);
 
+  virtual void ApplyChange(tMemoryBuffer* t, int64_t offset, int64_t dummy);
+
   /*!
    * Clear buffer
    */
@@ -143,6 +147,8 @@ public:
     // do nothing, really
     buffer.Reset();
   }
+
+  void CopyFrom(tMemoryBuffer* source);
 
   virtual ~tMemoryBuffer()
   {

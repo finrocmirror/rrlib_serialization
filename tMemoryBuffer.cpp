@@ -40,6 +40,21 @@ tMemoryBuffer::tMemoryBuffer(size_t size, float resize_factor) :
 {
 }
 
+void tMemoryBuffer::ApplyChange(tMemoryBuffer* t, int64_t offset, int64_t dummy)
+{
+  EnsureCapacity(static_cast<int>((t->GetSize() + offset)), true, GetSize());
+  backend->Put(static_cast<size_t>(offset), *t->backend, 0u, t->GetSize());
+  size_t required_size = static_cast<size_t>(offset + t->GetSize());
+  cur_size = std::max(cur_size, required_size);
+}
+
+void tMemoryBuffer::CopyFrom(tMemoryBuffer* source)
+{
+  EnsureCapacity(source->GetSize(), false, GetSize());
+  backend->Put(0u, *source->backend, 0u, source->GetSize());
+  cur_size = source->GetSize();
+}
+
 void tMemoryBuffer::Deserialize(tInputStream& rv)
 {
   int size = rv.ReadInt();  // Buffer size is limited to 2 GB

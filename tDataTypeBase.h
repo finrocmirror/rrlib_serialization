@@ -25,12 +25,15 @@
 #include <assert.h>
 #include <boost/utility.hpp>
 #include <memory>
+#include <stdexcept>
 #include <stdint.h>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
 #include <boost/type_traits/is_base_of.hpp>
+#include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/locks.hpp>
 
 namespace rrlib
 {
@@ -188,6 +191,17 @@ protected:
 private:
 
   /*!
+   * Helper for constructor (needs to be called in synchronized context)
+   */
+  void AddType(tDataTypeInfoRaw* nfo);
+
+  static boost::recursive_mutex& GetMutex()
+  {
+    static boost::recursive_mutex mutex;
+    return mutex;
+  }
+
+  /*!
    * Helper method that safely provides static data type list
    */
   inline static std::vector<tDataTypeBase>& GetTypes()
@@ -341,11 +355,35 @@ public:
   static std::string GetDataTypeNameFromRtti(const char* rtti);
 
   /*!
+   * \return In case of list: type of elements
+   */
+  inline tDataTypeBase GetElementType() const
+  {
+    if (info != NULL)
+    {
+      return tDataTypeBase(info->element_type);
+    }
+    return GetNullType();
+  }
+
+  /*!
    * \return DataTypeInfo object
    */
   inline const tDataTypeInfoRaw* GetInfo()
   {
     return info;
+  }
+
+  /*!
+   * \return In case of element: list type (std::vector<T>)
+   */
+  inline tDataTypeBase GetListType() const
+  {
+    if (info != NULL)
+    {
+      return tDataTypeBase(info->list_type);
+    }
+    return GetNullType();
   }
 
   /*!
@@ -367,6 +405,30 @@ public:
   inline static tDataTypeBase GetNullType()
   {
     return tDataTypeBase(NULL);
+  }
+
+  /*!
+   * \return Related type
+   */
+  inline tDataTypeBase GetRelatedType() const
+  {
+    if (info != NULL)
+    {
+      return tDataTypeBase(info->related_type);
+    }
+    return GetNullType();
+  }
+
+  /*!
+   * \return In case of element: shared pointer list type (std::vector<std::shared_ptr<T>>)
+   */
+  inline tDataTypeBase GetSharedPtrListType() const
+  {
+    if (info != NULL)
+    {
+      return tDataTypeBase(info->shared_ptr_list_type);
+    }
+    return GetNullType();
   }
 
   /*!
@@ -392,6 +454,14 @@ public:
       return GetNullType();
     }
     return GetTypes()[uid];
+  }
+
+  /*!
+   * \return Number of registered types
+   */
+  inline static int16_t GetTypeCount()
+  {
+    return static_cast<int16_t>(GetTypes().size());
   }
 
   /*!
@@ -431,6 +501,21 @@ public:
       return;
     }
     info->Serialize(os, obj);
+  }
+
+  /*!
+   * \param related Related Type
+   */
+  inline void SetRelatedType(tDataTypeBase related)
+  {
+    if (info != NULL)
+    {
+      const_cast<tDataTypeInfoRaw*>(info)->related_type = const_cast<tDataTypeInfoRaw*>(related.info);
+    }
+    else
+    {
+      throw std::runtime_error("Null pointer !?");
+    }
   }
 
 };

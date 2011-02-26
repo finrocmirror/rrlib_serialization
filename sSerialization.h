@@ -36,6 +36,7 @@ namespace serialization
 class tStringOutputStream;
 class tStringInputStream;
 class tFactory;
+class tGenericObject;
 
 /*!
  * \author Max Reichardt
@@ -116,6 +117,16 @@ public:
    * \param s Hex String to deserialize from
    */
   static void DeserializeFromHexString(tSerializable* cs, tStringInputStream& s);
+
+  /*!
+   * Serialization-based equals()-method
+   * (not very efficient/RT-capable - should therefore not be called regular loops)
+   *
+   * \param obj1 Object1
+   * \param obj2 Object2
+   * @returns true if both objects are serialized to the same binary data (usually they are equal then)
+   */
+  static bool Equals(const tGenericObject& obj1, const tGenericObject& obj2);
 
   /*!
    * Serializes string stream serializable object to string

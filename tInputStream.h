@@ -433,7 +433,7 @@ public:
   /*!
    * \return Reads type from stream
    */
-  tDataTypeBase ReadType();
+  virtual tDataTypeBase ReadType();
 
   /*!
    * \return unsigned 1 byte integer

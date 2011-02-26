@@ -2,7 +2,7 @@
 <!-- <!DOCTYPE targets PUBLIC "-//RRLIB//DTD make 1.0" "http://rrlib.org/xml/1.0/make.dtd"> -->
 <targets>
 
-  <rrlib name="serialization" libs="boost">
+  <rrlib name="serialization" libs="boost boost_thread">
     <sources>
       *.cpp
     </sources>

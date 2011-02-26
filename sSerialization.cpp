@@ -23,6 +23,7 @@
 #include "rrlib/serialization/sSerialization.h"
 #include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/tStringInputStream.h"
+#include "rrlib/serialization/tGenericObject.h"
 #include <stdexcept>
 #include <stdint.h>
 
@@ -84,6 +85,40 @@ void sSerialization::DeserializeFromHexString(tSerializable* cs, tStringInputStr
   tInputStream ci(&(cb));
   cs->Deserialize(ci);
   ci.Close();
+}
+
+bool sSerialization::Equals(const tGenericObject& obj1, const tGenericObject& obj2)
+{
+  if (obj1.GetType() != obj2.GetType())
+  {
+    return false;
+  }
+
+  tStackMemoryBuffer<32768> buf1;
+  tStackMemoryBuffer<32768> buf2;
+  tOutputStream os1(&(buf1));
+  tOutputStream os2(&(buf2));
+  obj1.Serialize(os1);
+  obj2.Serialize(os2);
+  os1.Close();
+  os2.Close();
+
+  if (buf1.GetSize() != buf2.GetSize())
+  {
+    return false;
+  }
+
+  tInputStream is1(&(buf1));
+  tInputStream is2(&(buf2));
+
+  for (int i = 0; i < buf1.GetSize(); i++)
+  {
+    if (is1.ReadByte() != is2.ReadByte())
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 std::string sSerialization::Serialize(const tSerializable& rs)

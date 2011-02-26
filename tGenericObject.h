@@ -23,9 +23,8 @@
 #define __rrlib__serialization__tGenericObject_h__
 
 #include "rrlib/serialization/tDataTypeBase.h"
-#include "rrlib/serialization/tSerializable.h"
+#include "rrlib/serialization/tTypedObject.h"
 #include <assert.h>
-#include <boost/utility.hpp>
 #include <typeinfo>
 
 namespace rrlib
@@ -48,17 +47,29 @@ class tGenericObjectManager;
  *
  * Memory Layout of all subclasses: vtable ptr | datatype ptr | object ptr | management info raw memory of size M
  */
-class tGenericObject : public boost::noncopyable, public tSerializable
+class tGenericObject : public tTypedObject
 {
-private:
-
-  /*! Data Type of wrapped object */
-  tDataTypeBase type;
-
 protected:
 
   /*! Wrapped object */
   void* wrapped;
+
+  //    /**
+  //     * Deep copy source object to this object
+  //     * (types MUST match)
+  //     *
+  //     * \param source Source object
+  //     */
+  //    @Inline
+  //    public <T extends RRLibSerializable> void deepCopyFrom(@Const @Ptr T source, @CppDefault("NULL") @Ptr Factory f) {
+  //
+  //        //JavaOnlyBlock
+  //        assert(source.getClass() == type.getJavaClass());
+  //        deepCopyFrom((Object)source, f);
+  //
+  //         assert(typeid(T).Name() == type.GetRttiName());
+  //         DeepCopyFrom((void*)source);
+  //    }
 
   /*!
    * Deep copy source object to this object
@@ -67,14 +78,6 @@ protected:
    * \param source Source object
    */
   virtual void DeepCopyFrom(const void* source, tFactory* f = NULL) = 0;
-
-  /*!
-   * \return Management information for this generic object.
-   */
-  inline tGenericObjectManager* GetManager()
-  {
-    return reinterpret_cast<tGenericObjectManager*>(reinterpret_cast<char*>(this) + cMANAGER_OFFSET);
-  }
 
 public:
 
@@ -85,9 +88,9 @@ public:
    * \param dt Data Type of wrapped object
    */
   tGenericObject(tDataTypeBase dt) :
-      type(dt),
       wrapped()
   {
+    this->type = dt;
   }
 
   /*!
@@ -104,22 +107,9 @@ public:
    */
   inline void DeepCopyFrom(const tGenericObject* source, tFactory* f = NULL)
   {
-    assert(((source->type == type)) && "Types must match");
+    assert(((source->type == this->type)) && "Types must match");
 
     DeepCopyFrom(source->wrapped, f);
-  }
-
-  /*!
-   * Deep copy source object to this object
-   * (types MUST match)
-   *
-   * \param source Source object
-   */
-  template <typename T>
-  inline void DeepCopyFrom(const T* source, tFactory* f = NULL)
-  {
-    assert(typeid(T).name() == type.GetRttiName());
-    DeepCopyFrom((void*)source);
   }
 
   template <typename T>
@@ -140,11 +130,19 @@ public:
   }
 
   /*!
-   * \return Data Type of wrapped object
+   * \return Management information for this generic object.
    */
-  inline tDataTypeBase GetType() const
+  inline tGenericObjectManager* GetManager()
   {
-    return type;
+    return reinterpret_cast<tGenericObjectManager*>(reinterpret_cast<char*>(this) + cMANAGER_OFFSET);
+  }
+
+  /*!
+   * Raw void pointer to wrapped object
+   */
+  inline const void* GetRawDataPtr() const
+  {
+    return wrapped;
   }
 
 };

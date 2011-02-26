@@ -32,10 +32,17 @@ tDataTypeBase::tDataTypeBase(tDataTypeInfoRaw* info_) :
 {
   if (info_ != NULL && info_->new_info == true)
   {
-    info_->uid = static_cast<int16_t>(GetTypes().size());
-    GetTypes().push_back(*this);
-    info_->new_info = false;
+    ::boost::unique_lock<boost::recursive_mutex>(GetMutex());
+    AddType(info_);
+
   }
+}
+
+void tDataTypeBase::AddType(tDataTypeInfoRaw* nfo)
+{
+  nfo->uid = static_cast<int16_t>(GetTypes().size());
+  GetTypes().push_back(*this);
+  nfo->new_info = false;
 }
 
 void* tDataTypeBase::CreateInstance(void* placement) const
