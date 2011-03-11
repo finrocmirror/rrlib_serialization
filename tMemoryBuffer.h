@@ -283,6 +283,14 @@ public:
     backend = &buffer;
   }
 
+  virtual ~tStackMemoryBuffer()
+  {
+    if (backend == &buffer)
+    {
+      backend = NULL;
+    }
+  }
+
   virtual void DeleteOldBackend(tFixedBuffer* b)
   {
     if (b != &buffer)

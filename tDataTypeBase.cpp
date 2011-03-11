@@ -81,7 +81,7 @@ std::string tDataTypeBase::GetDataTypeNameFromRtti(const char* rtti)
 
   // remove ::
   long int last_pos = -1;
-  for (size_t i = demangled.size() - 1; i >= 0; i--)
+  for (long int i = demangled.size() - 1; i >= 0; i--)
   {
     char c = demangled[i];
     if (last_pos == -1)
