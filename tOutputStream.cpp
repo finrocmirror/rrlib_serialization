@@ -188,11 +188,11 @@ void tOutputStream::WriteString(const std::string& s, bool terminate)
 
 void tOutputStream::WriteType(tDataTypeBase type)
 {
-  if (encoding == tOutputStream::eLocalUids)
+  if (encoding == eLocalUids)
   {
     WriteShort(type.GetUid());
   }
-  else if (encoding == tOutputStream::eNames)
+  else if (encoding == eNames)
   {
     WriteString(type.GetName());
   }
@@ -202,7 +202,7 @@ void tOutputStream::WriteType(tDataTypeBase type)
   }
 }
 
-void tOutputStream::WriteTypeSpecialization(tDataTypeBase type)
+void tOutputStream::WriteTypeSpecialization(const tDataTypeBase& type)
 {
   throw std::logic_error("This should not be called");
 }

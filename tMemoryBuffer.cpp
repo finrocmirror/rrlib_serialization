@@ -40,11 +40,11 @@ tMemoryBuffer::tMemoryBuffer(size_t size, float resize_factor) :
 {
 }
 
-void tMemoryBuffer::ApplyChange(tMemoryBuffer* t, int64_t offset, int64_t dummy)
+void tMemoryBuffer::ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t dummy)
 {
-  EnsureCapacity(static_cast<int>((t->GetSize() + offset)), true, GetSize());
-  backend->Put(static_cast<size_t>(offset), *t->backend, 0u, t->GetSize());
-  size_t required_size = static_cast<size_t>(offset + t->GetSize());
+  EnsureCapacity(static_cast<int>((t.GetSize() + offset)), true, GetSize());
+  backend->Put(static_cast<size_t>(offset), *t.backend, 0u, t.GetSize());
+  size_t required_size = static_cast<size_t>(offset + t.GetSize());
   cur_size = std::max(cur_size, required_size);
 }
 

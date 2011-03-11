@@ -30,6 +30,7 @@
 
 #include "rrlib/serialization/detail/tListInfo.h"
 #include <boost/type_traits/has_virtual_destructor.hpp>
+#include "rrlib/serialization/tCustomTypeInitialization.h"
 
 namespace rrlib
 {
@@ -56,6 +57,13 @@ class tDataType : public tDataTypeBase
   public:
 
     tDataTypeInfo();
+
+    void Init(tCustomTypeInitialization* d)
+    {
+      T::CustomTypeInitialization(tDataTypeBase(this), (T*)NULL);
+    }
+
+    void Init(void* d) {}
 
     void InitRelatedTypes()
     {
@@ -124,7 +132,7 @@ public:
   // \param name Name data type should get (if different from default)
   tDataType(const std::string& name) : tDataTypeBase(GetDataTypeInfo())
   {
-    info->SetName(name);
+    GetDataTypeInfo()->SetName(name);
   }
 
   // Lookup data type by rtti name

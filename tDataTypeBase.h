@@ -369,7 +369,7 @@ public:
   /*!
    * \return DataTypeInfo object
    */
-  inline const tDataTypeInfoRaw* GetInfo()
+  inline const tDataTypeInfoRaw* GetInfo() const
   {
     return info;
   }
@@ -440,7 +440,7 @@ public:
     {
       return info->type;
     }
-    return tDataTypeBase::eNULL;
+    return eNULL;
   }
 
   /*!
@@ -483,9 +483,9 @@ public:
    * \param data_type Other type
    * \return Answer
    */
-  inline bool IsConvertibleTo(tDataTypeBase data_type)
+  inline bool IsConvertibleTo(const tDataTypeBase& data_type) const
   {
-    return data_type == this;
+    return data_type == *this;
   }
 
   /*!

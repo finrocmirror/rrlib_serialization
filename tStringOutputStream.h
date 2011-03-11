@@ -62,8 +62,7 @@ public:
    */
   tStringOutputStream(int length) :
       wrapped()
-  {
-  }
+  {}
 
   /*!
    * Clear contents and reset

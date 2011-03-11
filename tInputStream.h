@@ -157,16 +157,28 @@ public:
 
   tInputStream(tInputStream::tTypeEncoding encoding_ = eLocalUids);
 
-  tInputStream(::std::shared_ptr<const tConstSource> source_, tInputStream::tTypeEncoding encoding_ = eLocalUids);
+  template <typename T>
+  tInputStream(T source_, tInputStream::tTypeEncoding encoding_ = eLocalUids) :
+      source_lock(),
+      source_buffer(),
+      boundary_buffer(),
+      boundary_buffer_backend(14u),
+      cur_buffer(NULL),
+      source(NULL),
+      const_source(NULL),
+      absolute_read_pos(0),
+      cur_skip_offset_target(-1),
+      closed(false),
+      direct_read_support(false),
+      timeout(-1),
+      default_factory(),
+      factory(&(default_factory)),
+      encoding()
+  {
+    boundary_buffer.buffer = &(boundary_buffer_backend);
 
-  tInputStream(const tConstSource* source_, tInputStream::tTypeEncoding encoding_ = eLocalUids);
-
-  /*!
-   * \param source Source that handles, where the data blocks come from etc.
-   */
-  tInputStream(::std::shared_ptr<tSource> source_);
-
-  tInputStream(tSource* source_);
+    Reset(source_);
+  }
 
   /*!
    * In case of source change: Cleanup
@@ -401,9 +413,9 @@ public:
     {
       throw std::runtime_error("Wrong list type");
     }
-    container.Resize(size);
+    container.resize(size);
     typename C::iterator it;
-    for (it = container.Begin(); it != container.End(); it++)
+    for (it = container.begin(); it != container.end(); it++)
     {
       if (!const_type)
       {
@@ -466,19 +478,8 @@ public:
    */
   void Reset();
 
-  void Reset(std::shared_ptr<tConstSource> source)
-  {
-    source_lock = source;
-    Reset(source.get());
-  }
-
-  void Reset(std::shared_ptr<const tConstSource> source)
-  {
-    source_lock = source;
-    Reset(source.get());
-  }
-
-  void Reset(std::shared_ptr<tSource> source)
+  template <typename T>
+  void Reset(std::shared_ptr<T> source)
   {
     source_lock = source;
     Reset(source.get());

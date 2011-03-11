@@ -1,6 +1,5 @@
 /**
- * You received this file as part of an advanced experimental
- * robotics framework prototype ('finroc')
+ * You received this file as part of RRLib serialization
  *
  * Copyright (C) 2011 Max Reichardt,
  *   Robotics Research Lab, University of Kaiserslautern
@@ -19,36 +18,40 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
-#ifndef __rrlib__serialization__tGenericChangeable_h__
-#define __rrlib__serialization__tGenericChangeable_h__
-
-#include <stdint.h>
+#ifndef __rrlib__serialization__tCustomTypeInitialization_h__
+#define __rrlib__serialization__tCustomTypeInitialization_h__
 
 namespace rrlib
 {
 namespace serialization
 {
+
 /*!
  * \author Max Reichardt
  *
- * Interface for data types that can be changed using transactions T.
+ * Allows to perform custom type initializations when tDataType<T> is
+ * instantiated.
+ *
+ * For this, T should be a subclass of tCustomTypeInitialization
+ * and provide a static function:
+ *
+ * template <typename T>
+ * static void CustomTypeInitialization(tDataTypeBase dt, T* dummy);
+ *
+ * or
+ *
+ * static void CustomTypeInitialization(tDataTypeBase dt, void* dummy);
+ *
+ * T is that parameter T of tDataType.
+ * dt is the untyped tDataTypeBase object (with uid set) for T.
+ * dummy is a casted NULL pointer - to allow using void* when template
+ * parameter T is not required.
  */
-template<typename T>
-class tGenericChangeable
+class tCustomTypeInitialization
 {
-public:
-
-  /*!
-   * \param t Change/Transaction to apply
-   * \param parameter1 Custom parameter (e.g. start index)
-   * \param parameter2 Custom parameter 2 (e.g. length)
-   */
-  virtual void ApplyChange(const T& t, int64_t parameter1, int64_t parameter2) = 0;
-
 };
 
 } // namespace rrlib
 } // namespace serialization
 
-#endif // __rrlib__serialization__tGenericChangeable_h__
+#endif // __rrlib__serialization__tCustomTypeInitialization_h__

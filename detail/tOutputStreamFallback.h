@@ -60,14 +60,32 @@ public:
   }
 };
 
-template <typename T>
-inline tOutputStream& operator<< (tOutputStreamFallback os, const T& t)
+class tOutputStreamFallbackArg
 {
-  os << t;
+public:
+
+  void (*func)(tOutputStream&, void*);
+
+  template<typename T>
+  tOutputStreamFallbackArg(const T& t) : func(Serialize<T>) {}
+
+  template <typename T>
+  static void Serialize(tOutputStream& is, void* arg)
+  {
+    T* t = (T*)arg;
+    is << *t;
+  }
+};
+
+} // namespace
+
+inline rrlib::serialization::tOutputStream& operator<< (rrlib::serialization::detail::tOutputStreamFallback && os, detail::tOutputStreamFallbackArg t)
+{
+  (*t.func)(os, &t);
+  //os << t;
   return os;
 }
 
-} // namespace
 } // namespace
 } // namespace
 

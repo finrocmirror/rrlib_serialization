@@ -54,14 +54,32 @@ public:
   }
 };
 
-template <typename T>
-inline tInputStream& operator>> (tInputStreamFallback is, T& t)
+class tInputStreamFallbackArg
 {
-  is >> t;
+public:
+
+  void (*func)(tInputStream&, void*);
+
+  template<typename T>
+  tInputStreamFallbackArg(T& t) : func(Deserialize<T>) {}
+
+  template <typename T>
+  static void Deserialize(tInputStream& is, void* arg)
+  {
+    T* t = (T*)arg;
+    is >> *t;
+  }
+};
+
+} // namespace
+
+inline rrlib::serialization::tInputStream& operator>> (rrlib::serialization::detail::tInputStreamFallback && is, detail::tInputStreamFallbackArg t)
+{
+  (*t.func)(is, &t);
+  //is >> *t);
   return is;
 }
 
-} // namespace
 } // namespace
 } // namespace
 

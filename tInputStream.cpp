@@ -47,94 +47,6 @@ tInputStream::tInputStream(tInputStream::tTypeEncoding encoding_) :
   boundary_buffer.buffer = &(boundary_buffer_backend);
 }
 
-tInputStream::tInputStream(::std::shared_ptr<const tConstSource> source_, tInputStream::tTypeEncoding encoding_) :
-    source_lock(),
-    source_buffer(),
-    boundary_buffer(),
-    boundary_buffer_backend(14u),
-    cur_buffer(NULL),
-    source(NULL),
-    const_source(NULL),
-    absolute_read_pos(0),
-    cur_skip_offset_target(-1),
-    closed(false),
-    direct_read_support(false),
-    timeout(-1),
-    default_factory(),
-    factory(&(default_factory)),
-    encoding()
-{
-  boundary_buffer.buffer = &(boundary_buffer_backend);
-
-  Reset(source_);
-}
-
-tInputStream::tInputStream(const tConstSource* source_, tInputStream::tTypeEncoding encoding_) :
-    source_lock(),
-    source_buffer(),
-    boundary_buffer(),
-    boundary_buffer_backend(14u),
-    cur_buffer(NULL),
-    source(NULL),
-    const_source(NULL),
-    absolute_read_pos(0),
-    cur_skip_offset_target(-1),
-    closed(false),
-    direct_read_support(false),
-    timeout(-1),
-    default_factory(),
-    factory(&(default_factory)),
-    encoding()
-{
-  boundary_buffer.buffer = &(boundary_buffer_backend);
-
-  Reset(source_);
-}
-
-tInputStream::tInputStream(::std::shared_ptr<tSource> source_) :
-    source_lock(),
-    source_buffer(),
-    boundary_buffer(),
-    boundary_buffer_backend(14u),
-    cur_buffer(NULL),
-    source(NULL),
-    const_source(NULL),
-    absolute_read_pos(0),
-    cur_skip_offset_target(-1),
-    closed(false),
-    direct_read_support(false),
-    timeout(-1),
-    default_factory(),
-    factory(&(default_factory)),
-    encoding()
-{
-  boundary_buffer.buffer = &(boundary_buffer_backend);
-
-  Reset(source_);
-}
-
-tInputStream::tInputStream(tSource* source_) :
-    source_lock(),
-    source_buffer(),
-    boundary_buffer(),
-    boundary_buffer_backend(14u),
-    cur_buffer(NULL),
-    source(NULL),
-    const_source(NULL),
-    absolute_read_pos(0),
-    cur_skip_offset_target(-1),
-    closed(false),
-    direct_read_support(false),
-    timeout(-1),
-    default_factory(),
-    factory(&(default_factory)),
-    encoding()
-{
-  boundary_buffer.buffer = &(boundary_buffer_backend);
-
-  Reset(source_);
-}
-
 void tInputStream::Close()
 {
   if (!closed)
@@ -368,11 +280,11 @@ void tInputStream::ReadString(tStringOutputStream& sb, size_t length)
 
 tDataTypeBase tInputStream::ReadType()
 {
-  if (encoding == tInputStream::eLocalUids)
+  if (encoding == eLocalUids)
   {
     return tDataTypeBase::GetType(ReadShort());
   }
-  else if (encoding == tInputStream::eNames)
+  else if (encoding == eNames)
   {
     return tDataTypeBase::FindType(ReadString());
   }

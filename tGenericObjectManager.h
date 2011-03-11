@@ -43,12 +43,16 @@ class tGenericObjectManager
 {
 public:
 
-  /*!
-   * \return Generic object that this class manages
-   */
-  virtual tGenericObject* GetObject()
+  // \return Generic object that this class manages
+  tGenericObject* GetObject()
   {
     return reinterpret_cast<tGenericObject*>(reinterpret_cast<char*>(this) - tGenericObject::cMANAGER_OFFSET);
+  }
+
+  // \return Generic object that this class manages
+  const tGenericObject* GetObject() const
+  {
+    return reinterpret_cast<const tGenericObject*>(reinterpret_cast<const char*>(this) - tGenericObject::cMANAGER_OFFSET);
   }
 
 };

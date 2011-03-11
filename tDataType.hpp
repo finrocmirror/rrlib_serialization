@@ -36,6 +36,8 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
   size = sizeof(T);
   name = detail::tListInfo<T>::GetName();
 
+  Init((T*)NULL);
+
 }
 
 template<typename T>

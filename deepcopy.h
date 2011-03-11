@@ -22,6 +22,8 @@
 #ifndef __rrlib__serialization__deepcopy_h__
 #define __rrlib__serialization__deepcopy_h__
 
+#include "rrlib/serialization/tMemoryBuffer.h"
+
 /*!
  * \author Max Reichardt
  *
@@ -154,7 +156,7 @@ inline void CopySTLContainer(const C& src, C& dest, tFactory* f)
       }
       else
       {
-        copy(src[i], dest[i], f);
+        Copy(src[i], dest[i], f);
       }
     }
   }

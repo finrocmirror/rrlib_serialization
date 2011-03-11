@@ -122,7 +122,7 @@ public:
    */
   tMemoryBuffer(size_t size = cDEFAULT_SIZE, float resize_factor = cDEFAULT_RESIZE_FACTOR);
 
-  virtual void ApplyChange(tMemoryBuffer* t, int64_t offset, int64_t dummy);
+  virtual void ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t dummy);
 
   /*!
    * Clear buffer

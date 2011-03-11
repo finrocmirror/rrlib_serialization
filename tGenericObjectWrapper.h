@@ -50,7 +50,7 @@ class tOutputStream;
  *
  * Allows wrapping any object as GenericObject
  */
-template<typename T, typename M>
+template < typename T, typename M = tGenericObjectManagerPlaceHolder<8> >
 class tGenericObjectWrapper : public tGenericObject
 {
 private:
@@ -79,7 +79,7 @@ public:
    */
   inline void DeepCopyFromImpl(const T& source, tFactory* f = NULL)
   {
-    tSerialization::DeepCopy(source, *GetData<T>(), f);
+    sSerialization::DeepCopy(source, *GetData<T>(), f);
   }
 
   virtual void Deserialize(tInputStream& is)
@@ -97,7 +97,7 @@ public:
     node >> *GetData<T>();
   }
 
-  tGenericObjectInstance(T* wrapped_object) : tGenericObject(tDataType<T>()), manager()
+  tGenericObjectWrapper(T* wrapped_object) : tGenericObject(tDataType<T>()), manager()
   {
     assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == cMANAGER_OFFSET && "Manager offset invalid");
     wrapped = wrapped_object;

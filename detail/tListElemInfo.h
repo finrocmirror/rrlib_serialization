@@ -49,31 +49,35 @@ template <typename T>
 struct tListElemInfo
 {
   static const bool is_shared_ptr = false;
-  tDataTypeBase GetType(const T& t)
+  static tDataTypeBase GetType(const T& t)
   {
     return tDataType<T>();
   }
-  tDataTypeBase GetTypeT()
+  static tDataTypeBase GetTypeT()
   {
     return tDataType<T>();
   }
-  T& GetElem(const T& t)
+  static const T& GetElem(const T& t)
   {
     return t;
   }
-  void ChangeBufferType(tFactory* f, const T& t, tDataTypeBase type) {}
-  bool IsNull(const T& t)
+  static T& GetElem(T& t)
+  {
+    return t;
+  }
+  static void ChangeBufferType(tFactory* f, const T& t, tDataTypeBase type) {}
+  static bool IsNull(const T& t)
   {
     return false;
   }
-  void Reset(const T& t) {}
+  static void Reset(const T& t) {}
 };
 
 template <typename T>
 struct tListElemInfo<std::shared_ptr<T>>
 {
   static const bool is_shared_ptr = true;
-  tDataTypeBase GetType(const std::shared_ptr<T>& t)
+  static tDataTypeBase GetType(const std::shared_ptr<T>& t)
   {
     if (t.get() == NULL)
     {
@@ -81,23 +85,23 @@ struct tListElemInfo<std::shared_ptr<T>>
     }
     return tDataType<T>::findTypeByRtti(*t);
   }
-  tDataTypeBase GetTypeT()
+  static tDataTypeBase GetTypeT()
   {
     return tDataType<T>();
   }
-  T& GetElem(const std::shared_ptr<T>& t)
+  static T& GetElem(const std::shared_ptr<T>& t)
   {
     return *t;
   }
-  void ChangeBufferType(tFactory* f, std::shared_ptr<T>& t, tDataTypeBase type)
+  static void ChangeBufferType(tFactory* f, std::shared_ptr<T>& t, tDataTypeBase type)
   {
     f->CreateBuffer(t, type);
   }
-  bool IsNull(const std::shared_ptr<T>& t)
+  static bool IsNull(const std::shared_ptr<T>& t)
   {
     return t.get() == NULL;
   }
-  void Reset(std::shared_ptr<T>& t)
+  static void Reset(std::shared_ptr<T>& t)
   {
     t.reset();
   }

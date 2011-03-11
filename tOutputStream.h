@@ -143,7 +143,7 @@ protected:
    *
    * \param type Data type to write/reference
    */
-  virtual void WriteTypeSpecialization(tDataTypeBase type);
+  virtual void WriteTypeSpecialization(const tDataTypeBase& type);
 
 public:
 
@@ -214,11 +214,11 @@ public:
   {
     typedef detail::tListElemInfo<T> info;
 
-    WriteInt(container.Size());
+    WriteInt(container.size());
     const bool const_type = !info::is_shared_ptr;
     WriteBoolean(const_type); // const type?
-    typename T::const_iterator it;
-    for (it = container.Begin(); it != container.End(); it++)
+    typename C::const_iterator it;
+    for (it = container.begin(); it != container.end(); it++)
     {
       if (!const_type)
       {

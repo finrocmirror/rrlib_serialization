@@ -113,20 +113,20 @@ public:
   }
 
   template <typename T>
-  T* GetData()
+  const T* GetData() const
   {
     assert(typeid(T).name() == type.GetRttiName());
-    return static_cast<T*>(wrapped);
+    return static_cast<const T*>(wrapped);
   }
 
   /*!
    * \return Wrapped object (type T must match original type)
    */
   template <typename T>
-  inline const T* GetData() const
+  inline T* GetData()
   {
     assert(typeid(T).name() == type.GetRttiName());
-    return static_cast<const T*>(wrapped);
+    return static_cast<T*>(wrapped);
   }
 
   /*!
