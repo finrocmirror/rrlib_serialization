@@ -413,7 +413,17 @@ public:
     {
       throw std::runtime_error("Wrong list type");
     }
-    container.resize(size);
+
+    // container.resize(size);
+    while (container.size() < size)
+    {
+      container.emplace_back();
+    }
+    while (container.size() > size)
+    {
+      container.pop_back();
+    }
+
     typename C::iterator it;
     for (it = container.begin(); it != container.end(); it++)
     {

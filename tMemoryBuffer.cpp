@@ -48,11 +48,11 @@ void tMemoryBuffer::ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t 
   cur_size = std::max(cur_size, required_size);
 }
 
-void tMemoryBuffer::CopyFrom(tMemoryBuffer* source)
+void tMemoryBuffer::CopyFrom(const tMemoryBuffer& source)
 {
-  EnsureCapacity(source->GetSize(), false, GetSize());
-  backend->Put(0u, *source->backend, 0u, source->GetSize());
-  cur_size = source->GetSize();
+  EnsureCapacity(source.GetSize(), false, GetSize());
+  backend->Put(0u, *source.backend, 0u, source.GetSize());
+  cur_size = source.GetSize();
 }
 
 void tMemoryBuffer::Deserialize(tInputStream& rv)

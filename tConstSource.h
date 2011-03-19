@@ -22,6 +22,8 @@
 #ifndef __rrlib__serialization__tConstSource_h__
 #define __rrlib__serialization__tConstSource_h__
 
+#include <cstddef>
+
 namespace rrlib
 {
 namespace serialization

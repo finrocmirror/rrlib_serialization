@@ -28,6 +28,7 @@
 #include "rrlib/serialization/tInputStream.h"
 #include <boost/utility.hpp>
 #include <string>
+#include <vector>
 
 namespace rrlib
 {
@@ -129,6 +130,15 @@ public:
   static bool Equals(const tGenericObject& obj1, const tGenericObject& obj2);
 
   /*!
+   * Resize vector (also works for vectors with noncopyable types)
+   *
+   * \param vector Vector to resize
+   * \param new_size New Size
+   */
+  template <typename T>
+  static void ResizeVector(std::vector<T>& vector, size_t new_size);
+
+  /*!
    * Serializes string stream serializable object to string
    * (convenience function)
    *
@@ -165,7 +175,13 @@ template <typename T>
 void sSerialization::DeepCopy(const T& src, T& dest, tFactory* f)
 {
   tDefaultFactory df;
-  deepcopy::Copy(src, dest, f != NULL ? f : (tFactory*)&df);
+  detail::DeepCopy(src, dest, f != NULL ? f : (tFactory*)&df);
+}
+
+template <typename T>
+void sSerialization::ResizeVector(std::vector<T>& vector, size_t new_size)
+{
+  detail::tResize < std::vector<T>, !boost::is_base_of<boost::noncopyable, T>::value >::Resize(vector, new_size);
 }
 
 } // namespace rrlib

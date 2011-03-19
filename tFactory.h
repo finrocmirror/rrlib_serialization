@@ -48,7 +48,7 @@ public:
   template <typename T>
   void CreateBuffer(std::shared_ptr<T>& ptr, tDataTypeBase dt)
   {
-    ptr = std::dynamic_pointer_cast<T>(CreateBuffer(dt));
+    ptr = std::static_pointer_cast<T>(CreateBuffer(dt));
   }
 
   /*!

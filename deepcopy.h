@@ -41,103 +41,82 @@ namespace rrlib
 {
 namespace serialization
 {
+namespace detail
+{
+template <typename T>
+inline void SerializationFwdDeepCopy(const T& t, T& t2, tFactory* f);
+
+// Helper to be able to resize vectors of noncopyable types
+template <typename C, bool COPYABLE>
+struct tResize
+{
+  static inline void Resize(C& c, size_t new_size)
+  {
+    c.resize(new_size);
+  }
+};
+
+template <typename C>
+struct tResize<C, false>
+{
+  static inline void Resize(C& c, size_t new_size)
+  {
+    while (c.size() < new_size)
+    {
+      c.emplace_back();
+    }
+    while (c.size() > new_size)
+    {
+      c.pop_back();
+    }
+  }
+};
+
+}
+
 namespace deepcopy
 {
 
-struct any_source
+template <typename T>
+inline void CopyElement(const T& t, T& t2, tFactory* f)
 {
-  tDataTypeBase type;
-  tStackMemoryBuffer<65536> buffer;
+  detail::SerializationFwdDeepCopy(t, t2, f);
+}
 
-  template <typename T>
-  any_source(const T& t) : type(NULL), buffer()
+template <typename T>
+inline void CopyElement(const std::shared_ptr<T>& t, std::shared_ptr<T>& t2, tFactory* f)
+{
+  detail::SerializationFwdDeepCopy(*t, *t2, f);
+}
+
+template <typename C, bool b>
+struct tSimpleContainerCopy
+{
+  static inline void Copy(const C& src, C& dest)
   {
-    type = tDataType<T>();
-    tOutputStream os(&buffer);
-    os << t;
-    os.Close();
+    dest = src;
   }
 };
 
-struct any_dest
+template <typename C>
+struct tSimpleContainerCopy<C, true>
 {
-  tDataTypeBase type;
-  void* dest_ptr;
-
-  template <typename T>
-  any_dest(T& t) : type(NULL), dest_ptr(&t)
+  static inline void Copy(const C& src, C& dest)
   {
-    type = tDataType<T>();
+    assert(false && "Programming error below (?)");
   }
 };
 
-// fallback: use serialization, if nothing else matches
-// (uses wrappers, so that compiler chooses this last)
-inline void Copy(any_source src, any_dest dest, tFactory* f)
-{
-  assert(src.type == dest.type);
-  tInputStream ci(&(src.buffer));
-  ci.SetFactory(f);
-  dest.type.Deserialize(ci, dest.dest_ptr);
-  ci.Close();
-}
-
-inline void Copy(const char src, char dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const int8_t src, int8_t dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const int16_t src, int16_t dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const int32_t src, int32_t dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const int64_t src, int64_t dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const uint8_t src, uint8_t dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const uint16_t src, uint16_t dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const uint32_t src, uint32_t dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const uint64_t src, uint64_t dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const float src, float dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const double src, double dest, tFactory* f)
-{
-  dest = src;
-}
-inline void Copy(const std::string src, std::string dest, tFactory* f)
-{
-  dest = src;
-}
 
 template <typename C, typename T>
 inline void CopySTLContainer(const C& src, C& dest, tFactory* f)
 {
   typedef detail::tListElemInfo<T> info;
-  if (info::is_shared_ptr)
+  if (info::is_shared_ptr || boost::is_base_of<boost::noncopyable, T>::value)
   {
-    dest.resize(src.size());
+    //dest.resize(src.size());
+    detail::tResize < C, !boost::is_base_of<boost::noncopyable, T>::value >::Resize(dest, src.size());
+
     for (size_t i = 0; i < src.size(); i++)
     {
       if (info::IsNull(src[i]))
@@ -156,33 +135,114 @@ inline void CopySTLContainer(const C& src, C& dest, tFactory* f)
       }
       else
       {
-        Copy(src[i], dest[i], f);
+        CopyElement(src[i], dest[i], f);
       }
     }
   }
   else
   {
-    dest = src;
+    tSimpleContainerCopy<C, boost::is_base_of<boost::noncopyable, T>::value>::Copy(src, dest);
   }
 }
 
 template <typename T>
-inline void Copy(const std::vector<T> src, std::vector<T> dest, tFactory* f)
+inline void Copy(const std::vector<T>& src, std::vector<T>& dest, tFactory* f)
 {
   CopySTLContainer<std::vector<T>, T>(src, dest, f);
 }
 template <typename T>
-inline void Copy(const std::list<T> src, std::list<T> dest, tFactory* f)
+inline void Copy(const std::list<T>& src, std::list<T>& dest, tFactory* f)
 {
   CopySTLContainer<std::list<T>, T>(src, dest, f);
 }
 template <typename T>
-inline void Copy(const std::deque<T> src, std::deque<T> dest, tFactory* f)
+inline void Copy(const std::deque<T>& src, std::deque<T>& dest, tFactory* f)
 {
   CopySTLContainer<std::deque<T>, T>(src, dest, f);
 }
 
+} // namespace
 
+namespace detail
+{
+
+struct tFactoryWrapper
+{
+  tFactory* factory;
+  tFactoryWrapper(tFactory* f) : factory(f) {}
+};
+
+struct tSerializableWrapper
+{
+  tSerializable* s;
+  tSerializableWrapper(tSerializable& f) : s(&f) {}
+};
+
+// if deepcopy is defined, take this
+template <typename T>
+inline void DeepCopy(const T& t, T& t2, tFactory* f, decltype(rrlib::serialization::deepcopy::Copy(*((T*)NULL), *((T*)NULL), NULL))* = NULL)
+{
+  rrlib::serialization::deepcopy::Copy(t, t2, f);
+}
+
+template <typename T, bool B>
+struct tCopyImpl
+{
+  inline static void DeepCopyImpl(const T& t, T& t2, tFactory* f)
+  {
+    t2 = t;
+  }
+};
+
+template <typename T>
+struct tCopyImpl<T, true>
+{
+  inline static void DeepCopyImpl(const T& src, T& dest, tFactory* f)
+  {
+    tStackMemoryBuffer<65536> buffer;
+    tOutputStream os(&buffer);
+    os << src;
+    os.Close();
+    tInputStream ci(&buffer);
+    ci.SetFactory(f);
+    ci >> dest;
+    ci.Close();
+  }
+};
+
+// if not, use = operator
+template <typename T>
+inline void DeepCopy(const T& t, T& t2, tFactoryWrapper f)
+{
+  tCopyImpl<T, boost::is_base_of<boost::noncopyable, T>::value>::DeepCopyImpl(t, t2, f.factory);
+}
+
+// if no deepcopy operator and no = operator - try serialization
+//template <typename T>
+//inline void DeepCopy(const T& src, tSerializableWrapper dest, tFactoryWrapper f) {
+//  tInputStream ci(&src);
+//  ci.SetFactory(f.factory);
+//  tDataType<T>().Deserialize(ci, dest.s);
+//  ci.Close();
+//}
+
+} // namespace
+} // namespace
+} // namespace
+
+#include "rrlib/serialization/sSerialization.h"
+
+namespace rrlib
+{
+namespace serialization
+{
+namespace detail
+{
+template <typename T>
+inline void SerializationFwdDeepCopy(const T& t, T& t2, tFactory* f)
+{
+  sSerialization::DeepCopy(t, t2, f);
+}
 
 } // namespace
 } // namespace

@@ -83,7 +83,7 @@ struct tListElemInfo<std::shared_ptr<T>>
     {
       return tDataTypeBase(NULL);
     }
-    return tDataType<T>::findTypeByRtti(*t);
+    return tDataType<T>::FindTypeByRtti(typeid(*t).name());
   }
   static tDataTypeBase GetTypeT()
   {

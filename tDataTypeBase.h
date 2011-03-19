@@ -18,7 +18,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 #ifndef __rrlib__serialization__tDataTypeBase_h__
 #define __rrlib__serialization__tDataTypeBase_h__
 
@@ -34,6 +33,7 @@
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/locks.hpp>
+#include "rrlib/logging/definitions.h"
 
 namespace rrlib
 {
@@ -170,6 +170,8 @@ public:
     {
     }
 
+    virtual void Init() {}
+
     /*!
      * Set name of data type
      * (only valid if still default == not set before)
@@ -179,6 +181,11 @@ public:
     void SetName(const std::string& new_name);
 
   };
+
+private:
+
+  /*! Log domain for this class */
+  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "serialization");
 
 protected:
 
@@ -194,6 +201,11 @@ private:
    * Helper for constructor (needs to be called in synchronized context)
    */
   void AddType(tDataTypeInfoRaw* nfo);
+
+  inline const char* GetLogDescription()
+  {
+    return "DataTypeBase";
+  }
 
   static boost::recursive_mutex& GetMutex()
   {

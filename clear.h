@@ -51,19 +51,19 @@ inline void Clear(void* p)
 template <typename T>
 inline void Clear(std::vector<std::shared_ptr<T> >* v)
 {
-  v.clear();
+  v->clear();
 }
 
 template <typename T>
 inline void Clear(std::list<std::shared_ptr<T> >* v)
 {
-  v.clear();
+  v->clear();
 }
 
 template <typename T>
 inline void Clear(std::deque<std::shared_ptr<T> >* v)
 {
-  v.clear();
+  v->clear();
 }
 
 } // namespace

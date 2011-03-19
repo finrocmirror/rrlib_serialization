@@ -30,7 +30,9 @@
 
 #include "rrlib/serialization/detail/tListInfo.h"
 #include <boost/type_traits/has_virtual_destructor.hpp>
+#include <boost/type_traits/remove_reference.hpp>
 #include "rrlib/serialization/tCustomTypeInitialization.h"
+#include "rrlib/serialization/tStlContainerSuitable.h"
 
 namespace rrlib
 {
@@ -58,27 +60,37 @@ class tDataType : public tDataTypeBase
 
     tDataTypeInfo();
 
-    void Init(tCustomTypeInitialization* d)
+    void InitImpl(tCustomTypeInitialization* d)
     {
       T::CustomTypeInitialization(tDataTypeBase(this), (T*)NULL);
     }
 
-    void Init(void* d) {}
+    void InitImpl(void* d) {}
 
-    void InitRelatedTypes()
+    template <bool B>
+    typename boost::enable_if_c<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetListTypeInfo()
+    {
+      return tDataType<typename detail::tListInfo<T>::tListType>::GetDataTypeInfo();
+    }
+
+    template <bool B>
+    typename boost::disable_if_c<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetListTypeInfo()
+    {
+      return NULL;
+    }
+
+    virtual void Init()
     {
       if (type == ePLAIN)
       {
-        tDataType<typename detail::tListInfo<T>::tListType> l;
-        list_type = l.GetInfo();
-        tDataType<typename detail::tListInfo<T>::tSharedPtrListType> sl;
-        shared_ptr_list_type = sl.GetInfo();
+        list_type = GetListTypeInfo<tStlContainerSuitable<T>::value >();
+        shared_ptr_list_type = tDataType<typename detail::tListInfo<T>::tSharedPtrListType>::GetDataTypeInfo();
       }
       else
       {
-        tDataType<typename detail::tListInfo<T>::tElementType> e;
-        element_type = e.GetInfo();
+        element_type = tDataType<typename detail::tListInfo<T>::tElementType>::GetDataTypeInfo();
       }
+      InitImpl((T*)NULL);
     }
 
     virtual void* CreateInstance(void* placement) const
@@ -119,13 +131,6 @@ class tDataType : public tDataTypeBase
 
   };
 
-  // \return DataTypeInfo for this type T
-  static tDataTypeInfoRaw* GetDataTypeInfo()
-  {
-    static tDataTypeInfo info;
-    return &info;
-  }
-
 public:
   tDataType() : tDataTypeBase(GetDataTypeInfo()) {}
 
@@ -149,11 +154,36 @@ public:
     return tDataTypeBase::FindTypeByRtti(rtti_name);
   }
 
+  // \return DataTypeInfo for this type T
+  static tDataTypeInfoRaw* GetDataTypeInfo()
+  {
+    static tDataTypeInfo info;
+    return &info;
+  }
+
 };
 
 } // namespace rrlib
 } // namespace serialization
 
 #include "rrlib/serialization/tDataType.hpp"
+
+namespace rrlib
+{
+namespace serialization
+{
+template <>
+class tDataType<detail::tNothing> : public tDataTypeBase
+{
+public:
+  tDataType() : tDataTypeBase(NULL) {}
+  static tDataTypeInfoRaw* GetDataTypeInfo()
+  {
+    return NULL;
+  }
+};
+
+} // namespace rrlib
+} // namespace serialization
 
 #endif // __rrlib__serialization__tDataType_h__

@@ -22,16 +22,18 @@
 #ifndef __rrlib__serialization__tMemoryBuffer_h__
 #define __rrlib__serialization__tMemoryBuffer_h__
 
-#include "rrlib/serialization/tDataTypeBase.h"
-#include "rrlib/serialization/tBufferInfo.h"
-#include "rrlib/serialization/tFixedBuffer.h"
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tConstSource.h"
 #include "rrlib/serialization/tSink.h"
 #include "rrlib/serialization/tGenericChangeable.h"
+#include "rrlib/serialization/tDataTypeBase.h"
+#include "rrlib/serialization/tBufferInfo.h"
+#include "rrlib/serialization/tFixedBuffer.h"
+#include <boost/utility.hpp>
 #include <stdint.h>
 
 #include "rrlib/logging/definitions.h"
+#include "rrlib/serialization/tStlContainerSuitable.h"
 
 namespace rrlib
 {
@@ -50,7 +52,7 @@ class tOutputStream;
  *
  * Writing and reading concurrently is not supported - due to resize.
  */
-class tMemoryBuffer : public tSerializable, public tConstSource, public tSink, public tGenericChangeable<tMemoryBuffer>
+class tMemoryBuffer : public tSerializable, public tConstSource, public tSink, public tGenericChangeable<tMemoryBuffer>, public boost::noncopyable, public tStlSuitable
 {
 private:
 
@@ -116,6 +118,24 @@ protected:
 
 public:
 
+  tMemoryBuffer(tMemoryBuffer && o) :
+      backend(NULL),
+      resize_reserve_factor(cDEFAULT_RESIZE_FACTOR),
+      cur_size(0)
+  {
+    std::swap(backend, o.backend);
+    std::swap(resize_reserve_factor, o.resize_reserve_factor);
+    std::swap(cur_size, o.cur_size);
+  }
+
+  tMemoryBuffer& operator=(tMemoryBuffer && o)
+  {
+    std::swap(backend, o.backend);
+    std::swap(resize_reserve_factor, o.resize_reserve_factor);
+    std::swap(cur_size, o.cur_size);
+    return *this;
+  }
+
   /*!
    * \param size Initial buffer size
    * \param resize_factor When buffer needs to be reallocated, new size is multiplied with this factor to have some bytes in reserve
@@ -148,7 +168,7 @@ public:
     buffer.Reset();
   }
 
-  void CopyFrom(tMemoryBuffer* source);
+  void CopyFrom(const tMemoryBuffer& source);
 
   virtual ~tMemoryBuffer()
   {
@@ -299,6 +319,14 @@ public:
     }
   }
 };
+
+namespace deepcopy
+{
+inline void Copy(const tMemoryBuffer& src, tMemoryBuffer& dest, tFactory* f)
+{
+  dest.CopyFrom(src);
+}
+}
 
 } // namespace rrlib
 } // namespace serialization

@@ -34,6 +34,7 @@ tDataTypeBase::tDataTypeBase(tDataTypeInfoRaw* info_) :
   {
     ::boost::unique_lock<boost::recursive_mutex>(GetMutex());
     AddType(info_);
+    info_->Init();
 
   }
 }
@@ -43,6 +44,9 @@ void tDataTypeBase::AddType(tDataTypeInfoRaw* nfo)
   nfo->uid = static_cast<int16_t>(GetTypes().size());
   GetTypes().push_back(*this);
   nfo->new_info = false;
+  std::string msg("Adding data type ");
+  msg += GetName();
+  RRLIB_LOG_STREAM(logging::eLL_DEBUG_VERBOSE_1, log_domain, msg);
 }
 
 void* tDataTypeBase::CreateInstance(void* placement) const
