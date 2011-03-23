@@ -156,7 +156,7 @@ public:
    * \param sink_ Sink to write to
    * \param encoding Data type encoding that is used
    */
-  tOutputStream(::std::shared_ptr<tSink> sink_, tOutputStream::tTypeEncoding encoding_ = eLocalUids);
+  tOutputStream(std::shared_ptr<tSink>& sink_, tOutputStream::tTypeEncoding encoding_ = eLocalUids);
 
   tOutputStream(tSink* sink_, tOutputStream::tTypeEncoding encoding_ = eLocalUids);
 

@@ -40,7 +40,7 @@ tOutputStream::tOutputStream(tOutputStream::tTypeEncoding encoding_) :
 {
 }
 
-tOutputStream::tOutputStream(::std::shared_ptr<tSink> sink_, tOutputStream::tTypeEncoding encoding_) :
+tOutputStream::tOutputStream(std::shared_ptr<tSink>& sink_, tOutputStream::tTypeEncoding encoding_) :
     sink(NULL),
     immediate_flush(false),
     closed(true),

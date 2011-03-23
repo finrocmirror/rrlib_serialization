@@ -57,7 +57,7 @@ public:
    * \param dt Data type
    * \return Created buffer
    */
-  virtual ::std::shared_ptr<void> CreateBuffer(tDataTypeBase dt) = 0;
+  virtual std::shared_ptr<void> CreateBuffer(tDataTypeBase dt) = 0;
 
 };
 

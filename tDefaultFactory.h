@@ -43,7 +43,7 @@ public:
 
   tDefaultFactory() {}
 
-  virtual ::std::shared_ptr<void> CreateBuffer(tDataTypeBase dt)
+  virtual std::shared_ptr<void> CreateBuffer(tDataTypeBase dt)
   {
     return std::shared_ptr<void>(dt.CreateInstance());
   }
