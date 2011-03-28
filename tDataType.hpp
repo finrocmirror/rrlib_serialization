@@ -41,139 +41,76 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
 template<typename T>
 tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placement, size_t manager_size) const
 {
-  if (placement != NULL)
+  int size = ((sizeof(tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<8> >) + manager_size + 7 - 8) >> 3) << 3;
+  assert(size % 8 == 0);
+  if (placement == NULL)
   {
-    if (manager_size <= 8)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<8> >();
-    }
-    else if (manager_size <= 16)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<16> >();
-    }
-    else if (manager_size <= 24)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<24> >();
-    }
-    else if (manager_size <= 32)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<32> >();
-    }
-    else if (manager_size <= 40)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<40> >();
-    }
-    else if (manager_size <= 48)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<48> >();
-    }
-    else if (manager_size <= 56)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<56> >();
-    }
-    else if (manager_size <= 64)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<64> >();
-    }
-    else if (manager_size <= 72)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<72> >();
-    }
-    else if (manager_size <= 80)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<80> >();
-    }
-    else if (manager_size <= 88)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<88> >();
-    }
-    else if (manager_size <= 96)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<96> >();
-    }
-    else if (manager_size <= 104)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<104> >();
-    }
-    else if (manager_size <= 112)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<112> >();
-    }
-    else if (manager_size <= 120)
-    {
-      return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<120> >();
-    }
-    else
-    {
-      throw std::invalid_argument("Management info larger than 120 bytes not allowed");
-    }
+    placement = operator new(size);
+  }
+  memset(placement, 0, size); // set memory to 0 so that memcmp on class T can be performed cleanly for certain types
+  if (manager_size <= 8)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<8> >();
+  }
+  else if (manager_size <= 16)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<16> >();
+  }
+  else if (manager_size <= 24)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<24> >();
+  }
+  else if (manager_size <= 32)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<32> >();
+  }
+  else if (manager_size <= 40)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<40> >();
+  }
+  else if (manager_size <= 48)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<48> >();
+  }
+  else if (manager_size <= 56)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<56> >();
+  }
+  else if (manager_size <= 64)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<64> >();
+  }
+  else if (manager_size <= 72)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<72> >();
+  }
+  else if (manager_size <= 80)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<80> >();
+  }
+  else if (manager_size <= 88)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<88> >();
+  }
+  else if (manager_size <= 96)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<96> >();
+  }
+  else if (manager_size <= 104)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<104> >();
+  }
+  else if (manager_size <= 112)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<112> >();
+  }
+  else if (manager_size <= 120)
+  {
+    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<120> >();
   }
   else
   {
-    if (manager_size <= 8)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<8> >();
-    }
-    else if (manager_size <= 16)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<16> >();
-    }
-    else if (manager_size <= 24)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<24> >();
-    }
-    else if (manager_size <= 32)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<32> >();
-    }
-    else if (manager_size <= 40)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<40> >();
-    }
-    else if (manager_size <= 48)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<48> >();
-    }
-    else if (manager_size <= 56)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<56> >();
-    }
-    else if (manager_size <= 64)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<64> >();
-    }
-    else if (manager_size <= 72)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<72> >();
-    }
-    else if (manager_size <= 80)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<80> >();
-    }
-    else if (manager_size <= 88)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<88> >();
-    }
-    else if (manager_size <= 96)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<96> >();
-    }
-    else if (manager_size <= 104)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<104> >();
-    }
-    else if (manager_size <= 112)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<112> >();
-    }
-    else if (manager_size <= 120)
-    {
-      return new tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<120> >();
-    }
-    else
-    {
-      throw std::invalid_argument("Management info larger than 120 bytes not allowed");
-    }
+    throw std::invalid_argument("Management info larger than 120 bytes not allowed");
   }
 }
 

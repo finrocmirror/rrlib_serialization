@@ -95,14 +95,12 @@ class tDataType : public tDataTypeBase
 
     virtual void* CreateInstance(void* placement) const
     {
-      if (placement != NULL)
+      if (placement == NULL)
       {
-        return new(placement) T();
+        placement = operator new(sizeof(T));
       }
-      else
-      {
-        return new T();
-      }
+      memset(placement, 0, sizeof(T)); // set memory to 0 so that memcmp on class T can be performed cleanly for certain types
+      return new(placement) T();
     }
 
     virtual tGenericObject* CreateInstanceGeneric(void* placement, size_t manager_size) const;

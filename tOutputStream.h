@@ -383,7 +383,7 @@ public:
    */
   inline void WriteByte(int v)
   {
-    WriteNumber(v);
+    WriteNumber<int8_t>(static_cast<int8_t>(v));
   }
 
   /*!
@@ -427,7 +427,7 @@ public:
    */
   inline void WriteShort(int v)
   {
-    WriteNumber(v);
+    WriteNumber<int16_t>(static_cast<int16_t>(v));
   }
 
   /*!
