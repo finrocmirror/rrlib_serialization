@@ -28,6 +28,21 @@ namespace rrlib
 {
 namespace serialization
 {
+namespace detail
+{
+template <typename T, size_t MSIZE>
+tGenericObject* CreateInstanceGeneric(void* placement)
+{
+  size_t size = sizeof(tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<MSIZE> >);
+  if (placement == NULL)
+  {
+    placement = operator new(size);
+  }
+  memset(placement, 0, size); // set memory to 0 so that memcmp on class T can be performed cleanly for certain types
+  return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<MSIZE> >();
+}
+}
+
 template<typename T>
 tDataType<T>::tDataTypeInfo::tDataTypeInfo()
 {
@@ -41,72 +56,65 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
 template<typename T>
 tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placement, size_t manager_size) const
 {
-  int size = ((sizeof(tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<8> >) + manager_size + 7 - 8) >> 3) << 3;
-  assert(size % 8 == 0);
-  if (placement == NULL)
-  {
-    placement = operator new(size);
-  }
-  memset(placement, 0, size); // set memory to 0 so that memcmp on class T can be performed cleanly for certain types
   if (manager_size <= 8)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<8> >();
+    return detail::CreateInstanceGeneric<T, 8>(placement);
   }
   else if (manager_size <= 16)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<16> >();
+    return detail::CreateInstanceGeneric<T, 16>(placement);
   }
   else if (manager_size <= 24)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<24> >();
+    return detail::CreateInstanceGeneric<T, 24>(placement);
   }
   else if (manager_size <= 32)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<32> >();
+    return detail::CreateInstanceGeneric<T, 32>(placement);
   }
   else if (manager_size <= 40)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<40> >();
+    return detail::CreateInstanceGeneric<T, 40>(placement);
   }
   else if (manager_size <= 48)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<48> >();
+    return detail::CreateInstanceGeneric<T, 48>(placement);
   }
   else if (manager_size <= 56)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<56> >();
+    return detail::CreateInstanceGeneric<T, 56>(placement);
   }
   else if (manager_size <= 64)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<64> >();
+    return detail::CreateInstanceGeneric<T, 64>(placement);
   }
   else if (manager_size <= 72)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<72> >();
+    return detail::CreateInstanceGeneric<T, 72>(placement);
   }
   else if (manager_size <= 80)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<80> >();
+    return detail::CreateInstanceGeneric<T, 80>(placement);
   }
   else if (manager_size <= 88)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<88> >();
+    return detail::CreateInstanceGeneric<T, 88>(placement);
   }
   else if (manager_size <= 96)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<96> >();
+    return detail::CreateInstanceGeneric<T, 96>(placement);
   }
   else if (manager_size <= 104)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<104> >();
+    return detail::CreateInstanceGeneric<T, 104>(placement);
   }
   else if (manager_size <= 112)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<112> >();
+    return detail::CreateInstanceGeneric<T, 112>(placement);
   }
   else if (manager_size <= 120)
   {
-    return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<120> >();
+    return detail::CreateInstanceGeneric<T, 120>(placement);
   }
   else
   {
