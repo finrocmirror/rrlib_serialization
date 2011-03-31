@@ -61,7 +61,7 @@ class tDataType : public tDataTypeBase
     tDataTypeInfo();
 
     template < typename Q = T >
-    void tInitImpl(typename boost::enable_if_c<boost::is_base_of<tCustomTypeInitialization, Q>::value, tCustomTypeInitialization*>::type d)
+    void InitImpl(typename boost::enable_if_c<boost::is_base_of<tCustomTypeInitialization, Q>::value, tCustomTypeInitialization*>::type d)
     {
       T::CustomTypeInitialization(tDataTypeBase(this), (T*)NULL);
     }
