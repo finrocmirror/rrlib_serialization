@@ -60,7 +60,8 @@ class tDataType : public tDataTypeBase
 
     tDataTypeInfo();
 
-    void InitImpl(tCustomTypeInitialization* d)
+    template < typename Q = T >
+    void tInitImpl(typename boost::enable_if_c<boost::is_base_of<tCustomTypeInitialization, Q>::value, tCustomTypeInitialization*>::type d)
     {
       T::CustomTypeInitialization(tDataTypeBase(this), (T*)NULL);
     }
@@ -180,6 +181,8 @@ public:
     return NULL;
   }
 };
+
+extern template class tDataType<tMemoryBuffer>;
 
 } // namespace rrlib
 } // namespace serialization
