@@ -18,6 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+
 #ifndef __rrlib__serialization__tDataTypeBase_h__
 #define __rrlib__serialization__tDataTypeBase_h__
 
@@ -227,7 +228,7 @@ public:
   /*!
    * \param name Name of data type
    */
-  tDataTypeBase(tDataTypeInfoRaw* info_);
+  tDataTypeBase(tDataTypeInfoRaw* info_ = NULL);
 
   // Lookup data type by rtti name
   //
