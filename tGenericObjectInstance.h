@@ -24,35 +24,22 @@
 
 #include "rrlib/serialization/tStringInputStream.h"
 #include "rrlib/serialization/tStringOutputStream.h"
-#include "rrlib/serialization/sSerialization.h"
-#include "rrlib/serialization/tGenericObject.h"
+#include "rrlib/serialization/tGenericObjectBaseImpl.h"
 #include <assert.h>
 
 #include "rrlib/serialization/clear.h"
 
 namespace rrlib
 {
-namespace xml2
-{
-class tXMLNode;
-} // namespace rrlib
-} // namespace xml2
-
-namespace rrlib
-{
 namespace serialization
 {
-class tFactory;
-class tInputStream;
-class tOutputStream;
-
 /*!
  * \author Max Reichardt
  *
  * Used for initially creating/instantiating GenericObject.
  */
-template<typename T, typename M>
-class tGenericObjectInstance : public tGenericObject
+template < typename T, typename M = tGenericObjectManagerPlaceHolder<8> >
+class tGenericObjectInstance : public tGenericObjectBaseImpl<T>
 {
 private:
 
@@ -62,64 +49,11 @@ private:
   /*! Instantiated data */
   T data;
 
-protected:
-
-  virtual void DeepCopyFrom(const void* source, tFactory* f)
-  {
-    DeepCopyFromImpl(*static_cast<const T*>(source), f);
-  }
-
 public:
-
-  virtual void Clear()
+  tGenericObjectInstance() : tGenericObjectBaseImpl<T>(), manager(), data()
   {
-    clear::Clear(&data);
-  }
-
-  /*!
-   * Deep copy source object to this object
-   *
-   * \param source Source object
-   */
-  inline void DeepCopyFromImpl(const T& source, tFactory* f = NULL)
-  {
-    sSerialization::DeepCopy(source, data, f);
-  }
-
-  virtual void Deserialize(tInputStream& is)
-  {
-    is >> data;
-  }
-
-  virtual void Deserialize(tStringInputStream& is)
-  {
-    is >> data;
-  }
-
-  virtual void Deserialize(const xml2::tXMLNode& node)
-  {
-    node >> data;
-  }
-
-  tGenericObjectInstance() : tGenericObject(tDataType<T>()), manager(), data()
-  {
-    assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == cMANAGER_OFFSET && "Manager offset invalid");
-    wrapped = &data;
-  }
-
-  virtual void Serialize(tOutputStream& os) const
-  {
-    os << data;
-  }
-
-  virtual void Serialize(tStringOutputStream& os) const
-  {
-    os << data;
-  }
-
-  virtual void Serialize(xml2::tXMLNode& node) const
-  {
-    node << data;
+    assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == this->cMANAGER_OFFSET && "Manager offset invalid");
+    this->wrapped = &data;
   }
 
 };
