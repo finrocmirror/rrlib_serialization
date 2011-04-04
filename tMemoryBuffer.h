@@ -320,14 +320,6 @@ public:
   }
 };
 
-namespace deepcopy
-{
-inline void Copy(const tMemoryBuffer& src, tMemoryBuffer& dest, tFactory* f)
-{
-  dest.CopyFrom(src);
-}
-}
-
 } // namespace rrlib
 } // namespace serialization
 

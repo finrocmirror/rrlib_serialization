@@ -185,6 +185,13 @@ inline void DeepCopy(const T& t, T& t2, tFactory* f, decltype(rrlib::serializati
   rrlib::serialization::deepcopy::Copy(t, t2, f);
 }
 
+// if copyFrom is defined, take this
+template <typename T>
+inline void DeepCopy(const T& t, T& t2, tFactory* f, decltype(((T*)NULL)->CopyFrom(*((T*)NULL)))* = NULL)
+{
+  t2.CopyFrom(t);
+}
+
 template <typename T, bool B>
 struct tCopyImpl
 {
