@@ -22,27 +22,11 @@
 
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/sSerialization.h"
-#include <stdexcept>
 
 namespace rrlib
 {
 namespace serialization
 {
-namespace detail
-{
-template <typename T, size_t MSIZE>
-tGenericObject* CreateInstanceGeneric(void* placement)
-{
-  size_t size = sizeof(tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<MSIZE> >);
-  if (placement == NULL)
-  {
-    placement = operator new(size);
-  }
-  memset(placement, 0, size); // set memory to 0 so that memcmp on class T can be performed cleanly for certain types
-  return new(placement) tGenericObjectInstance<T, tGenericObjectManagerPlaceHolder<MSIZE> >();
-}
-}
-
 template<typename T>
 tDataType<T>::tDataTypeInfo::tDataTypeInfo()
 {
@@ -56,70 +40,21 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
 template<typename T>
 tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placement, size_t manager_size) const
 {
-  if (manager_size <= 8)
+  assert(sizeof(tGenericObjectInstance<T>) <= tGenericObject::cMANAGER_OFFSET);
+  while (manager_size % 8 != 0)
   {
-    return detail::CreateInstanceGeneric<T, 8>(placement);
+    manager_size++;
   }
-  else if (manager_size <= 16)
+  size_t obj_offset = tGenericObject::cMANAGER_OFFSET + manager_size;
+  size_t size = obj_offset + sizeof(T);
+  if (placement == NULL)
   {
-    return detail::CreateInstanceGeneric<T, 16>(placement);
+    placement = operator new(size);
   }
-  else if (manager_size <= 24)
-  {
-    return detail::CreateInstanceGeneric<T, 24>(placement);
-  }
-  else if (manager_size <= 32)
-  {
-    return detail::CreateInstanceGeneric<T, 32>(placement);
-  }
-  else if (manager_size <= 40)
-  {
-    return detail::CreateInstanceGeneric<T, 40>(placement);
-  }
-  else if (manager_size <= 48)
-  {
-    return detail::CreateInstanceGeneric<T, 48>(placement);
-  }
-  else if (manager_size <= 56)
-  {
-    return detail::CreateInstanceGeneric<T, 56>(placement);
-  }
-  else if (manager_size <= 64)
-  {
-    return detail::CreateInstanceGeneric<T, 64>(placement);
-  }
-  else if (manager_size <= 72)
-  {
-    return detail::CreateInstanceGeneric<T, 72>(placement);
-  }
-  else if (manager_size <= 80)
-  {
-    return detail::CreateInstanceGeneric<T, 80>(placement);
-  }
-  else if (manager_size <= 88)
-  {
-    return detail::CreateInstanceGeneric<T, 88>(placement);
-  }
-  else if (manager_size <= 96)
-  {
-    return detail::CreateInstanceGeneric<T, 96>(placement);
-  }
-  else if (manager_size <= 104)
-  {
-    return detail::CreateInstanceGeneric<T, 104>(placement);
-  }
-  else if (manager_size <= 112)
-  {
-    return detail::CreateInstanceGeneric<T, 112>(placement);
-  }
-  else if (manager_size <= 120)
-  {
-    return detail::CreateInstanceGeneric<T, 120>(placement);
-  }
-  else
-  {
-    throw std::invalid_argument("Management info larger than 120 bytes not allowed");
-  }
+  char* obj_addr = ((char*)placement) + obj_offset;
+  memset(obj_addr, 0, sizeof(T)); // set memory to 0 so that memcmp on class T can be performed cleanly for certain types
+  T* data_new = new(obj_addr) T();
+  return new(placement) tGenericObjectInstance<T>(data_new);
 }
 
 template<typename T>

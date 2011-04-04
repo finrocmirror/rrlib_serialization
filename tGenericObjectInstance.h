@@ -25,7 +25,6 @@
 #include "rrlib/serialization/tStringInputStream.h"
 #include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/tGenericObjectBaseImpl.h"
-#include <assert.h>
 
 #include "rrlib/serialization/clear.h"
 
@@ -37,23 +36,22 @@ namespace serialization
  * \author Max Reichardt
  *
  * Used for initially creating/instantiating GenericObject.
+ *
+ * This class should only be instantiated by tDataType !
  */
-template < typename T, typename M = tGenericObjectManagerPlaceHolder<8> >
+template<typename T>
 class tGenericObjectInstance : public tGenericObjectBaseImpl<T>
 {
-private:
-
-  /*! Manager */
-  M manager;
-
-  /*! Instantiated data */
-  T data;
-
 public:
-  tGenericObjectInstance() : tGenericObjectBaseImpl<T>(), manager(), data()
+  tGenericObjectInstance(T* wrapped_object) : tGenericObjectBaseImpl<T>()
   {
-    assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == this->cMANAGER_OFFSET && "Manager offset invalid");
-    this->wrapped = &data;
+    this->wrapped = wrapped_object;
+  }
+
+  virtual ~tGenericObjectInstance()
+  {
+    T* t = tGenericObject::GetData<T>();
+    t->~T();
   }
 
 };

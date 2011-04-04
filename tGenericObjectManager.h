@@ -60,19 +60,4 @@ public:
 } // namespace rrlib
 } // namespace serialization
 
-namespace rrlib
-{
-namespace serialization
-{
-/*! Helper class for factory */
-template <size_t SIZE>
-class tGenericObjectManagerPlaceHolder : public tGenericObjectManager
-{
-  // placeholder for actual manager object
-  char storage[SIZE - sizeof(tGenericObjectManager)];
-};
-
-} // namespace rrlib
-} // namespace serialization
-
 #endif // __rrlib__serialization__tGenericObjectManager_h__

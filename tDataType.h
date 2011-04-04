@@ -33,6 +33,7 @@
 #include <boost/type_traits/remove_reference.hpp>
 #include "rrlib/serialization/tCustomTypeInitialization.h"
 #include "rrlib/serialization/tStlContainerSuitable.h"
+#include <cstring>
 
 namespace rrlib
 {
@@ -183,6 +184,18 @@ public:
 };
 
 extern template class tDataType<tMemoryBuffer>;
+extern template class tDataType<int8_t>;
+extern template class tDataType<int16_t>;
+extern template class tDataType<int>;
+extern template class tDataType<long int>;
+extern template class tDataType<long long int>;
+extern template class tDataType<uint8_t>;
+extern template class tDataType<uint16_t>;
+extern template class tDataType<unsigned int>;
+extern template class tDataType<unsigned long int>;
+extern template class tDataType<unsigned long long int>;
+extern template class tDataType<double>;
+extern template class tDataType<float>;
 
 } // namespace rrlib
 } // namespace serialization

@@ -18,45 +18,28 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
-#ifndef __rrlib__serialization__tGenericObjectWrapper_h__
-#define __rrlib__serialization__tGenericObjectWrapper_h__
-
-#include "rrlib/serialization/tStringInputStream.h"
-#include "rrlib/serialization/tStringOutputStream.h"
-#include "rrlib/serialization/tGenericObjectManager.h"
-#include "rrlib/serialization/tGenericObjectBaseImpl.h"
-#include <assert.h>
-
-#include "rrlib/serialization/clear.h"
+#include "rrlib/serialization/tDataType.h"
 
 namespace rrlib
 {
 namespace serialization
 {
-/*!
- * \author Max Reichardt
- *
- * Allows wrapping any object as GenericObject
- */
-template < typename T, typename M = tGenericObjectManager >
-class tGenericObjectWrapper : public tGenericObjectBaseImpl<T>
-{
-private:
 
-  /*! Manager */
-  M manager;
-
-public:
-  tGenericObjectWrapper(T* wrapped_object) : tGenericObjectBaseImpl<T>(), manager()
-  {
-    assert((reinterpret_cast<char*>(&manager) - reinterpret_cast<char*>(this)) == this->cMANAGER_OFFSET && "Manager offset invalid");
-    this->wrapped = wrapped_object;
-  }
-
-};
+// some explicit template instantiations
+template class tDataType<tMemoryBuffer>;
+template class tDataType<int8_t>;
+template class tDataType<int16_t>;
+template class tDataType<int>;
+template class tDataType<long int>;
+template class tDataType<long long int>;
+template class tDataType<uint8_t>;
+template class tDataType<uint16_t>;
+template class tDataType<unsigned int>;
+template class tDataType<unsigned long int>;
+template class tDataType<unsigned long long int>;
+template class tDataType<double>;
+template class tDataType<float>;
 
 } // namespace rrlib
 } // namespace serialization
 
-#endif // __rrlib__serialization__tGenericObjectWrapper_h__

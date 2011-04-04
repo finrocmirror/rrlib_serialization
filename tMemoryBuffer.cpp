@@ -28,8 +28,6 @@ namespace rrlib
 {
 namespace serialization
 {
-template class tDataType<tMemoryBuffer>;
-
 const size_t tMemoryBuffer::cTEMP_ARRAY_SIZE;
 const size_t tMemoryBuffer::cDEFAULT_SIZE;
 const float tMemoryBuffer::cDEFAULT_RESIZE_FACTOR;
