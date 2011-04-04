@@ -183,7 +183,12 @@ inline tStringInputStream& operator>> (tStringInputStream& is, int32_t& t)
   is.wrapped  >> t;
   return is;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, int64_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& is, long int& t)
+{
+  is.wrapped  >> t;
+  return is;
+}
+inline tStringInputStream& operator>> (tStringInputStream& is, long long int& t)
 {
   is.wrapped  >> t;
   return is;
@@ -203,7 +208,12 @@ inline tStringInputStream& operator>> (tStringInputStream& is, uint32_t& t)
   is.wrapped  >> t;
   return is;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, uint64_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& is, unsigned long int& t)
+{
+  is.wrapped  >> t;
+  return is;
+}
+inline tStringInputStream& operator>> (tStringInputStream& is, unsigned long long int& t)
 {
   is.wrapped  >> t;
   return is;

@@ -109,7 +109,12 @@ inline tStringOutputStream& operator<< (tStringOutputStream& os, int32_t t)
   os.wrapped << t;
   return os;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, int64_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& os, long int t)
+{
+  os.wrapped << t;
+  return os;
+}
+inline tStringOutputStream& operator<< (tStringOutputStream& os, long long int t)
 {
   os.wrapped << t;
   return os;
@@ -129,7 +134,12 @@ inline tStringOutputStream& operator<< (tStringOutputStream& os, uint32_t t)
   os.wrapped << t;
   return os;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, uint64_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& os, unsigned long int t)
+{
+  os.wrapped << t;
+  return os;
+}
+inline tStringOutputStream& operator<< (tStringOutputStream& os, unsigned long long int t)
 {
   os.wrapped << t;
   return os;
