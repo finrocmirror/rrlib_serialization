@@ -23,6 +23,9 @@
 #define __rrlib__serialization__tStlContainerSuitable_h__
 
 #include <boost/utility.hpp>
+#include <boost/type_traits/is_enum.hpp>
+#include <boost/type_traits/is_floating_point.hpp>
+#include <boost/type_traits/is_integral.hpp>
 
 /*!
  * \author Max Reichardt
@@ -81,6 +84,31 @@ struct tStlContainerSuitable : public tStlContainerSuitableImpl<T, boost::is_bas
 {
 
 };
+
+// By deriving from this class, it can be indicated, that list type with shared pointers shall be instantiated
+class tNoSharedPtrListType {};
+
+template <typename T, bool NO, bool ELEM>
+struct tCreateSharedPtrListTypeImpl
+{
+  enum { value = 1 };
+};
+
+template <typename T, bool NO>
+struct tCreateSharedPtrListTypeImpl<T, NO, true>
+{
+  enum { value = 0 };
+};
+
+template <typename T, bool ELEM>
+struct tCreateSharedPtrListTypeImpl<T, true, ELEM>
+{
+  enum { value = 0 };
+};
+
+// Create shared pointer list type?
+template <typename T>
+struct tCreateSharedPtrListType : public tCreateSharedPtrListTypeImpl < T, boost::is_base_of<tNoSharedPtrListType, T>::value, boost::is_enum<T>::value || boost::is_integral<T>::value || boost::is_floating_point<T>::value > {};
 
 } // namespace
 } // namespace

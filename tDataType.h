@@ -81,12 +81,24 @@ class tDataType : public tDataTypeBase
       return NULL;
     }
 
+    template <bool B>
+    typename boost::enable_if_c<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetSharedPtrListTypeInfo()
+    {
+      return tDataType<typename detail::tListInfo<T>::tSharedPtrListType>::GetDataTypeInfo();
+    }
+
+    template <bool B>
+    typename boost::disable_if_c<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetSharedPtrListTypeInfo()
+    {
+      return NULL;
+    }
+
     virtual void Init()
     {
       if (type == ePLAIN)
       {
         list_type = GetListTypeInfo<tStlContainerSuitable<T>::value >();
-        shared_ptr_list_type = tDataType<typename detail::tListInfo<T>::tSharedPtrListType>::GetDataTypeInfo();
+        shared_ptr_list_type = GetSharedPtrListTypeInfo<tCreateSharedPtrListType<T>::value >();
       }
       else
       {
