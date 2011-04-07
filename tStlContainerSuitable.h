@@ -82,8 +82,14 @@ struct tStlContainerSuitableImpl<std::vector<T>, SUITABLE, UNSUITABLE, NONCOPYAB
 template <typename T>
 struct tStlContainerSuitable : public tStlContainerSuitableImpl<T, boost::is_base_of<tStlSuitable, T>::value, boost::is_base_of<tStlUnsuitable, T>::value, boost::is_base_of<boost::noncopyable, T>::value>
 {
-
 };
+
+template <>
+struct tStlContainerSuitable<bool>
+{
+  enum { value = 0 };
+};
+
 
 // By deriving from this class, it can be indicated, that list type with shared pointers shall be instantiated
 class tNoSharedPtrListType {};
@@ -109,6 +115,12 @@ struct tCreateSharedPtrListTypeImpl<T, true, ELEM>
 // Create shared pointer list type?
 template <typename T>
 struct tCreateSharedPtrListType : public tCreateSharedPtrListTypeImpl < T, boost::is_base_of<tNoSharedPtrListType, T>::value, boost::is_enum<T>::value || boost::is_integral<T>::value || boost::is_floating_point<T>::value > {};
+
+template <>
+struct tCreateSharedPtrListType<bool>
+{
+  enum { value = 0 };
+};
 
 } // namespace
 } // namespace

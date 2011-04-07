@@ -627,6 +627,11 @@ inline tInputStream& operator>> (tInputStream& is, double& t)
   t = is.ReadDouble();
   return is;
 }
+inline tInputStream& operator>> (tInputStream& is, bool& t)
+{
+  t = is.ReadBoolean();
+  return is;
+}
 inline tInputStream& operator>> (tInputStream& is, std::string& t)
 {
   t = is.ReadString();

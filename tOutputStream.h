@@ -542,6 +542,11 @@ inline tOutputStream& operator<< (tOutputStream& os, double t)
   os.WriteDouble(t);
   return os;
 }
+inline tOutputStream& operator<< (tOutputStream& os, bool t)
+{
+  os.WriteBoolean(t);
+  return os;
+}
 inline tOutputStream& operator<< (tOutputStream& os, const char* t)
 {
   os.WriteString(t);

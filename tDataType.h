@@ -208,6 +208,7 @@ extern template class tDataType<unsigned long int>;
 extern template class tDataType<unsigned long long int>;
 extern template class tDataType<double>;
 extern template class tDataType<float>;
+extern template class tDataType<bool>;
 
 } // namespace rrlib
 } // namespace serialization

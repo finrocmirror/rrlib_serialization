@@ -39,6 +39,7 @@ template class tDataType<unsigned long int>;
 template class tDataType<unsigned long long int>;
 template class tDataType<double>;
 template class tDataType<float>;
+template class tDataType<bool>;
 
 } // namespace rrlib
 } // namespace serialization

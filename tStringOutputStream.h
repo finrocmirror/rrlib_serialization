@@ -154,6 +154,11 @@ inline tStringOutputStream& operator<< (tStringOutputStream& os, double t)
   os.wrapped << t;
   return os;
 }
+inline tStringOutputStream& operator<< (tStringOutputStream& os, bool t)
+{
+  os.wrapped << t;
+  return os;
+}
 inline tStringOutputStream& operator<< (tStringOutputStream& os, const char* t)
 {
   os.wrapped << t;

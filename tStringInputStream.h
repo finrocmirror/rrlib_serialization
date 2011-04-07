@@ -228,6 +228,11 @@ inline tStringInputStream& operator>> (tStringInputStream& is, double& t)
   is.wrapped  >> t;
   return is;
 }
+inline tStringInputStream& operator>> (tStringInputStream& is, bool& t)
+{
+  is.wrapped  >> t;
+  return is;
+}
 inline tStringInputStream& operator>> (tStringInputStream& is, std::string& t)
 {
   t = is.ReadLine();
