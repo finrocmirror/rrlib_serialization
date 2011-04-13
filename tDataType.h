@@ -144,12 +144,20 @@ class tDataType : public tDataTypeBase
   };
 
 public:
-  tDataType() : tDataTypeBase(GetDataTypeInfo()) {}
+  tDataType() : tDataTypeBase(GetDataTypeInfo())
+  {
+    this->GetElementType();
+    this->GetListType();
+    this->GetSharedPtrListType();
+  }
 
   // \param name Name data type should get (if different from default)
   tDataType(const std::string& name) : tDataTypeBase(GetDataTypeInfo())
   {
     GetDataTypeInfo()->SetName(name);
+    this->GetElementType();
+    this->GetListType();
+    this->GetSharedPtrListType();
   }
 
   // Lookup data type by rtti name

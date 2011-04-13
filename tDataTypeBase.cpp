@@ -132,6 +132,16 @@ void tDataTypeBase::tDataTypeInfoRaw::SetName(const std::string& new_name)
 
   default_name = false;
   name = new_name;
+
+  if (list_type != NULL)
+  {
+    list_type->name = std::string("List<") + name + ">";
+  }
+  if (shared_ptr_list_type != NULL)
+  {
+    shared_ptr_list_type->name = std::string("List<") + name + "*>";
+  }
+
 }
 
 } // namespace rrlib
