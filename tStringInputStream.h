@@ -69,7 +69,7 @@ public:
   inline int Peek()
   {
     char result = wrapped.peek();
-    if (result == EOF)
+    if (wrapped.eof())
     {
       return -1;
     }
@@ -100,7 +100,7 @@ public:
   {
     char result;
     wrapped >> result;
-    if (result == EOF)
+    if (wrapped.eof())
     {
       return -1;
     }
