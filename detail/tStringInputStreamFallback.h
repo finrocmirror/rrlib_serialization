@@ -50,7 +50,7 @@ public:
 template <typename T>
 inline rrlib::serialization::tStringInputStream& operator>> (rrlib::serialization::detail::tStringInputStreamFallback && is, T& t)
 {
-  is >> t;
+  static_cast<rrlib::serialization::tStringInputStream&>(is) >> t;
   return is;
 }
 
