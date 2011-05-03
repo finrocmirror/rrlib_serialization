@@ -41,6 +41,7 @@ namespace rrlib
 namespace serialization
 {
 class tGenericObjectManager;
+class tDataTypeAnnotation;
 class tGenericObject;
 class tFactory;
 class tInputStream;
@@ -67,6 +68,8 @@ public:
   enum tType { ePLAIN, eLIST, ePTR_LIST, eNULL, eOTHER, eUNKNOWN };
 
 public:
+
+  static const size_t cMAX_ANNOTATIONS = 10;
 
   /*! Data type info */
   class tDataTypeInfoRaw : public boost::noncopyable
@@ -103,8 +106,8 @@ public:
     /*! In case of element: shared pointer list type (std::vector<std::shared_ptr<T>>) */
     tDataTypeInfoRaw* shared_ptr_list_type;
 
-    /*! Custom related type */
-    tDataTypeInfoRaw* related_type;
+    /*! Annotations to data type */
+    tDataTypeAnnotation* annotations[cMAX_ANNOTATIONS];
 
     /*!
      * \param placement (Optional) Destination for placement new
@@ -166,9 +169,12 @@ public:
         uid(-1),
         element_type(NULL),
         list_type(NULL),
-        shared_ptr_list_type(NULL),
-        related_type(NULL)
+        shared_ptr_list_type(NULL)
     {
+      for (size_t i = 0; i < cMAX_ANNOTATIONS; i++)
+      {
+        annotations[i] = NULL;
+      }
     }
 
     virtual void Init() {}
@@ -203,6 +209,24 @@ private:
    */
   void AddType(tDataTypeInfoRaw* nfo);
 
+  template <typename T>
+  struct tAnnotationIndex
+  {
+    static int index;
+  };
+
+  template <typename T>
+  bool AnnotationIndexValid(bool set_valid = false)
+  {
+    static bool valid = false;
+    if (set_valid)
+    {
+      assert(!valid);
+      valid = true;
+    }
+    return valid;
+  }
+
   inline const char* GetLogDescription()
   {
     return "DataTypeBase";
@@ -229,6 +253,42 @@ public:
    * \param name Name of data type
    */
   tDataTypeBase(tDataTypeInfoRaw* info_ = NULL);
+
+  /*!
+   * Add annotation to this data type
+   *
+   * \param ann Annotation
+   */
+  template <typename T>
+  inline void AddAnnotation(T* ann)
+  {
+    ::boost::unique_lock<boost::recursive_mutex>(GetMutex());
+    static size_t last_annotation_index = 0;
+    if (info != NULL)
+    {
+      assert(((ann->annotated_type == NULL)) && "Already used as annotation in other object. Not allowed (double deleteting etc.)");
+      ann->annotated_type = *this;
+      size_t ann_index = -1u;
+
+      if (!AnnotationIndexValid<T>())
+      {
+        last_annotation_index++;
+        assert(last_annotation_index < cMAX_ANNOTATIONS);
+        tAnnotationIndex<T>::index = last_annotation_index;
+        AnnotationIndexValid<T>(true);
+      }
+      ann_index = tAnnotationIndex<T>::index;
+
+      assert((ann_index > 0 && ann_index < cMAX_ANNOTATIONS));
+      assert((info->annotations[ann_index] == NULL));
+
+      const_cast<tDataTypeInfoRaw*>(info)->annotations[ann_index] = ann;
+    }
+    else
+    {
+      throw std::runtime_error("Null pointer !?");
+    }
+  }
 
   // Lookup data type by rtti name
   //
@@ -360,6 +420,25 @@ public:
   static tDataTypeBase FindType(const std::string& name);
 
   /*!
+   * Get annotation of specified class
+   *
+   * \param c Class of annotation we're looking for
+   * \return Annotation. Null if data type has no annotation of this type.
+   */
+  template <typename T>
+  inline T* GetAnnotation()
+  {
+    if (info != NULL)
+    {
+      return static_cast<T*>(info->annotations[tAnnotationIndex<T>::index]);
+    }
+    else
+    {
+      throw std::runtime_error("Null pointer !?");
+    }
+  }
+
+  /*!
    * Get uniform data type name from rtti type name
    *
    * \param rtti mangled rtti type name
@@ -418,18 +497,6 @@ public:
   inline static tDataTypeBase GetNullType()
   {
     return tDataTypeBase(NULL);
-  }
-
-  /*!
-   * \return Related type
-   */
-  inline tDataTypeBase GetRelatedType() const
-  {
-    if (info != NULL)
-    {
-      return tDataTypeBase(info->related_type);
-    }
-    return GetNullType();
   }
 
   /*!
@@ -516,22 +583,17 @@ public:
     info->Serialize(os, obj);
   }
 
-  /*!
-   * \param related Related Type
-   */
-  inline void SetRelatedType(tDataTypeBase related)
-  {
-    if (info != NULL)
-    {
-      const_cast<tDataTypeInfoRaw*>(info)->related_type = const_cast<tDataTypeInfoRaw*>(related.info);
-    }
-    else
-    {
-      throw std::runtime_error("Null pointer !?");
-    }
-  }
-
 };
+
+} // namespace rrlib
+} // namespace serialization
+
+namespace rrlib
+{
+namespace serialization
+{
+template <typename T>
+int tDataTypeBase::tAnnotationIndex<T>::index;
 
 } // namespace rrlib
 } // namespace serialization
