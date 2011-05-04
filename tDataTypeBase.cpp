@@ -117,6 +117,13 @@ std::string tDataTypeBase::GetDataTypeNameFromRtti(const char* rtti)
   {
     demangled = demangled.substr(last_pos, demangled.size() - last_pos);
   }
+
+  // possibly cut off s or t prefix
+  if (islower(demangled[0]) && isupper(demangled[1]))
+  {
+    demangled.erase(0, 1);
+  }
+
   return demangled;
 
 }
