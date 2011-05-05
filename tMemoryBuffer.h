@@ -28,6 +28,7 @@
 #include "rrlib/serialization/tGenericChangeable.h"
 #include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/serialization/tBufferInfo.h"
+#include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tFixedBuffer.h"
 #include <boost/utility.hpp>
 #include <stdint.h>
@@ -39,7 +40,6 @@ namespace rrlib
 {
 namespace serialization
 {
-class tInputStream;
 class tOutputStream;
 
 /*!
@@ -178,7 +178,19 @@ public:
 
   // CustomSerializable implementation
 
-  virtual void Deserialize(tInputStream& rv);
+  virtual void Deserialize(tInputStream& rv)
+  {
+    int size = rv.ReadInt();  // Buffer size is limited to 2 GB
+    Deserialize(rv, size);
+  }
+
+  /*!
+   * Reset this buffer and
+   * copy data from stream to it
+   *
+   * \param size Number of bytes to
+   */
+  void Deserialize(tInputStream& rv, size_t size);
 
   virtual void DirectRead(tInputStream* input_stream_buffer, tFixedBuffer& buffer, size_t offset, size_t len) const;
 

@@ -22,6 +22,7 @@
 #ifndef __rrlib__serialization__deepcopy_h__
 #define __rrlib__serialization__deepcopy_h__
 
+#include "rrlib/serialization/sStaticFactory.h"
 #include "rrlib/serialization/tMemoryBuffer.h"
 
 /*!
@@ -47,7 +48,7 @@ template <typename T>
 inline void SerializationFwdDeepCopy(const T& t, T& t2, tFactory* f);
 
 // Helper to be able to resize vectors of noncopyable types
-template <typename C, bool COPYABLE>
+template <typename C, typename E, bool COPYABLE>
 struct tResize
 {
   static inline void Resize(C& c, size_t new_size)
@@ -56,14 +57,14 @@ struct tResize
   }
 };
 
-template <typename C>
-struct tResize<C, false>
+template <typename C, typename E>
+struct tResize<C, E, false>
 {
   static inline void Resize(C& c, size_t new_size)
   {
     while (c.size() < new_size)
     {
-      c.emplace_back();
+      c.push_back(sStaticFactory<E>::CreateByValue());
     }
     while (c.size() > new_size)
     {
@@ -115,7 +116,7 @@ inline void CopySTLContainer(const C& src, C& dest, tFactory* f)
   if (info::is_shared_ptr || boost::is_base_of<boost::noncopyable, T>::value)
   {
     //dest.resize(src.size());
-    detail::tResize < C, !boost::is_base_of<boost::noncopyable, T>::value >::Resize(dest, src.size());
+    detail::tResize < C, T, !boost::is_base_of<boost::noncopyable, T>::value >::Resize(dest, src.size());
 
     for (size_t i = 0; i < src.size(); i++)
     {

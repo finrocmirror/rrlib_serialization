@@ -34,6 +34,7 @@
 #include "rrlib/serialization/tCustomTypeInitialization.h"
 #include "rrlib/serialization/tStlContainerSuitable.h"
 #include <cstring>
+#include "rrlib/serialization/sStaticFactory.h"
 
 namespace rrlib
 {
@@ -114,7 +115,7 @@ class tDataType : public tDataTypeBase
         placement = operator new(sizeof(T));
       }
       memset(placement, 0, sizeof(T)); // set memory to 0 so that memcmp on class T can be performed cleanly for certain types
-      return new(placement) T();
+      return sStaticFactory<T>::Create(placement);
     }
 
     virtual tGenericObject* CreateInstanceGeneric(void* placement, size_t manager_size) const;

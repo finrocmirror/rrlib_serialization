@@ -20,7 +20,6 @@
  */
 #include "rrlib/serialization/tMemoryBuffer.h"
 #include "rrlib/serialization/tDataType.h"
-#include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tOutputStream.h"
 #include <stdexcept>
 
@@ -55,9 +54,8 @@ void tMemoryBuffer::CopyFrom(const tMemoryBuffer& source)
   cur_size = source.GetSize();
 }
 
-void tMemoryBuffer::Deserialize(tInputStream& rv)
+void tMemoryBuffer::Deserialize(tInputStream& rv, size_t size)
 {
-  int size = rv.ReadInt();  // Buffer size is limited to 2 GB
   cur_size = 0u;
   Reallocate(size, false, -1u);
   rv.ReadFully(*backend, 0u, size);

@@ -41,6 +41,7 @@
 #include <list>
 #include <deque>
 #include <endian.h>
+#include "rrlib/serialization/sStaticFactory.h"
 
 namespace rrlib
 {
@@ -268,6 +269,12 @@ public:
    */
   float ReadFloat();
 
+  void ReadFully(void* address, size_t size)
+  {
+    tFixedBuffer tmp((char*)address, size);
+    ReadFully(tmp);
+  }
+
   /*!
    * Fill destination buffer (complete buffer)
    *
@@ -417,7 +424,7 @@ public:
     // container.resize(size);
     while (container.size() < size)
     {
-      container.emplace_back();
+      container.push_back(sStaticFactory<T>::CreateByValue());
     }
     while (container.size() > size)
     {

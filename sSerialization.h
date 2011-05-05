@@ -181,7 +181,7 @@ void sSerialization::DeepCopy(const T& src, T& dest, tFactory* f)
 template <typename T>
 void sSerialization::ResizeVector(std::vector<T>& vector, size_t new_size)
 {
-  detail::tResize < std::vector<T>, !boost::is_base_of<boost::noncopyable, T>::value >::Resize(vector, new_size);
+  detail::tResize < std::vector<T>, T, !boost::is_base_of<boost::noncopyable, T>::value >::Resize(vector, new_size);
 }
 
 } // namespace rrlib

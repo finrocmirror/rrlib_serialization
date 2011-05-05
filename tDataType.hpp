@@ -53,7 +53,7 @@ tGenericObject* tDataType<T>::tDataTypeInfo::CreateInstanceGeneric(void* placeme
   }
   char* obj_addr = ((char*)placement) + obj_offset;
   memset(obj_addr, 0, sizeof(T)); // set memory to 0 so that memcmp on class T can be performed cleanly for certain types
-  T* data_new = new(obj_addr) T();
+  T* data_new = sStaticFactory<T>::Create(obj_addr);
   return new(placement) tGenericObjectInstance<T>(data_new);
 }
 
