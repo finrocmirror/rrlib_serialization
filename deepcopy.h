@@ -34,8 +34,8 @@
  * If no function matches, the default serialization mechanism
  * is used as a fallback.
  *
- * More functions for custom types may be added to this namespace
- * by a user of this library.
+ * More functions for the optimized deep copying of custom types
+ * may be added by specializing the sDeepCopy struct.
  */
 
 namespace rrlib
@@ -164,6 +164,31 @@ inline void Copy(const std::deque<T>& src, std::deque<T>& dest, tFactory* f)
 
 } // namespace
 
+/*!
+ * Struct that defines how to do deep-copying for objects of type T
+ * if they are noncopyable and do not have CopyFrom method.
+ *
+ * May be specialized for certain types.
+ *
+ * (reason for this class: implementing alternative deepcopy::Copy methods
+ *  did not always work as expected)
+ */
+template <typename T>
+struct sDeepCopy
+{
+  static void Copy(const T& src, T& dest, tFactory* f)
+  {
+    tStackMemoryBuffer<65536> buffer;
+    tOutputStream os(&buffer);
+    os << src;
+    os.Close();
+    tInputStream ci(&buffer);
+    ci.SetFactory(f);
+    ci >> dest;
+    ci.Close();
+  }
+};
+
 namespace detail
 {
 
@@ -207,14 +232,7 @@ struct tCopyImpl<T, true>
 {
   inline static void DeepCopyImpl(const T& src, T& dest, tFactory* f)
   {
-    tStackMemoryBuffer<65536> buffer;
-    tOutputStream os(&buffer);
-    os << src;
-    os.Close();
-    tInputStream ci(&buffer);
-    ci.SetFactory(f);
-    ci >> dest;
-    ci.Close();
+    sDeepCopy<T>::Copy(src, dest, f);
   }
 };
 

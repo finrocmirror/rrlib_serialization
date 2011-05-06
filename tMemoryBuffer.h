@@ -25,7 +25,6 @@
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tConstSource.h"
 #include "rrlib/serialization/tSink.h"
-#include "rrlib/serialization/tGenericChangeable.h"
 #include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tInputStream.h"
@@ -52,7 +51,7 @@ class tOutputStream;
  *
  * Writing and reading concurrently is not supported - due to resize.
  */
-class tMemoryBuffer : public tSerializable, public tConstSource, public tSink, public tGenericChangeable<tMemoryBuffer>, public boost::noncopyable, public tStlSuitable
+class tMemoryBuffer : public tSerializable, public tConstSource, public tSink, public boost::noncopyable, public tStlSuitable
 {
 private:
 
@@ -142,7 +141,7 @@ public:
    */
   tMemoryBuffer(size_t size = cDEFAULT_SIZE, float resize_factor = cDEFAULT_RESIZE_FACTOR);
 
-  virtual void ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t dummy);
+  void ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t dummy);
 
   /*!
    * Clear buffer
