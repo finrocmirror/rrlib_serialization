@@ -26,7 +26,7 @@ namespace rrlib
 {
 namespace serialization
 {
-const double tOutputStream::cBUFFER_COPY_FRACTION;
+constexpr double tOutputStream::cBUFFER_COPY_FRACTION;
 
 tOutputStream::tOutputStream(tOutputStream::tTypeEncoding encoding_) :
     sink(NULL),

@@ -78,7 +78,7 @@ public:
   static const size_t cDEFAULT_SIZE = 8192u;
 
   /*! Default factor for buffer size increase */
-  static const float cDEFAULT_RESIZE_FACTOR = 2;
+  static constexpr float cDEFAULT_RESIZE_FACTOR = 2;
 
   /*! Data type of this class */
   static const tDataTypeBase cTYPE;
