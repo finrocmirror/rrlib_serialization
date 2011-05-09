@@ -32,7 +32,7 @@ tDataTypeBase::tDataTypeBase(tDataTypeInfoRaw* info_) :
 {
   if (info_ != NULL && info_->new_info == true)
   {
-    ::boost::unique_lock<boost::recursive_mutex>(GetMutex());
+    std::unique_lock<std::recursive_mutex>(GetMutex());
     AddType(info_);
     info_->Init();
 

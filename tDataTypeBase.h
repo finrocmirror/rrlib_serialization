@@ -32,8 +32,7 @@
 #include <vector>
 
 #include <boost/type_traits/is_base_of.hpp>
-#include <boost/thread/recursive_mutex.hpp>
-#include <boost/thread/locks.hpp>
+#include <mutex>
 #include "rrlib/logging/definitions.h"
 
 namespace rrlib
@@ -232,9 +231,9 @@ private:
     return "DataTypeBase";
   }
 
-  static boost::recursive_mutex& GetMutex()
+  static std::recursive_mutex& GetMutex()
   {
-    static boost::recursive_mutex mutex;
+    static std::recursive_mutex mutex;
     return mutex;
   }
 
@@ -262,7 +261,7 @@ public:
   template <typename T>
   inline void AddAnnotation(T* ann)
   {
-    ::boost::unique_lock<boost::recursive_mutex>(GetMutex());
+    std::unique_lock<std::recursive_mutex>(GetMutex());
     static size_t last_annotation_index = 0;
     if (info != NULL)
     {
