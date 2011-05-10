@@ -84,7 +84,7 @@ protected:
   std::shared_ptr<const tSink> sink_lock;
 
   /*! Committed buffers are buffered/copied (not forwarded directly), when smaller than 1/(2^n) of buffer capacity */
-  static constexpr double cBUFFER_COPY_FRACTION = 0.25;
+  static const double cBUFFER_COPY_FRACTION;
 
   /*! Source that determines where buffers that are written to come from and how they are handled */
   ::rrlib::serialization::tSink* sink;

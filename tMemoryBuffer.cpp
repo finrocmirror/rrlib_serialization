@@ -29,7 +29,7 @@ namespace serialization
 {
 const size_t tMemoryBuffer::cTEMP_ARRAY_SIZE;
 const size_t tMemoryBuffer::cDEFAULT_SIZE;
-constexpr float tMemoryBuffer::cDEFAULT_RESIZE_FACTOR;
+const int tMemoryBuffer::cDEFAULT_RESIZE_FACTOR;
 const tDataTypeBase tMemoryBuffer::cTYPE = tDataType<tMemoryBuffer>();
 
 tMemoryBuffer::tMemoryBuffer(size_t size, float resize_factor) :
