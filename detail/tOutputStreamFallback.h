@@ -64,13 +64,14 @@ class tOutputStreamFallbackArg
 {
 public:
 
-  void (*func)(tOutputStream&, void*);
+  void (*func)(tOutputStream&, const void*);
+  const void* ptr;
 
   template<typename T>
-  tOutputStreamFallbackArg(const T& t) : func(Serialize<T>) {}
+  tOutputStreamFallbackArg(const T& t) : func(Serialize<T>), ptr(&t) {}
 
   template <typename T>
-  static void Serialize(tOutputStream& is, void* arg)
+  static void Serialize(tOutputStream& is, const void* arg)
   {
     T* t = (T*)arg;
     is << *t;
@@ -81,7 +82,7 @@ public:
 
 inline rrlib::serialization::tOutputStream& operator<< (rrlib::serialization::detail::tOutputStreamFallback && os, detail::tOutputStreamFallbackArg t)
 {
-  (*t.func)(os, &t);
+  (*t.func)(os, t.ptr);
   //os << t;
   return os;
 }

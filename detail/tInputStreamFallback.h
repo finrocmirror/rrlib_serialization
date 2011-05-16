@@ -59,9 +59,10 @@ class tInputStreamFallbackArg
 public:
 
   void (*func)(tInputStream&, void*);
+  void* ptr;
 
   template<typename T>
-  tInputStreamFallbackArg(T& t) : func(Deserialize<T>) {}
+  tInputStreamFallbackArg(T& t) : func(Deserialize<T>), ptr(&t) {}
 
   template <typename T>
   static void Deserialize(tInputStream& is, void* arg)
@@ -75,7 +76,7 @@ public:
 
 inline rrlib::serialization::tInputStream& operator>> (rrlib::serialization::detail::tInputStreamFallback && is, detail::tInputStreamFallbackArg t)
 {
-  (*t.func)(is, &t);
+  (*t.func)(is, t.ptr);
   //is >> *t);
   return is;
 }

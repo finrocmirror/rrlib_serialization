@@ -128,6 +128,13 @@ std::string sSerialization::Serialize(const tSerializable& rs)
   return os.ToString();
 }
 
+std::string sSerialization::Serialize(const tGenericObject& go)
+{
+  tStringOutputStream os;
+  go.Serialize(os);
+  return os.ToString();
+}
+
 void sSerialization::SerializeToHexString(const tSerializable* cs, tStringOutputStream& os)
 {
   tStackMemoryBuffer<65536> cb;

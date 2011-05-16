@@ -148,6 +148,15 @@ public:
   static std::string Serialize(const tSerializable& rs);
 
   /*!
+   * Serializes generic object to string
+   * (convenience function)
+   *
+   * \param cs Serializable
+   * \return String
+   */
+  static std::string Serialize(const tGenericObject& go);
+
+  /*!
    * Serializes binary CoreSerializable to hex string
    *
    * \param cs CoreSerializable
