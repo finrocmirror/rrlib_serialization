@@ -26,6 +26,7 @@
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tFixedBuffer.h"
 #include "rrlib/serialization/tDefaultFactory.h"
+#include "rrlib/serialization/tTypeEncoder.h"
 #include "rrlib/serialization/tSource.h"
 #include "rrlib/serialization/tConstSource.h"
 #include "rrlib/serialization/tDataTypeBase.h"
@@ -48,6 +49,7 @@ namespace rrlib
 namespace serialization
 {
 class tFactory;
+class tGenericObject;
 class tStringOutputStream;
 
 /*!
@@ -61,7 +63,7 @@ class tInputStream : public boost::noncopyable, public tSource
 {
 public:
 
-  enum tTypeEncoding { eLocalUids, eNames, eSubClass };
+  enum tTypeEncoding { eLocalUids, eNames, eCustom };
 
   friend class tOutputStream;
 
@@ -112,6 +114,9 @@ protected:
   /*! Data type encoding that is used */
   tInputStream::tTypeEncoding encoding;
 
+  /*! Custom type encoder */
+  std::shared_ptr<tTypeEncoder> custom_encoder;
+
 private:
 
   /*!
@@ -147,19 +152,14 @@ protected:
    */
   virtual void FetchNextBytes(size_t min_required2);
 
-  /*!
-   * May be overridden by subclass to realize custom type serialization
-   *
-   * \return Data type that was read
-   */
-  virtual tDataTypeBase ReadTypeSpecialization();
-
 public:
 
   tInputStream(tInputStream::tTypeEncoding encoding_ = eLocalUids);
 
+  tInputStream(std::shared_ptr<tTypeEncoder> encoder);
+
   template <typename T>
-  tInputStream(T source_, tInputStream::tTypeEncoding encoding_ = eLocalUids) :
+  tInputStream(T source_, tInputStream::tTypeEncoding encoding_ = eLocalUids, decltype(source->DirectReadSupport()) dummy = true) :
       source_lock(),
       source_buffer(),
       boundary_buffer(),
@@ -174,7 +174,32 @@ public:
       timeout(-1),
       default_factory(),
       factory(&(default_factory)),
-      encoding()
+      encoding(encoding_),
+      custom_encoder()
+  {
+    boundary_buffer.buffer = &(boundary_buffer_backend);
+
+    Reset(source_);
+  }
+
+  template <typename T>
+  tInputStream(T source_, std::shared_ptr<tTypeEncoder> encoder) :
+      source_lock(),
+      source_buffer(),
+      boundary_buffer(),
+      boundary_buffer_backend(14u),
+      cur_buffer(NULL),
+      source(NULL),
+      const_source(NULL),
+      absolute_read_pos(0),
+      cur_skip_offset_target(-1),
+      closed(false),
+      direct_read_support(false),
+      timeout(-1),
+      default_factory(),
+      factory(&(default_factory)),
+      encoding(eCustom),
+      custom_encoder(encoder)
   {
     boundary_buffer.buffer = &(boundary_buffer_backend);
 
@@ -314,6 +339,17 @@ public:
   {
     return ReadNumber<int64_t>();
   }
+
+  /*!
+   * Deserialize object with yet unknown type from stream
+   * (should have been written to stream with OutputStream.WriteObject() before; typeencoder should be of the same type)
+   *
+   * \param in_inter_thread_container Deserialize "cheap copy" data in interthread container?
+   * \param expected_type expected type (optional, may be null)
+   * \param factory_parameter Custom parameter for possibly user defined factory
+   * \return Buffer with read object (caller needs to take care of deleting it)
+   */
+  tGenericObject* ReadObject(const tDataTypeBase& expected_type = NULL, void* factory_parameter = NULL);
 
   /*!
    * \return 2 byte integer
@@ -462,7 +498,7 @@ public:
   /*!
    * \return Reads type from stream
    */
-  virtual tDataTypeBase ReadType();
+  tDataTypeBase ReadType();
 
   /*!
    * \return unsigned 1 byte integer
@@ -530,11 +566,11 @@ public:
    *
    * It may be reset for more efficient buffer management.
    *
-   * \param factory Factory to use for creating objects.
+   * \param factory Factory to use for creating objects. (will not be deleted by this class)
    */
   inline void SetFactory(tFactory* factory_)
   {
-    this->factory = factory_;
+    this->factory = factory_ == NULL ? &(default_factory) : factory_;
   }
 
   /*!

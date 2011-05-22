@@ -29,6 +29,7 @@ namespace rrlib
 namespace serialization
 {
 class tDataTypeBase;
+class tGenericObject;
 
 /*!
  * \author Max Reichardt
@@ -53,11 +54,22 @@ public:
 
   /*!
    * Create buffer
+   * (used to fill vectors)
    *
    * \param dt Data type
    * \return Created buffer
    */
   virtual std::shared_ptr<void> CreateBuffer(tDataTypeBase dt) = 0;
+
+  /*!
+   * Create generic object
+   * (used in writeObject() / readObject() of stream classes)
+   *
+   * \param dt Data type
+   * \param factory_parameter Custom factory parameter
+   * \return Created buffer
+   */
+  virtual tGenericObject* CreateGenericObject(tDataTypeBase dt, void* factory_parameter) = 0;
 
 };
 

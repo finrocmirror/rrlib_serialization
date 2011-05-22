@@ -138,6 +138,8 @@ public:
     {
     }
 
+    virtual ~tDataTypeInfoRaw();
+
     /*!
      * Deserialize object from input stream
      *

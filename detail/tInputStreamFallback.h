@@ -43,11 +43,14 @@ class tInputStreamFallback : public tInputStream
 {
   std::shared_ptr<tMemoryBuffer> mb;
 public:
+  tStringInputStream& org_stream;
+
   tInputStreamFallback(tStringInputStream& s) :
-      tInputStream(),
-      mb(new tMemoryBuffer(50000))
+      tInputStream(tInputStream::eNames),
+      mb(new tMemoryBuffer(50000)),
+      org_stream(s)
   {
-    tOutputStream co(mb);
+    tOutputStream co(mb, tOutputStream::eNames);
     sSerialization::ConvertHexStringToBinary(s, co);
     co.Close();
     Reset(mb.get());
@@ -74,11 +77,11 @@ public:
 
 } // namespace
 
-inline rrlib::serialization::tInputStream& operator>> (rrlib::serialization::detail::tInputStreamFallback && is, detail::tInputStreamFallbackArg t)
+inline rrlib::serialization::tStringInputStream& operator>> (rrlib::serialization::detail::tInputStreamFallback && is, detail::tInputStreamFallbackArg t)
 {
   (*t.func)(is, t.ptr);
   //is >> *t);
-  return is;
+  return is.org_stream;
 }
 
 } // namespace

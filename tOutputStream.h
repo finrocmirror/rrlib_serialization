@@ -24,6 +24,7 @@
 
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tBufferInfo.h"
+#include "rrlib/serialization/tTypeEncoder.h"
 #include "rrlib/serialization/tSink.h"
 #include "rrlib/serialization/tFixedBuffer.h"
 #include "rrlib/serialization/tDataTypeBase.h"
@@ -44,6 +45,7 @@ namespace rrlib
 namespace serialization
 {
 class tInputStream;
+class tGenericObject;
 
 /*!
  * \author Max Reichardt
@@ -76,9 +78,9 @@ class tOutputStream : public boost::noncopyable, public tSink
 {
 public:
 
-  enum tTypeEncoding { eLocalUids, eNames, eSubClass };
+  enum tTypeEncoding { eLocalUids, eNames, eCustom };
 
-protected:
+private:
 
   // for "locking" object sink as long as this buffer exists
   std::shared_ptr<const tSink> sink_lock;
@@ -110,6 +112,11 @@ protected:
   /*! Data type encoding that is used */
   tOutputStream::tTypeEncoding encoding;
 
+  /*! Custom type encoder */
+  std::shared_ptr<tTypeEncoder> custom_encoder;
+
+protected:
+
   /*!
    * Immediately flush buffer if appropriate option is set
    * Used in print methods
@@ -138,13 +145,6 @@ protected:
     return buffer_copy_fraction;
   }
 
-  /*!
-   * May be overridden by subclass to realize custom type serialization
-   *
-   * \param type Data type to write/reference
-   */
-  virtual void WriteTypeSpecialization(const tDataTypeBase& type);
-
 public:
 
   /*!
@@ -152,13 +152,23 @@ public:
    */
   tOutputStream(tOutputStream::tTypeEncoding encoding_ = eLocalUids);
 
+  tOutputStream(std::shared_ptr<tTypeEncoder> encoder);
+
   /*!
    * \param sink_ Sink to write to
    * \param encoding Data type encoding that is used
    */
-  tOutputStream(std::shared_ptr<tSink> sink_, tOutputStream::tTypeEncoding encoding_ = eLocalUids);
+  tOutputStream(std::shared_ptr<tSink> sink_, tOutputStream::tTypeEncoding encoding_);
 
   tOutputStream(tSink* sink_, tOutputStream::tTypeEncoding encoding_ = eLocalUids);
+
+  /*!
+   * \param sink_ Sink to write to
+   * \param encoder Custom type encoder
+   */
+  tOutputStream(std::shared_ptr<tSink> sink_, std::shared_ptr<tTypeEncoder> encoder);
+
+  tOutputStream(tSink* sink_, std::shared_ptr<tTypeEncoder> encoder);
 
   void Close();
 
@@ -421,6 +431,14 @@ public:
   {
     WriteNumber(v);
   }
+
+  /*!
+   * Serialize Object of arbitrary type to stream
+   * (including type information)
+   *
+   * \param to Object to write (may be null)
+   */
+  void WriteObject(const tGenericObject* to);
 
   /*!
    * \param v 16 bit integer

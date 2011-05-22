@@ -42,9 +42,11 @@ namespace detail
 class tOutputStreamFallback : public tOutputStream
 {
   std::shared_ptr<tMemoryBuffer> mb;
-  tStringOutputStream& wrapped;
 public:
+  tStringOutputStream& wrapped;
+
   tOutputStreamFallback(tStringOutputStream& s) :
+      tOutputStream(tOutputStream::eNames),
       mb(new tMemoryBuffer(50000)),
       wrapped(s)
   {
@@ -80,11 +82,11 @@ public:
 
 } // namespace
 
-inline rrlib::serialization::tOutputStream& operator<< (rrlib::serialization::detail::tOutputStreamFallback && os, detail::tOutputStreamFallbackArg t)
+inline rrlib::serialization::tStringOutputStream& operator<< (rrlib::serialization::detail::tOutputStreamFallback && os, detail::tOutputStreamFallbackArg t)
 {
   (*t.func)(os, t.ptr);
   //os << t;
-  return os;
+  return os.wrapped;
 }
 
 } // namespace

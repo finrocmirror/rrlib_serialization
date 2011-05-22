@@ -1,5 +1,6 @@
 /**
- * You received this file as part of RRLib serialization
+ * You received this file as part of an advanced experimental
+ * robotics framework prototype ('finroc')
  *
  * Copyright (C) 2011 Max Reichardt,
  *   Robotics Research Lab, University of Kaiserslautern
@@ -19,42 +20,41 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __rrlib__serialization__detail__tStringInputStreamFallback_h__
-#define __rrlib__serialization__detail__tStringInputStreamFallback_h__
+#ifndef __rrlib__serialization__tTypeEncoder_h__
+#define __rrlib__serialization__tTypeEncoder_h__
 
 namespace rrlib
 {
 namespace serialization
 {
-namespace detail
-{
+class tInputStream;
+class tDataTypeBase;
+class tOutputStream;
+
 /*!
  * \author Max Reichardt
  *
- * Wrapper tStringInputStream to implement fallback mechanism
- * when operators are not overloaded for XML nodes.
+ * Class to encode and decode types in InputStream and OutputStream.
  */
-class tStringInputStreamFallback : public tStringInputStream
+class tTypeEncoder
 {
 public:
-  const xml2::tXMLNode& node;
 
-  tStringInputStreamFallback(const xml2::tXMLNode& node_) :
-      tStringInputStream(node_.GetTextContent()),
-      node(node_)
-  {}
+  /*!
+   * \param is Input Stream
+   * \return Type decoded from input stream
+   */
+  virtual tDataTypeBase ReadType(tInputStream& is) = 0;
+
+  /*!
+   * \param os Output stream
+   * \param type Type to encode to output stream
+   */
+  virtual void WriteType(tOutputStream& os, tDataTypeBase type) = 0;
 
 };
 
-} // namespace
-} // namespace
-} // namespace
+} // namespace rrlib
+} // namespace serialization
 
-template <typename T>
-inline const rrlib::xml2::tXMLNode& operator>> (rrlib::serialization::detail::tStringInputStreamFallback && is, T& t)
-{
-  static_cast<rrlib::serialization::tStringInputStream&>(is) >> t;
-  return is.node;
-}
-
-#endif // __rrlib__serialization__detail__tStringInputStreamFallback_h__
+#endif // __rrlib__serialization__tTypeEncoder_h__

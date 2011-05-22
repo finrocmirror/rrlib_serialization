@@ -22,6 +22,8 @@
 
 #include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tStringOutputStream.h"
+#include "rrlib/serialization/tGenericObject.h"
+#include "rrlib/serialization/tFactory.h"
 
 namespace rrlib
 {
@@ -42,7 +44,29 @@ tInputStream::tInputStream(tInputStream::tTypeEncoding encoding_) :
     timeout(-1),
     default_factory(),
     factory(&(default_factory)),
-    encoding()
+    encoding(encoding_),
+    custom_encoder()
+{
+  boundary_buffer.buffer = &(boundary_buffer_backend);
+}
+
+tInputStream::tInputStream(std::shared_ptr<tTypeEncoder> encoder) :
+    source_lock(),
+    source_buffer(),
+    boundary_buffer(),
+    boundary_buffer_backend(14u),
+    cur_buffer(NULL),
+    source(NULL),
+    const_source(NULL),
+    absolute_read_pos(0),
+    cur_skip_offset_target(-1),
+    closed(false),
+    direct_read_support(false),
+    timeout(-1),
+    default_factory(),
+    factory(&(default_factory)),
+    encoding(eCustom),
+    custom_encoder(encoder)
 {
   boundary_buffer.buffer = &(boundary_buffer_backend);
 }
@@ -236,6 +260,20 @@ std::string tInputStream::ReadLine()
   return sb.ToString();
 }
 
+tGenericObject* tInputStream::ReadObject(const tDataTypeBase& expected_type, void* factory_parameter)
+{
+  //readSkipOffset();
+  tDataTypeBase dt = ReadType();
+  if (dt == NULL)
+  {
+    return NULL;
+  }
+
+  tGenericObject* buffer = factory->CreateGenericObject(dt, factory_parameter);
+  buffer->Deserialize(*this);
+  return buffer;
+}
+
 void tInputStream::ReadSkipOffset()
 {
   cur_skip_offset_target = absolute_read_pos + cur_buffer->position;
@@ -290,14 +328,8 @@ tDataTypeBase tInputStream::ReadType()
   }
   else
   {
-    return ReadTypeSpecialization();
+    return custom_encoder->ReadType(*this);
   }
-}
-
-tDataTypeBase tInputStream::ReadTypeSpecialization()
-{
-  throw std::logic_error("This should not be called");
-  throw std::logic_error("This should not be called");
 }
 
 void tInputStream::Reset()

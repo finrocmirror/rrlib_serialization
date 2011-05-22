@@ -20,7 +20,7 @@
  */
 #include "rrlib/serialization/tOutputStream.h"
 #include "rrlib/serialization/tInputStream.h"
-#include <stdexcept>
+#include "rrlib/serialization/tGenericObject.h"
 
 namespace rrlib
 {
@@ -36,7 +36,21 @@ tOutputStream::tOutputStream(tOutputStream::tTypeEncoding encoding_) :
     cur_skip_offset_placeholder(-1),
     buffer_copy_fraction(0),
     direct_write_support(false),
-    encoding(encoding_)
+    encoding(encoding_),
+    custom_encoder()
+{
+}
+
+tOutputStream::tOutputStream(std::shared_ptr<tTypeEncoder> encoder) :
+    sink(NULL),
+    immediate_flush(false),
+    closed(true),
+    buffer(),
+    cur_skip_offset_placeholder(-1),
+    buffer_copy_fraction(0),
+    direct_write_support(false),
+    encoding(eCustom),
+    custom_encoder(encoder)
 {
 }
 
@@ -48,7 +62,8 @@ tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, tOutputStream::tTypeE
     cur_skip_offset_placeholder(-1),
     buffer_copy_fraction(0),
     direct_write_support(false),
-    encoding(encoding_)
+    encoding(encoding_),
+    custom_encoder()
 {
   Reset(sink_);
 }
@@ -61,7 +76,36 @@ tOutputStream::tOutputStream(tSink* sink_, tOutputStream::tTypeEncoding encoding
     cur_skip_offset_placeholder(-1),
     buffer_copy_fraction(0),
     direct_write_support(false),
-    encoding(encoding_)
+    encoding(encoding_),
+    custom_encoder()
+{
+  Reset(sink_);
+}
+
+tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, std::shared_ptr<tTypeEncoder> encoder) :
+    sink(NULL),
+    immediate_flush(false),
+    closed(true),
+    buffer(),
+    cur_skip_offset_placeholder(-1),
+    buffer_copy_fraction(0),
+    direct_write_support(false),
+    encoding(eCustom),
+    custom_encoder(encoder)
+{
+  Reset(sink_);
+}
+
+tOutputStream::tOutputStream(tSink* sink_, std::shared_ptr<tTypeEncoder> encoder) :
+    sink(NULL),
+    immediate_flush(false),
+    closed(true),
+    buffer(),
+    cur_skip_offset_placeholder(-1),
+    buffer_copy_fraction(0),
+    direct_write_support(false),
+    encoding(eCustom),
+    custom_encoder(encoder)
 {
   Reset(sink_);
 }
@@ -171,6 +215,20 @@ void tOutputStream::WriteAllAvailable(tInputStream* input_stream)
   }
 }
 
+void tOutputStream::WriteObject(const tGenericObject* to)
+{
+  if (to == NULL)
+  {
+    WriteType(NULL);
+    return;
+  }
+
+  //writeSkipOffsetPlaceholder();
+  WriteType(to->GetType());
+  to->Serialize(*this);
+  //skipTargetHere();
+}
+
 void tOutputStream::WriteSkipOffsetPlaceholder()
 {
   assert((cur_skip_offset_placeholder < 0));
@@ -198,13 +256,8 @@ void tOutputStream::WriteType(tDataTypeBase type)
   }
   else
   {
-    WriteTypeSpecialization(type);
+    custom_encoder->WriteType(*this, type);
   }
-}
-
-void tOutputStream::WriteTypeSpecialization(const tDataTypeBase& type)
-{
-  throw std::logic_error("This should not be called");
 }
 
 } // namespace rrlib

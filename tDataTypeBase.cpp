@@ -20,6 +20,7 @@
  */
 #include <cstring>
 #include "rrlib/serialization/sSerialization.h"
+#include "rrlib/serialization/tDataTypeAnnotation.h"
 
 #include "rrlib/serialization/tDataTypeBase.h"
 
@@ -125,6 +126,15 @@ std::string tDataTypeBase::GetDataTypeNameFromRtti(const char* rtti)
   }
 
   return demangled;
+
+}
+
+tDataTypeBase::tDataTypeInfoRaw::~tDataTypeInfoRaw()
+{
+  for (size_t i = 0; i < cMAX_ANNOTATIONS; i++)
+  {
+    delete annotations[i];
+  }
 
 }
 

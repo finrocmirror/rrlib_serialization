@@ -22,6 +22,7 @@
 #ifndef __rrlib__serialization__tDefaultFactory_h__
 #define __rrlib__serialization__tDefaultFactory_h__
 
+#include "rrlib/serialization/tGenericObjectManager.h"
 #include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/serialization/tFactory.h"
 #include <boost/utility.hpp>
@@ -31,6 +32,8 @@ namespace rrlib
 {
 namespace serialization
 {
+class tGenericObject;
+
 /*!
  * \author Max Reichardt
  *
@@ -46,6 +49,11 @@ public:
   virtual std::shared_ptr<void> CreateBuffer(tDataTypeBase dt)
   {
     return std::shared_ptr<void>(dt.CreateInstance());
+  }
+
+  virtual tGenericObject* CreateGenericObject(tDataTypeBase dt, void* custom_parameter)
+  {
+    return dt.CreateInstanceGeneric<>();
   }
 
 };
