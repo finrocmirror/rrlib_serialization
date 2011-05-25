@@ -24,6 +24,7 @@
 #include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/tStringInputStream.h"
 #include "rrlib/serialization/tGenericObject.h"
+#include <assert.h>
 #include <stdexcept>
 #include <stdint.h>
 
@@ -50,8 +51,11 @@ void sSerialization::ConvertBinaryToHexString(tInputStream& src, tStringOutputSt
   while (src.MoreDataAvailable())
   {
     uint8_t b = src.ReadByte();
-    uint b1 = b >> 4u;
-    uint b2 = b & 0xFu;
+    uint bi = b;
+    uint b1 = bi >> 4u;
+    uint b2 = bi & 0xFu;
+    assert((b1 >= 0 && b1 < 16));
+    assert((b2 >= 0 && b2 < 16));
     os.Append(cTO_HEX[b1]);
     os.Append(cTO_HEX[b2]);
   }
