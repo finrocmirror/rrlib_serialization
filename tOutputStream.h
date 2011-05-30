@@ -317,7 +317,7 @@ public:
    */
   void SkipTargetHere();
 
-  inline void Write(void* address, size_t size)
+  inline void Write(const void* address, size_t size)
   {
     tFixedBuffer fb((char*)address, size);
     Write(fb);
