@@ -99,7 +99,7 @@ public:
   inline int Read()
   {
     char result;
-    wrapped >> result;
+    wrapped.get(result);
     if (wrapped.eof())
     {
       return -1;
