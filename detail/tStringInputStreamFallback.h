@@ -22,6 +22,8 @@
 #ifndef __rrlib__serialization__detail__tStringInputStreamFallback_h__
 #define __rrlib__serialization__detail__tStringInputStreamFallback_h__
 
+#include <string>
+
 namespace rrlib
 {
 namespace serialization
@@ -55,6 +57,12 @@ inline const rrlib::xml2::tXMLNode& operator>> (rrlib::serialization::detail::tS
 {
   static_cast<rrlib::serialization::tStringInputStream&>(is) >> t;
   return is.node;
+}
+
+inline const rrlib::xml2::tXMLNode& operator>> (rrlib::xml2::tXMLNode& node, std::string& s)
+{
+  s = node.GetTextContent();
+  return node;
 }
 
 #endif // __rrlib__serialization__detail__tStringInputStreamFallback_h__
