@@ -407,6 +407,33 @@ public:
   }
 
   /*!
+   * \param e Enum constant to serialize
+   */
+  template <typename ENUM>
+  inline void WriteEnum(ENUM e)
+  {
+    size_t string_count = make_builder::GetEnumStrings<ENUM>()->size();
+    if (string_count == 0)
+    {
+      assert(e < 0x7FFFFFFF && "What?");
+      WriteInt((int)e);
+    }
+    else if (string_count <= 0x100)
+    {
+      WriteByte((int8_t)e);
+    }
+    else if (string_count <= 0x1000)
+    {
+      WriteShort((int16_t)e);
+    }
+    else
+    {
+      assert(string_count < 0x7FFFFFFF && "What?");
+      WriteInt((int)e);
+    }
+  }
+
+  /*!
    * \param v 32 bit floating point
    */
   inline void WriteFloat(float v)
@@ -598,6 +625,14 @@ inline tOutputStream& operator<< (tOutputStream& os, const std::deque<T>& t)
   os.WriteSTLContainer<std::deque<T>, T>(t);
   return os;
 }
+template <typename T>
+inline tOutputStream& operator<< (typename std::enable_if<std::is_enum<T>::value, tOutputStream&>::type os, const T& t)
+{
+  tOutputStream& os2 = os;
+  os2.WriteEnum<T>(t);
+  return os;
+}
+
 
 } // namespace rrlib
 } // namespace serialization

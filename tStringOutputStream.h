@@ -175,6 +175,19 @@ inline tStringOutputStream& operator<< (tStringOutputStream& os, const tSerializ
   return os;
 }
 
+template <typename ENUM>
+inline tStringOutputStream& operator<< (typename std::enable_if<std::is_enum<ENUM>::value, tStringOutputStream&>::type os, const ENUM& t)
+{
+  const char* s = make_builder::GetEnumString(t);
+  if (s != NULL)
+  {
+    os.wrapped << s << " ";
+  }
+  os.wrapped << "(" << static_cast<int>(t) << ")";
+  return os;
+}
+
+
 } // namespace rrlib
 } // namespace serialization
 

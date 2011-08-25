@@ -290,6 +290,32 @@ public:
   double ReadDouble();
 
   /*!
+   * \return Enum value
+   */
+  template <typename ENUM>
+  inline ENUM ReadEnum()
+  {
+    size_t string_count = make_builder::GetEnumStrings<ENUM>()->size();
+    if (string_count == 0)
+    {
+      return static_cast<ENUM>(ReadInt());
+    }
+    else if (string_count <= 0x100)
+    {
+      return static_cast<ENUM>(ReadByte());
+    }
+    else if (string_count <= 0x1000)
+    {
+      return static_cast<ENUM>(ReadShort());
+    }
+    else
+    {
+      assert(string_count < 0x7FFFFFFF && "What?");
+      return static_cast<ENUM>(ReadInt());
+    }
+  }
+
+  /*!
    * \return 32 bit floating point
    */
   float ReadFloat();
@@ -701,6 +727,13 @@ template <typename T>
 inline tInputStream& operator>> (tInputStream& is, std::deque<T>& t)
 {
   is.ReadSTLContainer<std::deque<T>, T>(t);
+  return is;
+}
+template <typename T>
+inline tInputStream& operator>> (typename std::enable_if<std::is_enum<T>::value, tInputStream>::type& is, T& t)
+{
+  tInputStream& is2 = is;
+  t = is2.ReadEnum<T>();
   return is;
 }
 

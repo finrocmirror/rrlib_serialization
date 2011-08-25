@@ -267,7 +267,7 @@ public:
     static size_t last_annotation_index = 0;
     if (info != NULL)
     {
-      assert(((ann->annotated_type == NULL)) && "Already used as annotation in other object. Not allowed (double deleteting etc.)");
+      assert(((ann->annotated_type == NULL)) && "Already used as annotation in other object. Not allowed (double deleting etc.)");
       ann->annotated_type = *this;
       size_t ann_index = -1u;
 

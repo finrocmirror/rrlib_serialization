@@ -26,13 +26,14 @@
 #include <boost/utility.hpp>
 #include <stdint.h>
 #include <string>
-
+#include <vector>
 #include <sstream>
 
 namespace rrlib
 {
 namespace serialization
 {
+
 /*!
  * \author Max Reichardt
  *
@@ -45,6 +46,11 @@ private:
 
   /*! Map with flags of all 256 UTF Characters */
   static int8_t char_map[256];
+
+  /*!
+   * Non-template core functionality of ReadEnum method
+   */
+  int ReadEnumHelper(std::vector<const char*>* strings);
 
 public:
 
@@ -151,6 +157,16 @@ public:
     wrapped.unget();
   }
 
+  /*!
+   * Read enum constant from string stream
+   *
+   * \return enum constant
+   */
+  template <typename ENUM>
+  ENUM ReadEnum()
+  {
+    return static_cast<ENUM>(ReadEnumHelper(make_builder::GetEnumStrings<ENUM>()));
+  }
 };
 
 } // namespace rrlib
@@ -241,6 +257,14 @@ inline tStringInputStream& operator>> (tStringInputStream& is, std::string& t)
 inline tStringInputStream& operator>> (tStringInputStream& is, tSerializable& t)
 {
   t.Deserialize(is);
+  return is;
+}
+
+template <typename ENUM>
+inline tStringInputStream& operator>> (typename std::enable_if<std::is_enum<ENUM>::value, tStringInputStream&>::type is, ENUM& t)
+{
+  tStringInputStream& is2 = is;
+  t = is2.ReadEnum<ENUM>();
   return is;
 }
 

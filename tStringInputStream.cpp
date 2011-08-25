@@ -64,6 +64,47 @@ int tStringInputStream::InitCharMap()
   return 0;
 }
 
+int tStringInputStream::ReadEnumHelper(std::vector<const char*>* strings)
+{
+  // parse input
+  std::string enum_string = ReadUntil("(");
+  int c1 = Read();
+  std::string num_string = ReadUntil(")");
+  int c2 = Read();
+  if (c1 != '(' || c2 != ')')
+  {
+    throw std::invalid_argument("Did not read expected brackets");
+  }
+
+  // deal with input
+  if (enum_string.length() > 0)
+  {
+    if (strings != NULL)
+    {
+      for (size_t i = 0; i < strings->size(); i++)
+      {
+        if (strcmp(enum_string.c_str(), (*strings)[i]) == 0)
+        {
+          return i;
+        }
+      }
+    }
+    RRLIB_LOG_PRINTF(rrlib::logging::eLL_WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
+    int n = atoi(num_string.c_str());
+    return n;
+  }
+  else
+  {
+    int n = atoi(num_string.c_str());
+    if (strings != NULL && n >= static_cast<int64_t>(strings->size()))
+    {
+      RRLIB_LOG_PRINTF(rrlib::logging::eLL_ERROR, "Number %d out of range for enum (%d)", n, strings->size());
+      throw std::invalid_argument("Number out of range");
+    }
+    return n;
+  }
+}
+
 std::string tStringInputStream::ReadUntil(const char* stop_at_chars, int stop_at_flags, bool trim_whitespace)
 {
   std::ostringstream sb;
