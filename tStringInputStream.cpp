@@ -64,7 +64,7 @@ int tStringInputStream::InitCharMap()
   return 0;
 }
 
-int tStringInputStream::ReadEnumHelper(std::vector<const char*>* strings)
+int tStringInputStream::ReadEnumHelper(const std::vector<const char*>* strings)
 {
   // parse input
   std::string enum_string = ReadUntil("(");

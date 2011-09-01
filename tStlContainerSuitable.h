@@ -23,9 +23,6 @@
 #define __rrlib__serialization__tStlContainerSuitable_h__
 
 #include <boost/utility.hpp>
-#include <boost/type_traits/is_enum.hpp>
-#include <boost/type_traits/is_floating_point.hpp>
-#include <boost/type_traits/is_integral.hpp>
 
 /*!
  * \author Max Reichardt
@@ -80,7 +77,7 @@ struct tStlContainerSuitableImpl<std::vector<T>, SUITABLE, UNSUITABLE, NONCOPYAB
 };
 
 template <typename T>
-struct tStlContainerSuitable : public tStlContainerSuitableImpl<T, boost::is_base_of<tStlSuitable, T>::value, boost::is_base_of<tStlUnsuitable, T>::value, boost::is_base_of<boost::noncopyable, T>::value>
+struct tStlContainerSuitable : public tStlContainerSuitableImpl<T, std::is_base_of<tStlSuitable, T>::value, std::is_base_of<tStlUnsuitable, T>::value, std::is_base_of<boost::noncopyable, T>::value>
 {
 };
 
@@ -114,7 +111,7 @@ struct tCreateSharedPtrListTypeImpl<T, true, ELEM>
 
 // Create shared pointer list type?
 template <typename T>
-struct tCreateSharedPtrListType : public tCreateSharedPtrListTypeImpl < T, boost::is_base_of<tNoSharedPtrListType, T>::value, boost::is_enum<T>::value || boost::is_integral<T>::value || boost::is_floating_point<T>::value > {};
+struct tCreateSharedPtrListType : public tCreateSharedPtrListTypeImpl < T, std::is_base_of<tNoSharedPtrListType, T>::value, std::is_enum<T>::value || std::is_integral<T>::value || std::is_floating_point<T>::value > {};
 
 template <>
 struct tCreateSharedPtrListType<bool>

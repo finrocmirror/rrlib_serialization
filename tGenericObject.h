@@ -80,6 +80,9 @@ public:
     this->type = dt;
   }
 
+  // to ensure that all generic objects have virtual destructor
+  virtual ~tGenericObject() {}
+
   /*!
    * Clear any shared resources that this object holds on to
    * (e.g. for reusing object in pool)

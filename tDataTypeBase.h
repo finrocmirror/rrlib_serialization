@@ -31,7 +31,6 @@
 #include <typeinfo>
 #include <vector>
 
-#include <boost/type_traits/is_base_of.hpp>
 #include <mutex>
 #include "rrlib/logging/definitions.h"
 
@@ -86,6 +85,9 @@ public:
 
     // sizeof(T)
     size_t size;
+
+    /*! Bit vector of type traits determined at compile time (see tTypeTraitVector) */
+    int type_traits;
 
     /*! New info? */
     bool new_info;
@@ -160,23 +162,7 @@ public:
     {
     }
 
-    tDataTypeInfoRaw() :
-        type(ePLAIN),
-        name(),
-        rtti_name(NULL),
-        size(-1),
-        new_info(true),
-        default_name(true),
-        uid(-1),
-        element_type(NULL),
-        list_type(NULL),
-        shared_ptr_list_type(NULL)
-    {
-      for (size_t i = 0; i < cMAX_ANNOTATIONS; i++)
-      {
-        annotations[i] = NULL;
-      }
-    }
+    tDataTypeInfoRaw();
 
     virtual void Init() {}
 
@@ -327,7 +313,7 @@ public:
 
     static const size_t cMANAGER_OFFSET = (sizeof(void*) == 4) ? 16 : 24; // must be identical to MANAGER_OFFSET in GenericObject
 
-    static_assert(boost::is_base_of<tGenericObjectManager, M>::value, "only GenericObjectManagers allowed as M");
+    static_assert(std::is_base_of<tGenericObjectManager, M>::value, "only GenericObjectManagers allowed as M");
     tGenericObject* result = info->CreateInstanceGeneric(placement, sizeof(M));
     new(reinterpret_cast<char*>(result) + cMANAGER_OFFSET) M();
     return result;
@@ -513,7 +499,7 @@ public:
   }
 
   /*!
-   * \return return "Type" of data type (see enum)
+   * \return returns "Type" of data type (see enum)
    */
   inline tDataTypeBase::tType GetType() const
   {
@@ -544,6 +530,19 @@ public:
   {
     return static_cast<int16_t>(GetTypes().size());
   }
+
+  /*!
+   * \return Bit vector of type traits determined at compile time (see tTypeTraitVector)
+   */
+  inline int GetTypeTraits() const
+  {
+    if (info != NULL)
+    {
+      return info->type_traits;
+    }
+    return 0;
+  }
+
 
   /*!
    * \return uid of data type

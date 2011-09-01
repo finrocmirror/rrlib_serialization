@@ -50,7 +50,7 @@ private:
   /*!
    * Non-template core functionality of ReadEnum method
    */
-  int ReadEnumHelper(std::vector<const char*>* strings);
+  int ReadEnumHelper(const std::vector<const char*>* strings);
 
 public:
 
@@ -165,7 +165,11 @@ public:
   template <typename ENUM>
   ENUM ReadEnum()
   {
+#ifdef _LIB_ENUM_STRINGS_PRESENT_
     return static_cast<ENUM>(ReadEnumHelper(make_builder::GetEnumStrings<ENUM>()));
+#else
+    return static_cast<ENUM>(ReadEnumHelper(NULL));
+#endif
   }
 };
 

@@ -178,11 +178,14 @@ inline tStringOutputStream& operator<< (tStringOutputStream& os, const tSerializ
 template <typename ENUM>
 inline tStringOutputStream& operator<< (typename std::enable_if<std::is_enum<ENUM>::value, tStringOutputStream&>::type os, const ENUM& t)
 {
+#ifdef _LIB_ENUM_STRINGS_PRESENT_
   const char* s = make_builder::GetEnumString(t);
   if (s != NULL)
   {
     os.wrapped << s << " ";
   }
+#endif
+
   os.wrapped << "(" << static_cast<int>(t) << ")";
   return os;
 }

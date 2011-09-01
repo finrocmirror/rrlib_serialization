@@ -50,8 +50,6 @@ public:
 
   tSerializable() {}
 
-  virtual ~tSerializable() {}
-
   /*!
    * Deserialize object. Object has to already exists.
    * Should be suited for reusing old objects.

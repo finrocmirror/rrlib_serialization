@@ -113,10 +113,10 @@ template <typename C, typename T>
 inline void CopySTLContainer(const C& src, C& dest, tFactory* f)
 {
   typedef detail::tListElemInfo<T> info;
-  if (info::is_shared_ptr || boost::is_base_of<boost::noncopyable, T>::value)
+  if (info::is_shared_ptr || std::is_base_of<boost::noncopyable, T>::value)
   {
     //dest.resize(src.size());
-    detail::tResize < C, T, !boost::is_base_of<boost::noncopyable, T>::value >::Resize(dest, src.size());
+    detail::tResize < C, T, !std::is_base_of<boost::noncopyable, T>::value >::Resize(dest, src.size());
 
     for (size_t i = 0; i < src.size(); i++)
     {
@@ -142,7 +142,7 @@ inline void CopySTLContainer(const C& src, C& dest, tFactory* f)
   }
   else
   {
-    tSimpleContainerCopy<C, boost::is_base_of<boost::noncopyable, T>::value>::Copy(src, dest);
+    tSimpleContainerCopy<C, std::is_base_of<boost::noncopyable, T>::value>::Copy(src, dest);
   }
 }
 
@@ -240,7 +240,7 @@ struct tCopyImpl<T, true>
 template <typename T>
 inline void DeepCopy(const T& t, T& t2, tFactoryWrapper f)
 {
-  tCopyImpl<T, boost::is_base_of<boost::noncopyable, T>::value>::DeepCopyImpl(t, t2, f.factory);
+  tCopyImpl<T, std::is_base_of<boost::noncopyable, T>::value>::DeepCopyImpl(t, t2, f.factory);
 }
 
 // if no deepcopy operator and no = operator - try serialization

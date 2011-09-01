@@ -22,6 +22,7 @@
 
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/sSerialization.h"
+#include "rrlib/serialization/tTypeTraitsVector.h"
 
 namespace rrlib
 {
@@ -34,7 +35,7 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
   rtti_name = typeid(T).name();
   size = sizeof(T);
   name = detail::tListInfo<T>::GetName();
-
+  type_traits = tTypeTraitsVector<T>::value;
 }
 
 template<typename T>
@@ -63,7 +64,7 @@ void tDataType<T>::tDataTypeInfo::DeepCopy(const void* src, void* dest, tFactory
   const T* s = static_cast<const T*>(src);
   T* d = static_cast<T*>(dest);
 
-  if (boost::has_virtual_destructor<T>::value)
+  if (std::has_virtual_destructor<T>::value)
   {
     assert(typeid(*s).name() == typeid(T).name());
     assert(typeid(*d).name() == typeid(T).name());

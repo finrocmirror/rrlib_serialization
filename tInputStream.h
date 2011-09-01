@@ -295,12 +295,18 @@ public:
   template <typename ENUM>
   inline ENUM ReadEnum()
   {
-    size_t string_count = make_builder::GetEnumStrings<ENUM>()->size();
-    if (string_count == 0)
+#ifdef _LIB_ENUM_STRINGS_PRESENT_
+    const std::vector<const char*>* strings = make_builder::GetEnumStrings<ENUM>();
+#else
+    const std::vector<const char*>* strings = NULL;
+#endif
+    if (strings == NULL)
     {
       return static_cast<ENUM>(ReadInt());
     }
-    else if (string_count <= 0x100)
+
+    size_t string_count = strings->size();
+    if (string_count <= 0x100)
     {
       return static_cast<ENUM>(ReadByte());
     }

@@ -29,9 +29,7 @@
 #include <typeinfo>
 
 #include "rrlib/serialization/detail/tListInfo.h"
-#include <boost/type_traits/has_virtual_destructor.hpp>
-#include <boost/type_traits/remove_reference.hpp>
-#include "rrlib/serialization/tCustomTypeInitialization.h"
+#include <type_traits>
 #include "rrlib/serialization/tStlContainerSuitable.h"
 #include <cstring>
 #include "rrlib/serialization/sStaticFactory.h"
@@ -62,34 +60,26 @@ class tDataType : public tDataTypeBase
 
     tDataTypeInfo();
 
-    template < typename Q = T >
-    void InitImpl(typename boost::enable_if_c<boost::is_base_of<tCustomTypeInitialization, Q>::value, tCustomTypeInitialization*>::type d)
-    {
-      T::CustomTypeInitialization(tDataTypeBase(this), (T*)NULL);
-    }
-
-    void InitImpl(void* d) {}
-
     template <bool B>
-    typename boost::enable_if_c<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetListTypeInfo()
+    typename std::enable_if<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetListTypeInfo()
     {
       return tDataType<typename detail::tListInfo<T>::tListType>::GetDataTypeInfo();
     }
 
     template <bool B>
-    typename boost::disable_if_c<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetListTypeInfo()
+    typename std::enable_if < !B, tDataTypeBase::tDataTypeInfoRaw* >::type GetListTypeInfo()
     {
       return NULL;
     }
 
     template <bool B>
-    typename boost::enable_if_c<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetSharedPtrListTypeInfo()
+    typename std::enable_if<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetSharedPtrListTypeInfo()
     {
       return tDataType<typename detail::tListInfo<T>::tSharedPtrListType>::GetDataTypeInfo();
     }
 
     template <bool B>
-    typename boost::disable_if_c<B, tDataTypeBase::tDataTypeInfoRaw*>::type GetSharedPtrListTypeInfo()
+    typename std::enable_if < !B, tDataTypeBase::tDataTypeInfoRaw* >::type GetSharedPtrListTypeInfo()
     {
       return NULL;
     }
@@ -105,7 +95,6 @@ class tDataType : public tDataTypeBase
       {
         element_type = tDataType<typename detail::tListInfo<T>::tElementType>::GetDataTypeInfo();
       }
-      InitImpl((T*)NULL);
     }
 
     virtual void* CreateInstance(void* placement) const
@@ -125,7 +114,7 @@ class tDataType : public tDataTypeBase
     virtual void Deserialize(tInputStream& is, void* obj) const
     {
       T* s = static_cast<T*>(obj);
-      if (boost::has_virtual_destructor<T>::value)
+      if (std::has_virtual_destructor<T>::value)
       {
         assert(typeid(*s).name() == typeid(T).name());
       }
@@ -135,7 +124,7 @@ class tDataType : public tDataTypeBase
     virtual void Serialize(tOutputStream& os, const void* obj) const
     {
       const T* s = static_cast<const T*>(obj);
-      if (boost::has_virtual_destructor<T>::value)
+      if (std::has_virtual_destructor<T>::value)
       {
         assert(typeid(*s).name() == typeid(T).name());
       }

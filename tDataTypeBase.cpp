@@ -129,6 +129,25 @@ std::string tDataTypeBase::GetDataTypeNameFromRtti(const char* rtti)
 
 }
 
+tDataTypeBase::tDataTypeInfoRaw::tDataTypeInfoRaw() :
+    type(ePLAIN),
+    name(),
+    rtti_name(NULL),
+    size(-1),
+    type_traits(0),
+    new_info(true),
+    default_name(true),
+    uid(-1),
+    element_type(NULL),
+    list_type(NULL),
+    shared_ptr_list_type(NULL)
+{
+  for (size_t i = 0; i < cMAX_ANNOTATIONS; i++)
+  {
+    annotations[i] = NULL;
+  }
+}
+
 tDataTypeBase::tDataTypeInfoRaw::~tDataTypeInfoRaw()
 {
   for (size_t i = 0; i < cMAX_ANNOTATIONS; i++)
