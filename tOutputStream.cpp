@@ -173,7 +173,7 @@ void tOutputStream::Write(const tFixedBuffer& bb, size_t off, size_t len)
   }
   else
   {
-    if (direct_write_support)
+    if (direct_write_support && cur_skip_offset_placeholder < 0)
     {
       CommitData(-1);
       sink->DirectWrite(this, bb, off, len);
