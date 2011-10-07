@@ -58,6 +58,8 @@ private:
   /*! Helper variable to trigger static initialization in C++ */
   static int cINIT_HELPER;
 
+  std::string ToString(tStringOutputStream& sos);
+
 public:
 
   sSerialization() {}
@@ -112,6 +114,22 @@ public:
   }
 
   /*!
+   * Deserializes string stream serializable from string
+   * (convenience function)
+   *
+   * \param s String to deserialize from
+   * \return String
+   */
+  template <typename T>
+  static T Deserialize(const std::string& s)
+  {
+    tStringInputStream is(s);
+    T t;
+    is >> t;
+    return t;
+  }
+
+  /*!
    * Deserializes binary CoreSerializable from hex string
    *
    * \param cs CoreSerializable
@@ -155,6 +173,21 @@ public:
    * \return String
    */
   static std::string Serialize(const tGenericObject& go);
+
+  /*!
+   * Serializes string stream serializable object to string
+   * (convenience function)
+   *
+   * \param cs Serializable
+   * \return String
+   */
+  template < typename T, bool ENABLE = (!std::is_base_of<tSerializable, T>::value) && (!std::is_base_of<tGenericObject, T>::value) >
+  static typename std::enable_if<ENABLE, std::string>::type Serialize(const T& t)
+  {
+    tStringOutputStream os;
+    os << t;
+    return ToString(os);
+  }
 
   /*!
    * Serializes binary CoreSerializable to hex string

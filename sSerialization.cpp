@@ -181,6 +181,12 @@ int sSerialization::StaticInit()
   return 0;
 }
 
+std::string sSerialization::ToString(tStringOutputStream& sos)
+{
+  return sos.ToString();
+}
+
+
 } // namespace rrlib
 } // namespace serialization
 
