@@ -58,7 +58,7 @@ private:
   /*! Helper variable to trigger static initialization in C++ */
   static int cINIT_HELPER;
 
-  std::string ToString(tStringOutputStream& sos);
+  static std::string ToString(tStringOutputStream& sos);
 
 public:
 

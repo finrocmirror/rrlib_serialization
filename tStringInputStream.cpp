@@ -20,6 +20,9 @@
  */
 #include "rrlib/serialization/tStringInputStream.h"
 
+#include "boost/algorithm/string/trim.hpp"
+#include "boost/algorithm/string/predicate.hpp"
+
 namespace rrlib
 {
 namespace serialization
@@ -67,13 +70,19 @@ int tStringInputStream::InitCharMap()
 int tStringInputStream::ReadEnumHelper(const std::vector<const char*>* strings)
 {
   // parse input
-  std::string enum_string = ReadUntil("(");
+  std::string enum_string(ReadWhile("", cDIGIT | cLETTER | cWHITESPACE, true));
+  boost::trim(enum_string);
   int c1 = Read();
-  std::string num_string = ReadUntil(")");
-  int c2 = Read();
-  if (c1 != '(' || c2 != ')')
+  std::string num_string;
+  if (c1 == '(')
   {
-    throw std::invalid_argument("Did not read expected brackets");
+    num_string = ReadUntil(")");
+    boost::trim(num_string);
+    int c2 = Read();
+    if (c2 != ')')
+    {
+      throw std::invalid_argument("Did not read expected bracket");
+    }
   }
 
   // deal with input
@@ -83,13 +92,17 @@ int tStringInputStream::ReadEnumHelper(const std::vector<const char*>* strings)
     {
       for (size_t i = 0; i < strings->size(); i++)
       {
-        if (strcmp(enum_string.c_str(), (*strings)[i]) == 0)
+        if (boost::iequals(enum_string, (*strings)[i]))
         {
           return i;
         }
       }
     }
     RRLIB_LOG_PRINTF(rrlib::logging::eLL_WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
+    if (num_string.length() == 0)
+    {
+      throw std::invalid_argument("No Number String specified either");
+    }
     int n = atoi(num_string.c_str());
     return n;
   }
