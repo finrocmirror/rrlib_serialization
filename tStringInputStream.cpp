@@ -20,8 +20,8 @@
  */
 #include "rrlib/serialization/tStringInputStream.h"
 
-#include "boost/algorithm/string/trim.hpp"
-#include "boost/algorithm/string/predicate.hpp"
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace rrlib
 {
