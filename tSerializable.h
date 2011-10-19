@@ -97,6 +97,18 @@ public:
 
 };
 
+inline xml2::tXMLNode& operator << (xml2::tXMLNode& node, const tSerializable& ser)
+{
+  ser.Serialize(node);
+  return node;
+}
+
+inline const xml2::tXMLNode& operator >> (const xml2::tXMLNode& node, tSerializable& ser)
+{
+  ser.Deserialize(node);
+  return node;
+}
+
 } // namespace rrlib
 } // namespace serialization
 

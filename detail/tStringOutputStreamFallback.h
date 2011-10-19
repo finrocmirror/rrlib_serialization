@@ -53,8 +53,8 @@ public:
 } // namespace
 } // namespace
 
-template <typename T>
-inline rrlib::xml2::tXMLNode& operator<< (rrlib::serialization::detail::tStringOutputStreamFallback && os, const T& t)
+template < typename T, bool ENABLE = !std::is_base_of<rrlib::serialization::tSerializable, T>::value >
+inline typename std::enable_if<ENABLE, rrlib::xml2::tXMLNode>::type & operator<< (rrlib::serialization::detail::tStringOutputStreamFallback && os, const T & t)
 {
   os << t;
   return os.wrapped;
