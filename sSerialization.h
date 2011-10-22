@@ -148,6 +148,11 @@ public:
   static bool Equals(const tGenericObject& obj1, const tGenericObject& obj2);
 
   /*!
+   * \return If a .so-file currently performs static initializations - returns name of .so file
+   */
+  static std::string GetBinaryCurrentlyPerformingStaticInitialization();
+
+  /*!
    * Resize vector (also works for vectors with noncopyable types)
    *
    * \param vector Vector to resize

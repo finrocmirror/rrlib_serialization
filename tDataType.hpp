@@ -36,6 +36,11 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
   size = sizeof(T);
   name = detail::tListInfo<T>::GetName();
   type_traits = tTypeTraitsVector<T>::value;
+  binary = sSerialization::GetBinaryCurrentlyPerformingStaticInitialization();
+  if (binary.length() > 0)
+  {
+    RRLIB_LOG_PRINT_STATIC(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Data type ", name, " is statically loaded in '", binary, "'.");
+  }
 }
 
 template<typename T>

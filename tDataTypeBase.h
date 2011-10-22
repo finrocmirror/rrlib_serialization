@@ -110,6 +110,9 @@ public:
     /*! Annotations to data type */
     tDataTypeAnnotation* annotations[cMAX_ANNOTATIONS];
 
+    /*! binary file that initializes data type statically */
+    std::string binary;
+
     /*!
      * \param placement (Optional) Destination for placement new
      * \return Instance of Datatype T casted to void*
@@ -318,6 +321,19 @@ public:
     new(reinterpret_cast<char*>(result) + cMANAGER_OFFSET) M();
     return result;
 
+  }
+
+  // \return binary file that initializes data type statically
+  const std::string GetBinary() const
+  {
+    if (info != NULL)
+    {
+      return info->binary;
+    }
+    else
+    {
+      return "";
+    }
   }
 
   // \return rtti name of data type

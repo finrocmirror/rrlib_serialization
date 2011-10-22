@@ -140,7 +140,8 @@ tDataTypeBase::tDataTypeInfoRaw::tDataTypeInfoRaw() :
     uid(-1),
     element_type(NULL),
     list_type(NULL),
-    shared_ptr_list_type(NULL)
+    shared_ptr_list_type(NULL),
+    binary()
 {
   for (size_t i = 0; i < cMAX_ANNOTATIONS; i++)
   {

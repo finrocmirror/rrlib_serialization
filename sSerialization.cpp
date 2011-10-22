@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <stdexcept>
 #include <stdint.h>
+#include <execinfo.h>
 
 namespace rrlib
 {
@@ -123,6 +124,45 @@ bool sSerialization::Equals(const tGenericObject& obj1, const tGenericObject& ob
     }
   }
   return true;
+}
+
+static std::string GetSoFile(const std::string& backtrace_entry)
+{
+  return backtrace_entry.substr(0, backtrace_entry.find('('));
+}
+
+std::string sSerialization::GetBinaryCurrentlyPerformingStaticInitialization()
+{
+  // system .so file that does dynamic loading
+  static std::string ld_so_file;
+
+  // implementation uses backtrace to find this out
+  void* array[255];
+  int len = backtrace(array, 255);
+  if (len == 0)
+  {
+    RRLIB_LOG_PRINT_STATIC(rrlib::logging::eLL_ERROR, "Empty stack trace.");
+    return "";
+  }
+  char** symbols = backtrace_symbols(array, len);
+  if (ld_so_file.length() == 0)
+  {
+    ld_so_file = GetSoFile(symbols[len - 1]);
+    RRLIB_LOG_PRINT_STATIC(rrlib::logging::eLL_DEBUG_VERBOSE_1, "System library for loading .so files: ", ld_so_file);
+  }
+
+  for (int i = 1; i < len; i++)
+  {
+    std::string so = GetSoFile(symbols[i]);
+    if (so.compare(ld_so_file) == 0)
+    {
+      free(symbols);
+      return GetSoFile(symbols[i - 1]);
+    }
+  }
+
+  free(symbols);
+  return "";
 }
 
 std::string sSerialization::Serialize(const tSerializable& rs)
