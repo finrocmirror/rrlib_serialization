@@ -179,12 +179,10 @@ public:
 
   };
 
-private:
+protected:
 
   /*! Log domain for this class */
   RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "serialization");
-
-protected:
 
   //    /** Maximum number of types */
   //    public static final int MAX_TYPES = 2000;
