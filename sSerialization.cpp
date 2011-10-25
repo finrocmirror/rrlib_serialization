@@ -156,8 +156,9 @@ std::string sSerialization::GetBinaryCurrentlyPerformingStaticInitialization()
     std::string so = GetSoFile(symbols[i]);
     if (so.compare(ld_so_file) == 0)
     {
+      std::string result = GetSoFile(symbols[i - 1]);
       free(symbols);
-      return GetSoFile(symbols[i - 1]);
+      return result;
     }
   }
 
