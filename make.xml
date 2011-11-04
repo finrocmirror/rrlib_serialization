@@ -5,6 +5,7 @@
   <rrlib name="serialization" libs="boost">
     <sources>
       *.cpp
+      *.h
     </sources>
   </rrlib>
 
