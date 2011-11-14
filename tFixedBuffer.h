@@ -69,35 +69,18 @@ public:
   tFixedBuffer(char* buffer_, size_t capacity_) :
       buffer(buffer_),
       capacity_x(capacity_),
-      owns_buf(false) {}
+      owns_buf(false)
+  {}
 
-  tFixedBuffer(size_t capacity_) :
-      buffer(capacity_ > 0 ? new char[capacity_] : NULL),
-      capacity_x(capacity_),
-      owns_buf(capacity_ > 0) {}
+  tFixedBuffer(size_t capacity_ = 0);
 
-  tFixedBuffer(const tFixedBuffer& fb) : buffer(fb.buffer), capacity_x(fb.Capacity()), owns_buf(false) {}
+  // move constructor
+  tFixedBuffer(tFixedBuffer && fb);
 
-  tFixedBuffer& operator=(const tFixedBuffer& fb)
-  {
-    buffer = fb.buffer;
-    capacity_x = fb.Capacity();
-    owns_buf = false;
-    return *this;
-  }
+  // move assignment
+  tFixedBuffer& operator=(tFixedBuffer && o);
 
-  virtual ~tFixedBuffer()
-  {
-    CheckDelete();
-  }
-
-  void CheckDelete()
-  {
-    if (owns_buf && buffer != NULL)
-    {
-      delete[] buffer;
-    }
-  }
+  virtual ~tFixedBuffer();
 
   /*!
    * \return Capacity of buffer (in bytes)

@@ -61,7 +61,7 @@ private:
 protected:
 
   /*! Wrapped memory buffer */
-  tFixedBuffer* backend;
+  tFixedBuffer backend;
 
   /*! When buffer needs to be reallocated, new size is multiplied with this factor to have some bytes in reserve */
   float resize_reserve_factor;
@@ -86,17 +86,6 @@ public:
 protected:
 
   /*!
-   * Delete old backend buffer
-   * (may be overriden by subclass)
-   *
-   * \param b Buffer to delete
-   */
-  virtual void DeleteOldBackend(tFixedBuffer* b)
-  {
-    delete b;
-  }
-
-  /*!
    * Ensure that memory buffer has at least this size.
    * If not, backend will be reallocated.
    *
@@ -117,8 +106,9 @@ protected:
 
 public:
 
+  /*! move constructor */
   tMemoryBuffer(tMemoryBuffer && o) :
-      backend(NULL),
+      backend(),
       resize_reserve_factor(cDEFAULT_RESIZE_FACTOR),
       cur_size(0)
   {
@@ -127,6 +117,7 @@ public:
     std::swap(cur_size, o.cur_size);
   }
 
+  /*! move assignment */
   tMemoryBuffer& operator=(tMemoryBuffer && o)
   {
     std::swap(backend, o.backend);
@@ -140,6 +131,13 @@ public:
    * \param resize_factor When buffer needs to be reallocated, new size is multiplied with this factor to have some bytes in reserve
    */
   tMemoryBuffer(size_t size = cDEFAULT_SIZE, float resize_factor = cDEFAULT_RESIZE_FACTOR);
+
+  /*!
+   * Wraps existing buffer
+   *
+   * \param empty Is this an empty buffer of the specified size?
+   */
+  tMemoryBuffer(void* buffer, size_t size, bool empty = false);
 
   void ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t dummy);
 
@@ -171,8 +169,6 @@ public:
 
   virtual ~tMemoryBuffer()
   {
-    delete backend;
-    backend = NULL;
   }
 
   // CustomSerializable implementation
@@ -213,7 +209,7 @@ public:
   //! returns buffer backend
   inline tFixedBuffer* GetBuffer()
   {
-    return backend;
+    return &backend;
   }
 
   //! returns pointer to buffer backend - with specified offset in bytes
@@ -233,7 +229,7 @@ public:
    */
   inline const tFixedBuffer* GetBuffer() const
   {
-    return backend;
+    return &backend;
   }
 
   /*!
@@ -241,7 +237,7 @@ public:
    */
   inline int GetCapacity() const
   {
-    return backend->Capacity();
+    return backend.Capacity();
   }
 
   /*!
@@ -307,27 +303,11 @@ template <size_t SIZE>
 class tStackMemoryBuffer : public tMemoryBuffer
 {
   char initial_buffer[SIZE];
-  tFixedBuffer buffer;
+
 public:
-  tStackMemoryBuffer(float resize_factor = cDEFAULT_RESIZE_FACTOR) : tMemoryBuffer(0, resize_factor), initial_buffer(), buffer(initial_buffer, SIZE)
+  tStackMemoryBuffer(float resize_factor = cDEFAULT_RESIZE_FACTOR) : tMemoryBuffer(initial_buffer, SIZE), initial_buffer()
   {
-    backend = &buffer;
-  }
-
-  virtual ~tStackMemoryBuffer()
-  {
-    if (backend == &buffer)
-    {
-      backend = NULL;
-    }
-  }
-
-  virtual void DeleteOldBackend(tFixedBuffer* b)
-  {
-    if (b != &buffer)
-    {
-      delete b;
-    }
+    resize_reserve_factor = resize_factor;
   }
 };
 
