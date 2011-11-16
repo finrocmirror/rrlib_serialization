@@ -33,16 +33,23 @@ const int tMemoryBuffer::cDEFAULT_RESIZE_FACTOR;
 const tDataTypeBase tMemoryBuffer::cTYPE = tDataType<tMemoryBuffer>();
 
 tMemoryBuffer::tMemoryBuffer(size_t size, float resize_factor) :
-    backend(new tFixedBuffer(size)),
+    backend(size),
     resize_reserve_factor(resize_factor),
     cur_size(0)
+{
+}
+
+tMemoryBuffer::tMemoryBuffer(void* buffer, size_t size, bool empty) :
+    backend((char*)buffer, size),
+    resize_reserve_factor(1),
+    cur_size(empty ? 0u : size)
 {
 }
 
 void tMemoryBuffer::ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t dummy)
 {
   EnsureCapacity(static_cast<int>((t.GetSize() + offset)), true, GetSize());
-  backend->Put(static_cast<size_t>(offset), *t.backend, 0u, t.GetSize());
+  backend.Put(static_cast<size_t>(offset), t.backend, 0u, t.GetSize());
   size_t required_size = static_cast<size_t>(offset + t.GetSize());
   cur_size = std::max(cur_size, required_size);
 }
@@ -50,7 +57,7 @@ void tMemoryBuffer::ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t 
 void tMemoryBuffer::CopyFrom(const tMemoryBuffer& source)
 {
   EnsureCapacity(source.GetSize(), false, GetSize());
-  backend->Put(0u, *source.backend, 0u, source.GetSize());
+  backend.Put(0u, source.backend, 0u, source.GetSize());
   cur_size = source.GetSize();
 }
 
@@ -58,7 +65,7 @@ void tMemoryBuffer::Deserialize(tInputStream& rv, size_t size)
 {
   cur_size = 0u;
   Reallocate(size, false, -1u);
-  rv.ReadFully(*backend, 0u, size);
+  rv.ReadFully(backend, 0u, size);
   cur_size = size;
 }
 
@@ -98,41 +105,40 @@ void tMemoryBuffer::Read(tInputStream* input_stream_buffer, tBufferInfo& buffer,
 
 void tMemoryBuffer::Reallocate(size_t new_size, bool keep_contents, size_t old_size)
 {
-  if (new_size <= backend->Capacity())
+  if (new_size <= backend.Capacity())
   {
     return;
   }
 
-  tFixedBuffer* new_buffer = new tFixedBuffer(new_size);
+  tFixedBuffer new_buffer(new_size);
 
   if (keep_contents)
   {
     // Copy old contents
-    new_buffer->Put(0u, *backend, 0u, old_size);
+    new_buffer.Put(0u, backend, 0u, old_size);
   }
 
-  DeleteOldBackend(backend);
-  backend = new_buffer;
+  std::swap(backend, new_buffer);
 }
 
 void tMemoryBuffer::Reset(tInputStream* input_stream_buffer, tBufferInfo& buffer) const
 {
-  buffer.buffer = backend;
+  buffer.buffer = const_cast<tFixedBuffer*>(&backend);
   buffer.position = 0u;
   buffer.SetRange(0u, cur_size);
 }
 
 void tMemoryBuffer::Reset(tOutputStream* output_stream_buffer, tBufferInfo& buffer)
 {
-  buffer.buffer = backend;
+  buffer.buffer = &backend;
   buffer.position = 0u;
-  buffer.SetRange(0u, backend->Capacity());
+  buffer.SetRange(0u, backend.Capacity());
 }
 
 void tMemoryBuffer::Serialize(tOutputStream& sb) const
 {
   sb.WriteInt(cur_size);
-  sb.Write(*backend, 0u, cur_size);
+  sb.Write(backend, 0u, cur_size);
 }
 
 bool tMemoryBuffer::Write(tOutputStream* output_stream_buffer, tBufferInfo& buffer, int hint)
@@ -140,11 +146,11 @@ bool tMemoryBuffer::Write(tOutputStream* output_stream_buffer, tBufferInfo& buff
   // do we need size increase?
   if (hint >= 0)
   {
-    size_t new_size = std::max(8, static_cast<int>(((backend->Capacity() + hint) * resize_reserve_factor)));
+    size_t new_size = std::max(8, static_cast<int>(((backend.Capacity() + hint) * resize_reserve_factor)));
     EnsureCapacity(new_size, true, buffer.position);
-    buffer.buffer = backend;
+    buffer.buffer = &backend;
   }
-  buffer.end = backend->Capacity();  // don't modify buffer start
+  buffer.end = backend.Capacity();  // don't modify buffer start
   return false;
 }
 

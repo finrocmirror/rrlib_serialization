@@ -381,6 +381,11 @@ public:
     return info != other.info;
   }
 
+  bool operator< (const tDataTypeBase& other) const
+  {
+    return info < other.info;
+  }
+
   /*!
    * Deep copy objects
    *
