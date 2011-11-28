@@ -59,6 +59,8 @@ public:
       type(NULL)
   {}
 
+  virtual ~tTypedObject() {}
+
   /*!
    * \return Log description (default implementation is "<class name> (<pointer>)"
    */

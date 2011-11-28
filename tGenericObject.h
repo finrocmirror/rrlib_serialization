@@ -47,7 +47,7 @@ class tGenericObjectManager;
  *
  * Memory Layout of all subclasses: vtable ptr | datatype ptr | object ptr | management info raw memory of size M
  */
-class tGenericObject : public tTypedObject
+class tGenericObject : public tTypedObject, boost::noncopyable
 {
 protected:
 
