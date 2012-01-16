@@ -29,6 +29,8 @@
 #include <stdint.h>
 #include <execinfo.h>
 
+#include "rrlib/logging/messages.h"
+
 namespace rrlib
 {
 namespace serialization

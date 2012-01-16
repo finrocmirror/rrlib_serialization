@@ -32,7 +32,6 @@
 #include <vector>
 
 #include <mutex>
-#include "rrlib/logging/definitions.h"
 
 namespace rrlib
 {
@@ -180,10 +179,6 @@ public:
   };
 
 protected:
-
-  /*! Log domain for this class */
-  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "serialization");
-
   //    /** Maximum number of types */
   //    public static final int MAX_TYPES = 2000;
 

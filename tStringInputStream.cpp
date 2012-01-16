@@ -23,6 +23,8 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+#include "rrlib/logging/messages.h"
+
 namespace rrlib
 {
 namespace serialization

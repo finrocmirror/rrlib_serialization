@@ -32,7 +32,6 @@
 #include <boost/utility.hpp>
 #include <stdint.h>
 
-#include "rrlib/logging/definitions.h"
 #include "rrlib/serialization/tStlContainerSuitable.h"
 
 namespace rrlib
@@ -53,11 +52,6 @@ class tOutputStream;
  */
 class tMemoryBuffer : public tSerializable, public tConstSource, public tSink, public boost::noncopyable, public tStlSuitable
 {
-private:
-
-  /*! Log domain for this class */
-  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "serialization");
-
 protected:
 
   /*! Wrapped memory buffer */

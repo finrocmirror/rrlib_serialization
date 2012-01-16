@@ -49,9 +49,6 @@ protected:
 
 public:
 
-  /*! Log domain for serialization */
-  RRLIB_LOG_CREATE_NAMED_DOMAIN(log_domain, "serialization");
-
   /*!
    * \return Type of object
    */

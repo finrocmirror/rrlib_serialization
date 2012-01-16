@@ -24,6 +24,8 @@
 #include "rrlib/serialization/sSerialization.h"
 #include "rrlib/serialization/tTypeTraitsVector.h"
 
+#include "rrlib/logging/messages.h"
+
 namespace rrlib
 {
 namespace serialization
@@ -39,7 +41,7 @@ tDataType<T>::tDataTypeInfo::tDataTypeInfo()
   binary = sSerialization::GetBinaryCurrentlyPerformingStaticInitialization();
   if (binary.length() > 0)
   {
-    RRLIB_LOG_PRINT_STATIC(rrlib::logging::eLL_DEBUG_VERBOSE_1, log_domain, "Data type ", name, " is statically loaded in '", binary, "'.");
+    RRLIB_LOG_PRINT_STATIC(rrlib::logging::eLL_DEBUG_VERBOSE_1, "Data type ", name, " is statically loaded in '", binary, "'.");
   }
 }
 

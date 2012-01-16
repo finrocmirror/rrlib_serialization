@@ -69,9 +69,9 @@ template <typename T>
 inline const rrlib::xml2::tXMLNode& operator>> (const rrlib::xml2::tXMLNode& n, std::vector<T>& v)
 {
   v.clear();
-  for (rrlib::xml2::tXMLNode::const_iterator node = n.GetChildrenBegin(); node != n.GetChildrenEnd(); ++node)
+  for (rrlib::xml2::tXMLNode::const_iterator node = n.ChildrenBegin(); node != n.ChildrenEnd(); ++node)
   {
-    assert(node->GetName().compare("element") == 0);
+    assert(node->Name().compare("element") == 0);
     v.push_back(rrlib::serialization::sStaticFactory<T>::CreateByValue());
     (*node) >> rrlib::serialization::detail::tListElemInfo<T>::GetElem(v[v.size() - 1]);
   }

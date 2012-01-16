@@ -22,13 +22,7 @@
 #ifndef __rrlib__serialization__tSerializable_h__
 #define __rrlib__serialization__tSerializable_h__
 
-namespace rrlib
-{
-namespace xml2
-{
-class tXMLNode;
-} // namespace rrlib
-} // namespace xml2
+#include "rrlib/xml2_wrapper/tXMLNode.h"
 
 namespace rrlib
 {
