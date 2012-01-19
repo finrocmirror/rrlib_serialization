@@ -24,6 +24,7 @@
 
 #include "rrlib/serialization/tSerializable.h"
 #include <boost/utility.hpp>
+#include <boost/algorithm/string.hpp>
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -250,7 +251,8 @@ inline tStringInputStream& operator>> (tStringInputStream& is, double& t)
 }
 inline tStringInputStream& operator>> (tStringInputStream& is, bool& t)
 {
-  is.wrapped  >> t;
+  std::string s = is.ReadWhile("", tStringInputStream::cLETTER | tStringInputStream::cDIGIT | tStringInputStream::cWHITESPACE, true);
+  t = boost::iequals(s, "true") || (s.length() == 1 && s[0] == '1');
   return is;
 }
 inline tStringInputStream& operator>> (tStringInputStream& is, std::string& t)
