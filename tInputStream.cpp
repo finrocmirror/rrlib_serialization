@@ -30,43 +30,43 @@ namespace rrlib
 namespace serialization
 {
 tInputStream::tInputStream(tInputStream::tTypeEncoding encoding_) :
-    source_lock(),
-    source_buffer(),
-    boundary_buffer(),
-    boundary_buffer_backend(14u),
-    cur_buffer(NULL),
-    source(NULL),
-    const_source(NULL),
-    absolute_read_pos(0),
-    cur_skip_offset_target(-1),
-    closed(false),
-    direct_read_support(false),
-    timeout(-1),
-    default_factory(),
-    factory(&(default_factory)),
-    encoding(encoding_),
-    custom_encoder()
+  source_lock(),
+  source_buffer(),
+  boundary_buffer(),
+  boundary_buffer_backend(14u),
+  cur_buffer(NULL),
+  source(NULL),
+  const_source(NULL),
+  absolute_read_pos(0),
+  cur_skip_offset_target(-1),
+  closed(false),
+  direct_read_support(false),
+  timeout(-1),
+  default_factory(),
+  factory(&(default_factory)),
+  encoding(encoding_),
+  custom_encoder()
 {
   boundary_buffer.buffer = &(boundary_buffer_backend);
 }
 
 tInputStream::tInputStream(std::shared_ptr<tTypeEncoder> encoder) :
-    source_lock(),
-    source_buffer(),
-    boundary_buffer(),
-    boundary_buffer_backend(14u),
-    cur_buffer(NULL),
-    source(NULL),
-    const_source(NULL),
-    absolute_read_pos(0),
-    cur_skip_offset_target(-1),
-    closed(false),
-    direct_read_support(false),
-    timeout(-1),
-    default_factory(),
-    factory(&(default_factory)),
-    encoding(eCustom),
-    custom_encoder(encoder)
+  source_lock(),
+  source_buffer(),
+  boundary_buffer(),
+  boundary_buffer_backend(14u),
+  cur_buffer(NULL),
+  source(NULL),
+  const_source(NULL),
+  absolute_read_pos(0),
+  cur_skip_offset_target(-1),
+  closed(false),
+  direct_read_support(false),
+  timeout(-1),
+  default_factory(),
+  factory(&(default_factory)),
+  encoding(eCustom),
+  custom_encoder(encoder)
 {
   boundary_buffer.buffer = &(boundary_buffer_backend);
 }

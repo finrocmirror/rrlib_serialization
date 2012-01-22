@@ -29,83 +29,83 @@ namespace serialization
 const double tOutputStream::cBUFFER_COPY_FRACTION = 0.25;
 
 tOutputStream::tOutputStream(tOutputStream::tTypeEncoding encoding_) :
-    sink(NULL),
-    immediate_flush(false),
-    closed(true),
-    buffer(),
-    cur_skip_offset_placeholder(-1),
-    buffer_copy_fraction(0),
-    direct_write_support(false),
-    encoding(encoding_),
-    custom_encoder()
+  sink(NULL),
+  immediate_flush(false),
+  closed(true),
+  buffer(),
+  cur_skip_offset_placeholder(-1),
+  buffer_copy_fraction(0),
+  direct_write_support(false),
+  encoding(encoding_),
+  custom_encoder()
 {
 }
 
 tOutputStream::tOutputStream(std::shared_ptr<tTypeEncoder> encoder) :
-    sink(NULL),
-    immediate_flush(false),
-    closed(true),
-    buffer(),
-    cur_skip_offset_placeholder(-1),
-    buffer_copy_fraction(0),
-    direct_write_support(false),
-    encoding(eCustom),
-    custom_encoder(encoder)
+  sink(NULL),
+  immediate_flush(false),
+  closed(true),
+  buffer(),
+  cur_skip_offset_placeholder(-1),
+  buffer_copy_fraction(0),
+  direct_write_support(false),
+  encoding(eCustom),
+  custom_encoder(encoder)
 {
 }
 
 tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, tOutputStream::tTypeEncoding encoding_) :
-    sink(NULL),
-    immediate_flush(false),
-    closed(true),
-    buffer(),
-    cur_skip_offset_placeholder(-1),
-    buffer_copy_fraction(0),
-    direct_write_support(false),
-    encoding(encoding_),
-    custom_encoder()
+  sink(NULL),
+  immediate_flush(false),
+  closed(true),
+  buffer(),
+  cur_skip_offset_placeholder(-1),
+  buffer_copy_fraction(0),
+  direct_write_support(false),
+  encoding(encoding_),
+  custom_encoder()
 {
   Reset(sink_);
 }
 
 tOutputStream::tOutputStream(tSink* sink_, tOutputStream::tTypeEncoding encoding_) :
-    sink(NULL),
-    immediate_flush(false),
-    closed(true),
-    buffer(),
-    cur_skip_offset_placeholder(-1),
-    buffer_copy_fraction(0),
-    direct_write_support(false),
-    encoding(encoding_),
-    custom_encoder()
+  sink(NULL),
+  immediate_flush(false),
+  closed(true),
+  buffer(),
+  cur_skip_offset_placeholder(-1),
+  buffer_copy_fraction(0),
+  direct_write_support(false),
+  encoding(encoding_),
+  custom_encoder()
 {
   Reset(sink_);
 }
 
 tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, std::shared_ptr<tTypeEncoder> encoder) :
-    sink(NULL),
-    immediate_flush(false),
-    closed(true),
-    buffer(),
-    cur_skip_offset_placeholder(-1),
-    buffer_copy_fraction(0),
-    direct_write_support(false),
-    encoding(eCustom),
-    custom_encoder(encoder)
+  sink(NULL),
+  immediate_flush(false),
+  closed(true),
+  buffer(),
+  cur_skip_offset_placeholder(-1),
+  buffer_copy_fraction(0),
+  direct_write_support(false),
+  encoding(eCustom),
+  custom_encoder(encoder)
 {
   Reset(sink_);
 }
 
 tOutputStream::tOutputStream(tSink* sink_, std::shared_ptr<tTypeEncoder> encoder) :
-    sink(NULL),
-    immediate_flush(false),
-    closed(true),
-    buffer(),
-    cur_skip_offset_placeholder(-1),
-    buffer_copy_fraction(0),
-    direct_write_support(false),
-    encoding(eCustom),
-    custom_encoder(encoder)
+  sink(NULL),
+  immediate_flush(false),
+  closed(true),
+  buffer(),
+  cur_skip_offset_placeholder(-1),
+  buffer_copy_fraction(0),
+  direct_write_support(false),
+  encoding(eCustom),
+  custom_encoder(encoder)
 {
   Reset(sink_);
 }

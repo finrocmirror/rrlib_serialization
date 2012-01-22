@@ -42,8 +42,8 @@ public:
   const xml2::tXMLNode& node;
 
   tStringInputStreamFallback(const xml2::tXMLNode& node_) :
-      tStringInputStream(node_.GetTextContent()),
-      node(node_)
+    tStringInputStream(node_.GetTextContent()),
+    node(node_)
   {}
 
 };

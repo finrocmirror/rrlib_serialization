@@ -35,7 +35,7 @@ int string_input_stream_initializer = tStringInputStream::InitCharMap();
 const int8_t tStringInputStream::cLCASE, tStringInputStream::cUCASE, tStringInputStream::cLETTER, tStringInputStream::cDIGIT, tStringInputStream::cWHITESPACE;
 
 tStringInputStream::tStringInputStream(const std::string& s) :
-    wrapped(s)
+  wrapped(s)
 {
 }
 

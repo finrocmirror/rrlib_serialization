@@ -40,7 +40,7 @@ public:
   xml2::tXMLNode& wrapped;
 
   tStringOutputStreamFallback(xml2::tXMLNode& node) :
-      wrapped(node)
+    wrapped(node)
   {}
 
   virtual ~tStringOutputStreamFallback()

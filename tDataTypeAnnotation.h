@@ -42,7 +42,7 @@ public:
   tDataTypeBase annotated_type;
 
   tDataTypeAnnotation() :
-      annotated_type()
+    annotated_type()
   {}
 
   /*!

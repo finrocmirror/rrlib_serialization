@@ -46,9 +46,9 @@ public:
   tStringInputStream& org_stream;
 
   tInputStreamFallback(tStringInputStream& s) :
-      tInputStream(tInputStream::eNames),
-      mb(new tMemoryBuffer(50000)),
-      org_stream(s)
+    tInputStream(tInputStream::eNames),
+    mb(new tMemoryBuffer(50000)),
+    org_stream(s)
   {
     tOutputStream co(mb, tOutputStream::eNames);
     sSerialization::ConvertHexStringToBinary(s, co);

@@ -102,9 +102,9 @@ public:
 
   /*! move constructor */
   tMemoryBuffer(tMemoryBuffer && o) :
-      backend(),
-      resize_reserve_factor(cDEFAULT_RESIZE_FACTOR),
-      cur_size(0)
+    backend(),
+    resize_reserve_factor(cDEFAULT_RESIZE_FACTOR),
+    cur_size(0)
   {
     std::swap(backend, o.backend);
     std::swap(resize_reserve_factor, o.resize_reserve_factor);

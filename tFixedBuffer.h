@@ -67,9 +67,9 @@ public:
   // \param buffer_ pointer to buffer start
   // \param capacity_ capacity of wrapped buffer
   tFixedBuffer(char* buffer_, size_t capacity_) :
-      buffer(buffer_),
-      capacity_x(capacity_),
-      owns_buf(false)
+    buffer(buffer_),
+    capacity_x(capacity_),
+    owns_buf(false)
   {}
 
   tFixedBuffer(size_t capacity_ = 0);

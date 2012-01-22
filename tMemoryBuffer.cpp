@@ -35,16 +35,16 @@ const int tMemoryBuffer::cDEFAULT_RESIZE_FACTOR;
 const tDataTypeBase tMemoryBuffer::cTYPE = tDataType<tMemoryBuffer>();
 
 tMemoryBuffer::tMemoryBuffer(size_t size, float resize_factor) :
-    backend(size),
-    resize_reserve_factor(resize_factor),
-    cur_size(0)
+  backend(size),
+  resize_reserve_factor(resize_factor),
+  cur_size(0)
 {
 }
 
 tMemoryBuffer::tMemoryBuffer(void* buffer, size_t size, bool empty) :
-    backend((char*)buffer, size),
-    resize_reserve_factor(1),
-    cur_size(empty ? 0u : size)
+  backend((char*)buffer, size),
+  resize_reserve_factor(1),
+  cur_size(empty ? 0u : size)
 {
 }
 

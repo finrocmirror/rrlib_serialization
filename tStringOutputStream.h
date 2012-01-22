@@ -53,7 +53,7 @@ public:
   }
 
   tStringOutputStream() :
-      wrapped()
+    wrapped()
   {
   }
 
@@ -61,7 +61,7 @@ public:
    * \param length Initial length of buffer (TODO: in C++ this currently has now effect)
    */
   tStringOutputStream(int length) :
-      wrapped()
+    wrapped()
   {}
 
   /*!

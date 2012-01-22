@@ -28,17 +28,17 @@ namespace serialization
 {
 
 tFixedBuffer::tFixedBuffer(size_t capacity_) :
-    buffer(capacity_ > 0 ? new char[capacity_] : NULL),
-    capacity_x(capacity_),
-    owns_buf(capacity_ > 0)
+  buffer(capacity_ > 0 ? new char[capacity_] : NULL),
+  capacity_x(capacity_),
+  owns_buf(capacity_ > 0)
 {
 }
 
 // move constructor
 tFixedBuffer::tFixedBuffer(tFixedBuffer && o) :
-    buffer(NULL),
-    capacity_x(0),
-    owns_buf(false)
+  buffer(NULL),
+  capacity_x(0),
+  owns_buf(false)
 {
   std::swap(buffer, o.buffer);
   std::swap(capacity_x, o.capacity_x);

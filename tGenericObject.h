@@ -75,7 +75,7 @@ public:
    * \param dt Data Type of wrapped object
    */
   tGenericObject(tDataTypeBase dt) :
-      wrapped()
+    wrapped()
   {
     this->type = dt;
   }

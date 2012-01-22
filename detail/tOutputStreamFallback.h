@@ -46,9 +46,9 @@ public:
   tStringOutputStream& wrapped;
 
   tOutputStreamFallback(tStringOutputStream& s) :
-      tOutputStream(tOutputStream::eNames),
-      mb(new tMemoryBuffer(50000)),
-      wrapped(s)
+    tOutputStream(tOutputStream::eNames),
+    mb(new tMemoryBuffer(50000)),
+    wrapped(s)
   {
     Reset(mb);
   }

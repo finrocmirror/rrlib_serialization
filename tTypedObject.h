@@ -53,7 +53,7 @@ public:
    * \return Type of object
    */
   tTypedObject() :
-      type(NULL)
+    type(NULL)
   {}
 
   virtual ~tTypedObject() {}
