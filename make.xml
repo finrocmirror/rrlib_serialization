@@ -9,10 +9,4 @@
     </sources>
   </rrlib>
 
-  <!--testprogram name="program">
-    <sources>
-      test/*.cpp
-    </sources>
-  </testprogram-->
-
 </targets>

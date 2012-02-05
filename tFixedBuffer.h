@@ -102,7 +102,7 @@ public:
     return buffer;
   }
 
-  // Generic put method... okay... this is MUCH more elegant than Java equivalent
+  // Generic put method...
   // \param offset absolute offset
   // \param t Data to write
   template <typename T>
@@ -113,7 +113,7 @@ public:
     (*ptr) = t;
   }
 
-  // Generic get method... okay... this is MUCH more elegant than Java equivalent again
+  // Generic get method...
   // \param offset absolute offset
   // \return t Data at offset
   template <typename T>

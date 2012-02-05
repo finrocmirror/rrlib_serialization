@@ -25,7 +25,7 @@
 #include "rrlib/serialization/tOutputStream.h"
 #include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tMemoryBuffer.h"
-#include "rrlib/serialization/sSerialization.h"
+#include "rrlib/serialization/serialization.h"
 
 namespace rrlib
 {
@@ -46,7 +46,7 @@ public:
   tStringOutputStream& wrapped;
 
   tOutputStreamFallback(tStringOutputStream& s) :
-    tOutputStream(tOutputStream::eNames),
+    tOutputStream(eNames),
     mb(new tMemoryBuffer(50000)),
     wrapped(s)
   {
@@ -57,7 +57,7 @@ public:
   {
     Close();
     tInputStream ci(mb.get());
-    sSerialization::ConvertBinaryToHexString(ci, wrapped);
+    ConvertBinaryToHexString(ci, wrapped);
     ci.Close();
   }
 };

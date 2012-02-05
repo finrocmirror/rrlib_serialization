@@ -20,7 +20,6 @@
  */
 #include "rrlib/serialization/tOutputStream.h"
 #include "rrlib/serialization/tInputStream.h"
-#include "rrlib/serialization/tGenericObject.h"
 
 namespace rrlib
 {
@@ -28,7 +27,7 @@ namespace serialization
 {
 const double tOutputStream::cBUFFER_COPY_FRACTION = 0.25;
 
-tOutputStream::tOutputStream(tOutputStream::tTypeEncoding encoding_) :
+tOutputStream::tOutputStream(tTypeEncoding encoding) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -36,7 +35,7 @@ tOutputStream::tOutputStream(tOutputStream::tTypeEncoding encoding_) :
   cur_skip_offset_placeholder(-1),
   buffer_copy_fraction(0),
   direct_write_support(false),
-  encoding(encoding_),
+  encoding(encoding),
   custom_encoder()
 {
 }
@@ -54,7 +53,7 @@ tOutputStream::tOutputStream(std::shared_ptr<tTypeEncoder> encoder) :
 {
 }
 
-tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, tOutputStream::tTypeEncoding encoding_) :
+tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, tTypeEncoding encoding) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -62,13 +61,13 @@ tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, tOutputStream::tTypeE
   cur_skip_offset_placeholder(-1),
   buffer_copy_fraction(0),
   direct_write_support(false),
-  encoding(encoding_),
+  encoding(encoding),
   custom_encoder()
 {
   Reset(sink_);
 }
 
-tOutputStream::tOutputStream(tSink* sink_, tOutputStream::tTypeEncoding encoding_) :
+tOutputStream::tOutputStream(tSink* sink_, tTypeEncoding encoding) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -76,7 +75,7 @@ tOutputStream::tOutputStream(tSink* sink_, tOutputStream::tTypeEncoding encoding
   cur_skip_offset_placeholder(-1),
   buffer_copy_fraction(0),
   direct_write_support(false),
-  encoding(encoding_),
+  encoding(encoding),
   custom_encoder()
 {
   Reset(sink_);
@@ -215,20 +214,6 @@ void tOutputStream::WriteAllAvailable(tInputStream* input_stream)
   }
 }
 
-void tOutputStream::WriteObject(const tGenericObject* to)
-{
-  if (to == NULL)
-  {
-    WriteType(NULL);
-    return;
-  }
-
-  //writeSkipOffsetPlaceholder();
-  WriteType(to->GetType());
-  to->Serialize(*this);
-  //skipTargetHere();
-}
-
 void tOutputStream::WriteSkipOffsetPlaceholder()
 {
   assert((cur_skip_offset_placeholder < 0));
@@ -242,22 +227,6 @@ void tOutputStream::WriteString(const std::string& s, bool terminate)
   size_t len = terminate ? (s.size() + 1) : s.size();
   Write(tFixedBuffer((char*)s.c_str(), len));
 
-}
-
-void tOutputStream::WriteType(tDataTypeBase type)
-{
-  if (encoding == eLocalUids)
-  {
-    WriteShort(type.GetUid());
-  }
-  else if (encoding == eNames)
-  {
-    WriteString(type.GetName());
-  }
-  else
-  {
-    custom_encoder->WriteType(*this, type);
-  }
 }
 
 } // namespace rrlib

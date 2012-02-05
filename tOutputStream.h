@@ -27,14 +27,11 @@
 #include "rrlib/serialization/tTypeEncoder.h"
 #include "rrlib/serialization/tSink.h"
 #include "rrlib/serialization/tFixedBuffer.h"
-#include "rrlib/serialization/tDataTypeBase.h"
 #include <assert.h>
 #include <boost/utility.hpp>
 #include <memory>
 #include <stdint.h>
 #include <string>
-
-#include "rrlib/serialization/detail/tListElemInfo.h"
 #include <vector>
 #include <list>
 #include <deque>
@@ -45,7 +42,6 @@ namespace rrlib
 namespace serialization
 {
 class tInputStream;
-class tGenericObject;
 
 /*!
  * \author Max Reichardt
@@ -76,12 +72,6 @@ class tGenericObject;
  */
 class tOutputStream : public boost::noncopyable, public tSink
 {
-public:
-
-  enum tTypeEncoding { eLocalUids, eNames, eCustom };
-
-private:
-
   // for "locking" object sink as long as this buffer exists
   std::shared_ptr<const tSink> sink_lock;
 
@@ -110,7 +100,7 @@ private:
   bool direct_write_support;
 
   /*! Data type encoding that is used */
-  tOutputStream::tTypeEncoding encoding;
+  tTypeEncoding encoding;
 
   /*! Custom type encoder */
   std::shared_ptr<tTypeEncoder> custom_encoder;
@@ -150,7 +140,7 @@ public:
   /*!
    * \param encoding Data type encoding that is used
    */
-  tOutputStream(tOutputStream::tTypeEncoding encoding_ = eLocalUids);
+  tOutputStream(tTypeEncoding encoding_ = eLocalUids);
 
   tOutputStream(std::shared_ptr<tTypeEncoder> encoder);
 
@@ -158,9 +148,9 @@ public:
    * \param sink_ Sink to write to
    * \param encoding Data type encoding that is used
    */
-  tOutputStream(std::shared_ptr<tSink> sink_, tOutputStream::tTypeEncoding encoding_);
+  tOutputStream(std::shared_ptr<tSink> sink_, tTypeEncoding encoding_);
 
-  tOutputStream(tSink* sink_, tOutputStream::tTypeEncoding encoding_ = eLocalUids);
+  tOutputStream(tSink* sink_, tTypeEncoding encoding_ = eLocalUids);
 
   /*!
    * \param sink_ Sink to write to
@@ -218,39 +208,25 @@ public:
     sink->Flush(this, buffer);
   }
 
-  // Serialize STL container (must either have pass-by-value type or shared pointers)
-  template <typename C, typename T>
-  void WriteSTLContainer(const C& container)
-  {
-    typedef detail::tListElemInfo<T> info;
-
-    WriteInt(container.size());
-    const bool const_type = !info::is_shared_ptr;
-    WriteBoolean(const_type); // const type?
-    typename C::const_iterator it;
-    for (it = container.begin(); it != container.end(); it++)
-    {
-      if (!const_type)
-      {
-        tDataTypeBase type = info::GetType(*it);
-        WriteType(type);
-        if (type == NULL)
-        {
-          continue;
-        }
-        if (type != info::GetTypeT())
-        {
-          type.Serialize(*this, &info::GetElem(*it));
-          continue;
-        }
-      }
-      *this << info::GetElem(*it);
-    }
-  }
-
   virtual void Flush(tOutputStream* output_stream_buffer, const tBufferInfo& info)
   {
     Flush();
+  }
+
+  /*!
+   * \return Custom type encoder
+   */
+  tTypeEncoder* GetCustomTypeEncoder() const
+  {
+    return custom_encoder.get();
+  }
+
+  /*!
+   * \return Data type encoding that is used
+   */
+  tTypeEncoding GetTypeEncoding() const
+  {
+    return encoding;
   }
 
   /*!
@@ -466,14 +442,6 @@ public:
   }
 
   /*!
-   * Serialize Object of arbitrary type to stream
-   * (including type information)
-   *
-   * \param to Object to write (may be null)
-   */
-  void WriteObject(const tGenericObject* to);
-
-  /*!
    * \param v 16 bit integer
    */
   inline void WriteShort(int v)
@@ -513,11 +481,6 @@ public:
    * \param terminate Terminate string with zero?
    */
   void WriteString(const std::string& s, bool terminate);
-
-  /*!
-   * \param type Data type to write/reference (using encoding specified in constructor)
-   */
-  void WriteType(tDataTypeBase type);
 
 };
 
@@ -611,24 +574,6 @@ inline tOutputStream& operator<< (tOutputStream& os, const std::string& t)
 inline tOutputStream& operator<< (tOutputStream& os, const tSerializable& t)
 {
   t.Serialize(os);
-  return os;
-}
-template <typename T>
-inline tOutputStream& operator<< (tOutputStream& os, const std::vector<T>& t)
-{
-  os.WriteSTLContainer<std::vector<T>, T>(t);
-  return os;
-}
-template <typename T>
-inline tOutputStream& operator<< (tOutputStream& os, const std::list<T>& t)
-{
-  os.WriteSTLContainer<std::list<T>, T>(t);
-  return os;
-}
-template <typename T>
-inline tOutputStream& operator<< (tOutputStream& os, const std::deque<T>& t)
-{
-  os.WriteSTLContainer<std::deque<T>, T>(t);
   return os;
 }
 template <typename T>

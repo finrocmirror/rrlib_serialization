@@ -25,14 +25,11 @@
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tConstSource.h"
 #include "rrlib/serialization/tSink.h"
-#include "rrlib/serialization/tDataTypeBase.h"
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tFixedBuffer.h"
 #include <boost/utility.hpp>
 #include <stdint.h>
-
-#include "rrlib/serialization/tStlContainerSuitable.h"
 
 namespace rrlib
 {
@@ -50,7 +47,7 @@ class tOutputStream;
  *
  * Writing and reading concurrently is not supported - due to resize.
  */
-class tMemoryBuffer : public tSerializable, public tConstSource, public tSink, public boost::noncopyable, public tStlSuitable
+class tMemoryBuffer : public tSerializable, public tConstSource, public tSink, public boost::noncopyable
 {
 protected:
 
@@ -73,9 +70,6 @@ public:
 
   /*! Default factor for buffer size increase */
   static const int cDEFAULT_RESIZE_FACTOR = 2;
-
-  /*! Data type of this class */
-  static const tDataTypeBase cTYPE;
 
 protected:
 
@@ -111,15 +105,6 @@ public:
     std::swap(cur_size, o.cur_size);
   }
 
-  /*! move assignment */
-  tMemoryBuffer& operator=(tMemoryBuffer && o)
-  {
-    std::swap(backend, o.backend);
-    std::swap(resize_reserve_factor, o.resize_reserve_factor);
-    std::swap(cur_size, o.cur_size);
-    return *this;
-  }
-
   /*!
    * \param size Initial buffer size
    * \param resize_factor When buffer needs to be reallocated, new size is multiplied with this factor to have some bytes in reserve
@@ -132,6 +117,15 @@ public:
    * \param empty Is this an empty buffer of the specified size?
    */
   tMemoryBuffer(void* buffer, size_t size, bool empty = false);
+
+  /*! move assignment */
+  tMemoryBuffer& operator=(tMemoryBuffer && o)
+  {
+    std::swap(backend, o.backend);
+    std::swap(resize_reserve_factor, o.resize_reserve_factor);
+    std::swap(cur_size, o.cur_size);
+    return *this;
+  }
 
   void ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t dummy);
 
@@ -195,6 +189,12 @@ public:
     return false;
   }
 
+  /*!
+   * \param other Other memory buffer
+   * \return Is content of this memory buffer equal to other memory buffer
+   */
+  bool Equals(const tMemoryBuffer& other) const;
+
   virtual void Flush(tOutputStream* output_stream_buffer, const tBufferInfo& buffer)
   {
     cur_size = buffer.position;  // update buffer size
@@ -237,7 +237,7 @@ public:
   /*!
    * \return description
    */
-  inline const char* GetDescription()
+  inline const char* GetDescription() const
   {
     return "MemoryBuffer";
   }
@@ -245,7 +245,7 @@ public:
   /*!
    * \return the resizeReserveFactor
    */
-  inline float GetResizeReserveFactor()
+  inline float GetResizeReserveFactor() const
   {
     return resize_reserve_factor;
   }
@@ -281,15 +281,12 @@ public:
 
   virtual bool Write(tOutputStream* output_stream_buffer, tBufferInfo& buffer, int hint);
 
+  bool operator=(const tMemoryBuffer& o) const
+  {
+    return Equals(o);
+  }
 };
 
-} // namespace rrlib
-} // namespace serialization
-
-namespace rrlib
-{
-namespace serialization
-{
 /*!
  * memory buffer with initial buffer allocated from stack (with size SIZE)
  */

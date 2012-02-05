@@ -25,11 +25,19 @@
 
 namespace rrlib
 {
+namespace rtti
+{
+class tDataTypeBase;
+}
 namespace serialization
 {
 class tInputStream;
-class tDataTypeBase;
 class tOutputStream;
+
+/*!
+ * Type encoding for streams
+ */
+enum tTypeEncoding { eLocalUids, eNames, eCustom };
 
 /*!
  * \author Max Reichardt
@@ -44,13 +52,13 @@ public:
    * \param is Input Stream
    * \return Type decoded from input stream
    */
-  virtual tDataTypeBase ReadType(tInputStream& is) = 0;
+  virtual rtti::tDataTypeBase ReadType(tInputStream& is) = 0;
 
   /*!
    * \param os Output stream
    * \param type Type to encode to output stream
    */
-  virtual void WriteType(tOutputStream& os, tDataTypeBase type) = 0;
+  virtual void WriteType(tOutputStream& os, rtti::tDataTypeBase type) = 0;
 
 };
 

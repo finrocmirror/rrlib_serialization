@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 #include "rrlib/serialization/tSerializable.h"
-#include "rrlib/serialization/sSerialization.h"
+#include "rrlib/serialization/serialization.h"
 #include "rrlib/serialization/tStringInputStream.h"
 #include "rrlib/xml2_wrapper/tXMLNode.h"
 
@@ -29,7 +29,7 @@ namespace serialization
 {
 void tSerializable::Deserialize(tStringInputStream& s)
 {
-  sSerialization::DeserializeFromHexString(this, s);
+  serialization::DeserializeFromHexString(this, s);
 }
 
 void tSerializable::Deserialize(const xml2::tXMLNode& node)
@@ -40,12 +40,12 @@ void tSerializable::Deserialize(const xml2::tXMLNode& node)
 
 void tSerializable::Serialize(tStringOutputStream& os) const
 {
-  sSerialization::SerializeToHexString(this, os);
+  serialization::SerializeToHexString(this, os);
 }
 
 void tSerializable::Serialize(xml2::tXMLNode& node) const
 {
-  node.SetContent(sSerialization::Serialize(*this));
+  node.SetContent(serialization::Serialize(*this));
 }
 
 } // namespace rrlib

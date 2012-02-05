@@ -60,15 +60,4 @@ inline typename std::enable_if<ENABLE, rrlib::xml2::tXMLNode>::type & operator<<
   return os.wrapped;
 }
 
-template <typename T>
-inline rrlib::xml2::tXMLNode& operator<< (rrlib::xml2::tXMLNode& node, const std::vector<T>& v)
-{
-  for (size_t i = 0; i < v.size(); i++)
-  {
-    rrlib::xml2::tXMLNode& enode = node.AddChildNode("element");
-    enode << rrlib::serialization::detail::tListElemInfo<T>::GetElem(v[i]);
-  }
-  return node;
-}
-
 #endif // __rrlib__serialization__detail__tStringOutputStreamFallback_h__

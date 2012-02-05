@@ -59,23 +59,4 @@ inline const typename std::enable_if<ENABLE, rrlib::xml2::tXMLNode>::type & oper
   return is.node;
 }
 
-inline const rrlib::xml2::tXMLNode& operator>> (const rrlib::xml2::tXMLNode& node, std::string& s)
-{
-  s = node.GetTextContent();
-  return node;
-}
-
-template <typename T>
-inline const rrlib::xml2::tXMLNode& operator>> (const rrlib::xml2::tXMLNode& n, std::vector<T>& v)
-{
-  v.clear();
-  for (rrlib::xml2::tXMLNode::const_iterator node = n.ChildrenBegin(); node != n.ChildrenEnd(); ++node)
-  {
-    assert(node->Name().compare("element") == 0);
-    v.push_back(rrlib::serialization::sStaticFactory<T>::CreateByValue());
-    (*node) >> rrlib::serialization::detail::tListElemInfo<T>::GetElem(v[v.size() - 1]);
-  }
-  return n;
-}
-
 #endif // __rrlib__serialization__detail__tStringInputStreamFallback_h__

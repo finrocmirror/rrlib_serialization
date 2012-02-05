@@ -22,14 +22,12 @@
 
 #include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tStringOutputStream.h"
-#include "rrlib/serialization/tGenericObject.h"
-#include "rrlib/serialization/tFactory.h"
 
 namespace rrlib
 {
 namespace serialization
 {
-tInputStream::tInputStream(tInputStream::tTypeEncoding encoding_) :
+tInputStream::tInputStream(tTypeEncoding encoding) :
   source_lock(),
   source_buffer(),
   boundary_buffer(),
@@ -42,9 +40,8 @@ tInputStream::tInputStream(tInputStream::tTypeEncoding encoding_) :
   closed(false),
   direct_read_support(false),
   timeout(-1),
-  default_factory(),
-  factory(&(default_factory)),
-  encoding(encoding_),
+  factory(NULL),
+  encoding(encoding),
   custom_encoder()
 {
   boundary_buffer.buffer = &(boundary_buffer_backend);
@@ -63,8 +60,7 @@ tInputStream::tInputStream(std::shared_ptr<tTypeEncoder> encoder) :
   closed(false),
   direct_read_support(false),
   timeout(-1),
-  default_factory(),
-  factory(&(default_factory)),
+  factory(NULL),
   encoding(eCustom),
   custom_encoder(encoder)
 {
@@ -260,20 +256,6 @@ std::string tInputStream::ReadLine()
   return sb.ToString();
 }
 
-tGenericObject* tInputStream::ReadObject(const tDataTypeBase& expected_type, void* factory_parameter)
-{
-  //readSkipOffset();
-  tDataTypeBase dt = ReadType();
-  if (dt == NULL)
-  {
-    return NULL;
-  }
-
-  tGenericObject* buffer = factory->CreateGenericObject(dt, factory_parameter);
-  buffer->Deserialize(*this);
-  return buffer;
-}
-
 void tInputStream::ReadSkipOffset()
 {
   cur_skip_offset_target = absolute_read_pos + cur_buffer->position;
@@ -316,22 +298,6 @@ void tInputStream::ReadString(tStringOutputStream& sb, size_t length)
   }
 }
 
-tDataTypeBase tInputStream::ReadType()
-{
-  if (encoding == eLocalUids)
-  {
-    return tDataTypeBase::GetType(ReadShort());
-  }
-  else if (encoding == eNames)
-  {
-    return tDataTypeBase::FindType(ReadString());
-  }
-  else
-  {
-    return custom_encoder->ReadType(*this);
-  }
-}
-
 void tInputStream::Reset()
 {
   if (source != NULL)
@@ -368,10 +334,6 @@ void tInputStream::Reset(tSource* source_)
 
 void tInputStream::Skip(size_t n)
 {
-  /*      if (this.streamBuffer.source == null) {
-              readPos += n;
-          } else {*/
-
   while (true)
   {
     if (Remaining() >= n)

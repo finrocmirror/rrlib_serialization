@@ -25,31 +25,28 @@
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tFixedBuffer.h"
-#include "rrlib/serialization/tDefaultFactory.h"
 #include "rrlib/serialization/tTypeEncoder.h"
 #include "rrlib/serialization/tSource.h"
 #include "rrlib/serialization/tConstSource.h"
-#include "rrlib/serialization/tDataTypeBase.h"
 #include <assert.h>
 #include <boost/utility.hpp>
 #include <memory>
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
-
-#include "rrlib/serialization/detail/tListElemInfo.h"
 #include <vector>
 #include <list>
 #include <deque>
 #include <endian.h>
-#include "rrlib/serialization/sStaticFactory.h"
 
 namespace rrlib
 {
-namespace serialization
+namespace rtti
 {
 class tFactory;
-class tGenericObject;
+}
+namespace serialization
+{
 class tStringOutputStream;
 
 /*!
@@ -61,13 +58,7 @@ class tStringOutputStream;
  */
 class tInputStream : public boost::noncopyable, public tSource
 {
-public:
-
-  enum tTypeEncoding { eLocalUids, eNames, eCustom };
-
   friend class tOutputStream;
-
-protected:
 
   // for "locking" object source as long as this buffer exists
   std::shared_ptr<const void> source_lock;
@@ -105,14 +96,11 @@ protected:
   /*! timeout for blocking calls (<= 0 when disabled) */
   int timeout;
 
-  /*! Default Factory to use for creating objects. */
-  tDefaultFactory default_factory;
-
   /*! Factory to use for creating objects. */
-  tFactory* factory;
+  rtti::tFactory* factory;
 
   /*! Data type encoding that is used */
-  tInputStream::tTypeEncoding encoding;
+  tTypeEncoding encoding;
 
   /*! Custom type encoder */
   std::shared_ptr<tTypeEncoder> custom_encoder;
@@ -154,12 +142,12 @@ protected:
 
 public:
 
-  tInputStream(tInputStream::tTypeEncoding encoding_ = eLocalUids);
+  tInputStream(tTypeEncoding encoding_ = eLocalUids);
 
   tInputStream(std::shared_ptr<tTypeEncoder> encoder);
 
   template <typename T>
-  tInputStream(T source_, tInputStream::tTypeEncoding encoding_ = eLocalUids, decltype(source->DirectReadSupport()) dummy = true) :
+  tInputStream(T source_, tTypeEncoding encoding_ = eLocalUids, decltype(source->DirectReadSupport()) dummy = true) :
     source_lock(),
     source_buffer(),
     boundary_buffer(),
@@ -172,8 +160,7 @@ public:
     closed(false),
     direct_read_support(false),
     timeout(-1),
-    default_factory(),
-    factory(&(default_factory)),
+    factory(NULL),
     encoding(encoding_),
     custom_encoder()
   {
@@ -196,8 +183,7 @@ public:
     closed(false),
     direct_read_support(false),
     timeout(-1),
-    default_factory(),
-    factory(&(default_factory)),
+    factory(NULL),
     encoding(eCustom),
     custom_encoder(encoder)
   {
@@ -242,9 +228,17 @@ public:
   }
 
   /*!
+   * \return Custom type encoder
+   */
+  tTypeEncoder* GetCustomTypeEncoder() const
+  {
+    return custom_encoder.get();
+  }
+
+  /*!
    * \return Factory to use for creating objects.
    */
-  inline tFactory* GetFactory()
+  inline rtti::tFactory* GetFactory()
   {
     return factory;
   }
@@ -255,6 +249,14 @@ public:
   inline int GetTimeout()
   {
     return timeout;
+  }
+
+  /*!
+   * \return Data type encoding that is used
+   */
+  tTypeEncoding GetTypeEncoding() const
+  {
+    return encoding;
   }
 
   virtual bool MoreDataAvailable(tInputStream* input_stream_buffer, tBufferInfo& buffer);
@@ -373,17 +375,6 @@ public:
   }
 
   /*!
-   * Deserialize object with yet unknown type from stream
-   * (should have been written to stream with OutputStream.WriteObject() before; typeencoder should be of the same type)
-   *
-   * \param in_inter_thread_container Deserialize "cheap copy" data in interthread container?
-   * \param expected_type expected type (optional, may be null)
-   * \param factory_parameter Custom parameter for possibly user defined factory
-   * \return Buffer with read object (caller needs to take care of deleting it)
-   */
-  tGenericObject* ReadObject(const tDataTypeBase& expected_type = NULL, void* factory_parameter = NULL);
-
-  /*!
    * \return 2 byte integer
    */
   inline int16_t ReadShort()
@@ -476,62 +467,6 @@ public:
     }
   }
 
-  // Deserialize STL container (must either have pass-by-value type or shared pointers)
-  template <typename C, typename T>
-  void ReadSTLContainer(C& container)
-  {
-    typedef detail::tListElemInfo<T> info;
-
-    size_t size = ReadInt();
-    bool const_type = ReadBoolean();
-    if (const_type == info::is_shared_ptr)
-    {
-      throw std::runtime_error("Wrong list type");
-    }
-
-    // container.resize(size);
-    while (container.size() < size)
-    {
-      container.push_back(sStaticFactory<T>::CreateByValue());
-    }
-    while (container.size() > size)
-    {
-      container.pop_back();
-    }
-
-    typename C::iterator it;
-    for (it = container.begin(); it != container.end(); it++)
-    {
-      if (!const_type)
-      {
-        tDataTypeBase needed = ReadType();
-        tDataTypeBase current = info::GetType(*it);
-        if (needed != current)
-        {
-          if (needed == NULL)
-          {
-            info::Reset(*it);
-          }
-          else
-          {
-            info::ChangeBufferType(factory, *it, needed);
-          }
-        }
-        if (needed != info::GetTypeT())
-        {
-          needed.Deserialize(*this, &info::GetElem(*it));
-          continue;
-        }
-      }
-      *this >> info::GetElem(*it);
-    }
-  }
-
-  /*!
-   * \return Reads type from stream
-   */
-  tDataTypeBase ReadType();
-
   /*!
    * \return unsigned 1 byte integer
    */
@@ -600,9 +535,9 @@ public:
    *
    * \param factory Factory to use for creating objects. (will not be deleted by this class)
    */
-  inline void SetFactory(tFactory* factory_)
+  inline void SetFactory(rtti::tFactory* factory)
   {
-    this->factory = factory_ == NULL ? &(default_factory) : factory_;
+    this->factory = factory;
   }
 
   /*!
@@ -717,24 +652,7 @@ inline tInputStream& operator>> (tInputStream& is, tSerializable& t)
   t.Deserialize(is);
   return is;
 }
-template <typename T>
-inline tInputStream& operator>> (tInputStream& is, std::vector<T>& t)
-{
-  is.ReadSTLContainer<std::vector<T>, T>(t);
-  return is;
-}
-template <typename T>
-inline tInputStream& operator>> (tInputStream& is, std::list<T>& t)
-{
-  is.ReadSTLContainer<std::list<T>, T>(t);
-  return is;
-}
-template <typename T>
-inline tInputStream& operator>> (tInputStream& is, std::deque<T>& t)
-{
-  is.ReadSTLContainer<std::deque<T>, T>(t);
-  return is;
-}
+
 template <typename T>
 inline tInputStream& operator>> (typename std::enable_if<std::is_enum<T>::value, tInputStream>::type& is, T& t)
 {
