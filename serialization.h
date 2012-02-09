@@ -54,7 +54,7 @@ const int cSTACK_BUFFERS_SIZE = 65536;
  * \param src Input stream that contains binary data
  * \param co Output stream to write hex string to
  */
-extern void ConvertBinaryToHexString(tInputStream& src, tStringOutputStream& os);
+void ConvertBinaryToHexString(tInputStream& src, tStringOutputStream& os);
 
 /*!
  * Converts hex string from StringInputStream to binary
@@ -62,7 +62,7 @@ extern void ConvertBinaryToHexString(tInputStream& src, tStringOutputStream& os)
  * \param src Input stream that contains hex string
  * \param co Output stream to write binary data to
  */
-extern void ConvertHexStringToBinary(tStringInputStream& src, tOutputStream& co);
+void ConvertHexStringToBinary(tStringInputStream& src, tOutputStream& co);
 
 /*!
  * Deserializes string stream serializable from string
@@ -86,7 +86,7 @@ T Deserialize(const std::string& s)
  * \param cs CoreSerializable
  * \param s Hex String to deserialize from
  */
-extern void DeserializeFromHexString(tSerializable* cs, tStringInputStream& s);
+void DeserializeFromHexString(tSerializable* cs, tStringInputStream& s);
 
 /*!
  * Creates deep copy of serializable object using serialization to and from memory buffer
@@ -159,12 +159,12 @@ bool SerializationEquals(const T& o1, const T& o2)
  * \param cs Serializable
  * \return String
  */
-extern std::string Serialize(const tSerializable& rs);
+std::string Serialize(const tSerializable& rs);
 
 /*!
  * Helper for below
  */
-extern std::string ToString(tStringOutputStream& sos);
+std::string ToString(tStringOutputStream& sos);
 
 /*!
  * Serializes string stream serializable object to string
@@ -187,7 +187,7 @@ typename std::enable_if<ENABLE, std::string>::type Serialize(const T& t)
  * \param cs CoreSerializable
  * \param os String output stream
  */
-extern void SerializeToHexString(const tSerializable* cs, tStringOutputStream& os);
+void SerializeToHexString(const tSerializable* cs, tStringOutputStream& os);
 
 } // namespace rrlib
 } // namespace serialization
