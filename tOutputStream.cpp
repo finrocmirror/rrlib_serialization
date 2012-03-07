@@ -128,7 +128,7 @@ void tOutputStream::CommitData(int add_size_hint)
     {
       assert((cur_skip_offset_placeholder < 0));
     }
-    assert((buffer.Remaining() >= 8));
+    assert(add_size_hint < 0 || buffer.Remaining() >= 8);
     buffer_copy_fraction = static_cast<size_t>((buffer.Capacity() * cBUFFER_COPY_FRACTION));
   }
 }
