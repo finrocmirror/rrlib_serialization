@@ -127,6 +127,10 @@ public:
     return *this;
   }
 
+  virtual ~tMemoryBuffer()
+  {
+  }
+
   void ApplyChange(const tMemoryBuffer& t, int64_t offset, int64_t dummy);
 
   /*!
@@ -154,10 +158,6 @@ public:
   }
 
   void CopyFrom(const tMemoryBuffer& source);
-
-  virtual ~tMemoryBuffer()
-  {
-  }
 
   // CustomSerializable implementation
 
@@ -281,7 +281,7 @@ public:
 
   virtual bool Write(tOutputStream* output_stream_buffer, tBufferInfo& buffer, int hint);
 
-  bool operator=(const tMemoryBuffer& o) const
+  bool operator==(const tMemoryBuffer& o) const
   {
     return Equals(o);
   }
