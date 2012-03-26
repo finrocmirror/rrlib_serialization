@@ -296,7 +296,7 @@ class tStackMemoryBuffer : public tMemoryBuffer
   char initial_buffer[SIZE];
 
 public:
-  tStackMemoryBuffer(float resize_factor = cDEFAULT_RESIZE_FACTOR) : tMemoryBuffer(initial_buffer, SIZE), initial_buffer()
+  tStackMemoryBuffer(float resize_factor = cDEFAULT_RESIZE_FACTOR, bool empty = false) : tMemoryBuffer(initial_buffer, SIZE, empty), initial_buffer()
   {
     resize_reserve_factor = resize_factor;
   }
