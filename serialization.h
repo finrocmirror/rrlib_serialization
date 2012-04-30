@@ -22,10 +22,15 @@
 #ifndef __rrlib__serialization__serialization_h__
 #define __rrlib__serialization__serialization_h__
 
+#include "rrlib/xml2_wrapper/tXMLDocument.h"
+
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tMemoryBuffer.h"
 #include "rrlib/serialization/tOutputStream.h"
 #include "rrlib/serialization/tInputStream.h"
+#include "rrlib/serialization/tStringOutputStream.h"
+#include "rrlib/serialization/tStringInputStream.h"
+#include "rrlib/serialization/detail/utility.h"
 #include <boost/utility.hpp>
 #include <string>
 #include <vector>
@@ -47,6 +52,16 @@ class tStringInputStream;
  * This specifies the size, that they should have (all together).
  */
 const int cSTACK_BUFFERS_SIZE = 65536;
+
+/*!
+ * Enum for different types of data encoding
+ */
+enum class tDataEncoding
+{
+  BINARY,
+  STRING,
+  XML
+};
 
 /*!
  * Converts binary to hex string
@@ -78,6 +93,71 @@ T Deserialize(const std::string& s)
   T t;
   is >> t;
   return t;
+}
+
+/*!
+ * Deserialize objects of type T from specified stream.
+ * Unlike the stream-operator, calling this method with an unserializable type T
+ * won't cause a compilation error.
+ * Instead, an error message will be printed when it is actually called with such an object at runtime.
+ */
+template <typename T>
+void Deserialize(tInputStream& stream, T& t)
+{
+  detail::tBinarySerialization<T>::Deserialize(t, stream);
+}
+template <typename T>
+void Deserialize(tStringInputStream& stream, T& t)
+{
+  detail::tStringSerialization<T>::Deserialize(t, stream);
+}
+template <typename T>
+void Deserialize(const rrlib::xml2::tXMLNode& node, T& t)
+{
+  detail::tXMLSerialization<T>::Deserialize(t, node);
+}
+
+/*!
+ * Deserialize data from binary input stream - possibly using non-binary encoding.
+ * If selected type of serialization is not supported, an error will be printed at runtime.
+ *
+ * \param is Binary input stream
+ * \param s Object to deserialize
+ * \param enc Encoding to use
+ */
+template <typename T>
+void Deserialize(tInputStream& stream, T& t, tDataEncoding enc)
+{
+  if (enc == tDataEncoding::BINARY)
+  {
+    Deserialize(stream, t);
+  }
+  else if (enc == tDataEncoding::STRING)
+  {
+    tStringInputStream sis(stream.ReadString());
+    try
+    {
+      Deserialize(sis, t);
+    }
+    catch (const std::exception& e)
+    {
+      RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, e);
+    }
+  }
+  else
+  {
+    try
+    {
+      std::string s = stream.ReadString();
+      xml2::tXMLDocument d(s.c_str(), s.length(), false);
+      xml2::tXMLNode& n = d.RootNode();
+      Deserialize(n, t);
+    }
+    catch (const std::exception& e)
+    {
+      RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, e);
+    }
+  }
 }
 
 /*!
@@ -129,7 +209,7 @@ void SerializationBasedDeepCopy(const T& src, T& dest, tMemoryBuffer& buf, rtti:
 
 /*!
  * Serialization-based Equals()-method
- * (not very efficient/RT-capable - should therefore not be called regular loops)
+ * (not very efficient/RT-capable - should therefore not be called in regular loops)
  * (types are not checked)
  *
  * \param o1 First object
@@ -162,11 +242,6 @@ bool SerializationEquals(const T& o1, const T& o2)
 std::string Serialize(const tSerializable& rs);
 
 /*!
- * Helper for below
- */
-std::string ToString(tStringOutputStream& sos);
-
-/*!
  * Serializes string stream serializable object to string
  * (convenience function)
  *
@@ -178,25 +253,90 @@ typename std::enable_if<ENABLE, std::string>::type Serialize(const T& t)
 {
   tStringOutputStream os;
   os << t;
-  return ToString(os);
+  return os.ToString();
 }
 
 /*!
- * Serializes binary CoreSerializable to hex string
+ * Serialize objects of type T to specified stream.
+ * Unlike the stream-operator, calling this method with an unserializable type T
+ * won't cause a compilation error.
+ * Instead, an error message will be printed when it is actually called with such an object at runtime.
+ */
+template <typename T>
+void Serialize(tOutputStream& stream, const T& t)
+{
+  detail::tBinarySerialization<T>::Serialize(t, stream);
+}
+template <typename T>
+void Serialize(tStringOutputStream& stream, const T& t)
+{
+  detail::tStringSerialization<T>::Serialize(t, stream);
+}
+template <typename T>
+void Serialize(rrlib::xml2::tXMLNode& node, const T& t)
+{
+  detail::tXMLSerialization<T>::Serialize(t, node);
+}
+
+/**
+ * Serialize data to binary output stream - possibly using non-binary encoding.
+ * If selected type of serialization is not supported, an error will be printed at runtime.
+ *
+ * \param os Binary output stream
+ * \param s Object to serialize
+ * \param enc Encoding to use
+ */
+template <typename T>
+void Serialize(tOutputStream& stream, const T& t, tDataEncoding enc)
+{
+  if (enc == tDataEncoding::BINARY)
+  {
+    Serialize(stream, t);
+  }
+  else if (enc == tDataEncoding::STRING)
+  {
+    tStringOutputStream sos;
+    Serialize(sos, t);
+    stream.WriteString(sos.ToString());
+  }
+  else
+  {
+    xml2::tXMLDocument d;
+    try
+    {
+      xml2::tXMLNode& n = d.AddRootNode("value");
+      Serialize(n, t);
+      stream.WriteString(n.GetXMLDump(true));
+    }
+    catch (const std::exception& e)
+    {
+      RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, "Error generating XML code: ", e);
+    }
+  }
+}
+
+/*!
+ * Serializes binary serializable to hex string
  *
  * \param cs CoreSerializable
  * \param os String output stream
  */
 void SerializeToHexString(const tSerializable* cs, tStringOutputStream& os);
 
-} // namespace rrlib
 } // namespace serialization
+
+namespace xml2
+{
 
 inline const rrlib::xml2::tXMLNode& operator>> (const rrlib::xml2::tXMLNode& node, std::string& s)
 {
   s = node.GetTextContent();
   return node;
 }
+
+} // namespace xml2
+
+} // namespace rrlib
 
 #include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/tStringInputStream.h"

@@ -82,7 +82,6 @@ public:
 } // namespace rrlib
 } // namespace serialization
 
-#include "rrlib/serialization/detail/tOutputStreamFallback.h"
 #include "rrlib/serialization/detail/tStringOutputStreamFallback.h"
 
 namespace rrlib

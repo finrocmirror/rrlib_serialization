@@ -20,7 +20,6 @@
  */
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/serialization.h"
-#include "rrlib/serialization/tStringInputStream.h"
 #include "rrlib/xml2_wrapper/tXMLNode.h"
 
 namespace rrlib
@@ -38,6 +37,12 @@ void tSerializable::Deserialize(const xml2::tXMLNode& node)
   Deserialize(is);
 }
 
+void tSerializable::Deserialize(serialization::tInputStream& is, serialization::tDataEncoding enc)
+{
+  serialization::Deserialize(is, *this, enc);
+}
+
+
 void tSerializable::Serialize(tStringOutputStream& os) const
 {
   serialization::SerializeToHexString(this, os);
@@ -46,6 +51,11 @@ void tSerializable::Serialize(tStringOutputStream& os) const
 void tSerializable::Serialize(xml2::tXMLNode& node) const
 {
   node.SetContent(serialization::Serialize(*this));
+}
+
+void tSerializable::Serialize(serialization::tOutputStream& os, serialization::tDataEncoding enc) const
+{
+  serialization::Serialize(os, *this, enc);
 }
 
 } // namespace rrlib

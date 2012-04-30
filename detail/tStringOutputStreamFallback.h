@@ -49,11 +49,28 @@ public:
   }
 };
 
+template <typename T>
+struct tIsStringOutputSerializable
+{
+  template < typename U = T >
+  static int16_t Test(decltype((*(tStringOutputStream*)(NULL)) << (*(U*)(NULL))))
+  {
+    return 0;
+  }
+
+  static int32_t Test(...)
+  {
+    return 0;
+  }
+
+  enum { value = sizeof(Test(*(tStringOutputStream*)(NULL))) == sizeof(int16_t) };
+};
+
 } // namespace
 } // namespace
 } // namespace
 
-template < typename T, bool ENABLE = !std::is_base_of<rrlib::serialization::tSerializable, T>::value >
+template < typename T, bool ENABLE = (!std::is_base_of<rrlib::serialization::tSerializable, T>::value) && rrlib::serialization::detail::tIsStringOutputSerializable<T>::value >
 inline typename std::enable_if<ENABLE, rrlib::xml2::tXMLNode>::type & operator<< (rrlib::serialization::detail::tStringOutputStreamFallback && os, const T & t)
 {
   os << t;

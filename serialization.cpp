@@ -133,12 +133,6 @@ void SerializeToHexString(const tSerializable* cs, tStringOutputStream& os)
   ci.Close();
 }
 
-std::string ToString(tStringOutputStream& sos)
-{
-  return sos.ToString();
-}
-
-
 } // namespace rrlib
 } // namespace serialization
 

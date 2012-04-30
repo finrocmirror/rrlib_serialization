@@ -32,6 +32,7 @@ class tInputStream;
 class tStringInputStream;
 class tOutputStream;
 class tStringOutputStream;
+enum class tDataEncoding;
 
 /*!
  * \author Max Reichardt
@@ -71,6 +72,14 @@ public:
   virtual void Deserialize(const xml2::tXMLNode& node);
 
   /*!
+   * Deserialize data from binary input stream - possibly using non-binary encoding.
+   *
+   * \param is Binary input stream
+   * \param enc Encoding to use
+   */
+  void Deserialize(serialization::tInputStream& is, serialization::tDataEncoding enc);
+
+  /*!
    * \param os Stream to serialize object to
    */
   virtual void Serialize(tOutputStream& os) const = 0;
@@ -88,6 +97,14 @@ public:
    * \param node Empty XML node (name shouldn't be changed)
    */
   virtual void Serialize(xml2::tXMLNode& node) const;
+
+  /*!
+   * Serialize data to binary output stream - possibly using non-binary encoding.
+   *
+   * \param os Binary output stream
+   * \param enc Encoding to use
+   */
+  void Serialize(serialization::tOutputStream& os, serialization::tDataEncoding enc) const;
 
 };
 

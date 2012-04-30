@@ -177,7 +177,6 @@ public:
 } // namespace rrlib
 } // namespace serialization
 
-#include "rrlib/serialization/detail/tInputStreamFallback.h"
 #include "rrlib/serialization/detail/tStringInputStreamFallback.h"
 
 namespace rrlib
