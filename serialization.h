@@ -54,16 +54,6 @@ class tStringInputStream;
 const int cSTACK_BUFFERS_SIZE = 65536;
 
 /*!
- * Enum for different types of data encoding
- */
-enum class tDataEncoding
-{
-  BINARY,
-  STRING,
-  XML
-};
-
-/*!
  * Converts binary to hex string
  *
  * \param src Input stream that contains binary data

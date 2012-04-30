@@ -24,6 +24,8 @@
 
 #include "rrlib/xml2_wrapper/tXMLNode.h"
 
+#include "rrlib/serialization/tDataEncoding.h"
+
 namespace rrlib
 {
 namespace serialization
@@ -32,7 +34,6 @@ class tInputStream;
 class tStringInputStream;
 class tOutputStream;
 class tStringOutputStream;
-enum class tDataEncoding;
 
 /*!
  * \author Max Reichardt
