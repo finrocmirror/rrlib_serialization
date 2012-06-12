@@ -642,6 +642,11 @@ inline tInputStream& operator>> (tInputStream& is, bool& t)
   t = is.ReadBoolean();
   return is;
 }
+inline tInputStream& operator>> (tInputStream& is, std::vector<bool>::reference t)  // for std::vector<bool> support
+{
+  t = is.ReadBoolean();
+  return is;
+}
 inline tInputStream& operator>> (tInputStream& is, std::string& t)
 {
   t = is.ReadString();

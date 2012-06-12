@@ -254,6 +254,13 @@ inline tStringInputStream& operator>> (tStringInputStream& is, bool& t)
   t = boost::iequals(s, "true") || (s.length() == 1 && s[0] == '1');
   return is;
 }
+inline tStringInputStream& operator>> (tStringInputStream& is, std::vector<bool>::reference t)  // for std::vector<bool> support
+{
+  bool b;
+  is >> b;
+  t = b;
+  return is;
+}
 inline tStringInputStream& operator>> (tStringInputStream& is, std::string& t)
 {
   t = is.ReadLine();
