@@ -95,12 +95,12 @@ struct tStringSerialization<T, false>
 template <typename T, bool XML_SERIALIZABLE = tIsXMLSerializable<T>::value>
 struct tXMLSerialization
 {
-  static void Deserialize(T& t, const xml2::tXMLNode& x)
+  static void Deserialize(T& t, const xml::tNode& x)
   {
     x >> t;
   }
 
-  static void Serialize(const T& t, xml2::tXMLNode& x)
+  static void Serialize(const T& t, xml::tNode& x)
   {
     x << t;
   }
@@ -109,12 +109,12 @@ struct tXMLSerialization
 template <typename T>
 struct tXMLSerialization<T, false>
 {
-  static void Deserialize(T& t, const xml2::tXMLNode& x)
+  static void Deserialize(T& t, const xml::tNode& x)
   {
     RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, "Type ", typeid(T).name(), " is not serializable to XML.");
   }
 
-  static void Serialize(const T& t, xml2::tXMLNode& x)
+  static void Serialize(const T& t, xml::tNode& x)
   {
     std::string tmp(std::string("Type ") + typeid(T).name() + " is not serializable to XML.");
     RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, tmp);

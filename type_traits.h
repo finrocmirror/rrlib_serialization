@@ -65,7 +65,7 @@ template <typename T>
 struct tIsXMLSerializable
 {
   template < typename U = T >
-  static int16_t Test(decltype((*(xml2::tXMLNode*)(NULL)) << (*(U*)(NULL))))
+  static int16_t Test(decltype((*(xml::tNode*)(NULL)) << (*(U*)(NULL))))
   {
     return 0;
   }
@@ -75,7 +75,7 @@ struct tIsXMLSerializable
     return 0;
   }
 
-  enum { value = sizeof(Test(*(xml2::tXMLNode*)(NULL))) == sizeof(int16_t) };
+  enum { value = sizeof(Test(*(xml::tNode*)(NULL))) == sizeof(int16_t) };
 };
 
 } // namespace

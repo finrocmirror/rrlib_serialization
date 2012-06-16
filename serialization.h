@@ -22,7 +22,7 @@
 #ifndef __rrlib__serialization__serialization_h__
 #define __rrlib__serialization__serialization_h__
 
-#include "rrlib/xml2_wrapper/tXMLDocument.h"
+#include "rrlib/xml/tDocument.h"
 
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tMemoryBuffer.h"
@@ -102,7 +102,7 @@ void Deserialize(tStringInputStream& stream, T& t)
   detail::tStringSerialization<T>::Deserialize(t, stream);
 }
 template <typename T>
-void Deserialize(const rrlib::xml2::tXMLNode& node, T& t)
+void Deserialize(const xml::tNode& node, T& t)
 {
   detail::tXMLSerialization<T>::Deserialize(t, node);
 }
@@ -139,8 +139,8 @@ void Deserialize(tInputStream& stream, T& t, tDataEncoding enc)
     try
     {
       std::string s = stream.ReadString();
-      xml2::tXMLDocument d(s.c_str(), s.length(), false);
-      xml2::tXMLNode& n = d.RootNode();
+      xml::tDocument d(s.c_str(), s.length(), false);
+      xml::tNode& n = d.RootNode();
       Deserialize(n, t);
     }
     catch (const std::exception& e)
@@ -263,7 +263,7 @@ void Serialize(tStringOutputStream& stream, const T& t)
   detail::tStringSerialization<T>::Serialize(t, stream);
 }
 template <typename T>
-void Serialize(rrlib::xml2::tXMLNode& node, const T& t)
+void Serialize(xml::tNode& node, const T& t)
 {
   detail::tXMLSerialization<T>::Serialize(t, node);
 }
@@ -291,10 +291,10 @@ void Serialize(tOutputStream& stream, const T& t, tDataEncoding enc)
   }
   else
   {
-    xml2::tXMLDocument d;
+    xml::tDocument d;
     try
     {
-      xml2::tXMLNode& n = d.AddRootNode("value");
+      xml::tNode& n = d.AddRootNode("value");
       Serialize(n, t);
       stream.WriteString(n.GetXMLDump(true));
     }
@@ -315,18 +315,20 @@ void SerializeToHexString(const tSerializable* cs, tStringOutputStream& os);
 
 } // namespace serialization
 
-namespace xml2
+namespace xml
 {
 
-inline const rrlib::xml2::tXMLNode& operator>> (const rrlib::xml2::tXMLNode& node, std::string& s)
+inline const xml::tNode& operator>> (const xml::tNode& node, std::string& s)
 {
   s = node.GetTextContent();
   return node;
 }
 
-} // namespace xml2
-
-} // namespace rrlib
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
 #include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/tStringInputStream.h"

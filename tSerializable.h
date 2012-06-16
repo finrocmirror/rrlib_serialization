@@ -22,7 +22,7 @@
 #ifndef __rrlib__serialization__tSerializable_h__
 #define __rrlib__serialization__tSerializable_h__
 
-#include "rrlib/xml2_wrapper/tXMLNode.h"
+#include "rrlib/xml/tNode.h"
 
 #include "rrlib/serialization/tDataEncoding.h"
 
@@ -70,7 +70,7 @@ public:
    *
    * \param node Node to deserialize from
    */
-  virtual void Deserialize(const xml2::tXMLNode& node);
+  virtual void Deserialize(const xml::tNode& node);
 
   /*!
    * Deserialize data from binary input stream - possibly using non-binary encoding.
@@ -97,7 +97,7 @@ public:
    *
    * \param node Empty XML node (name shouldn't be changed)
    */
-  virtual void Serialize(xml2::tXMLNode& node) const;
+  virtual void Serialize(xml::tNode& node) const;
 
   /*!
    * Serialize data to binary output stream - possibly using non-binary encoding.
@@ -109,13 +109,13 @@ public:
 
 };
 
-inline xml2::tXMLNode& operator << (xml2::tXMLNode& node, const tSerializable& ser)
+inline xml::tNode& operator << (xml::tNode& node, const tSerializable& ser)
 {
   ser.Serialize(node);
   return node;
 }
 
-inline const xml2::tXMLNode& operator >> (const xml2::tXMLNode& node, tSerializable& ser)
+inline const xml::tNode& operator >> (const xml::tNode& node, tSerializable& ser)
 {
   ser.Deserialize(node);
   return node;

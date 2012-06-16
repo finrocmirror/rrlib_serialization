@@ -37,9 +37,9 @@ namespace detail
 class tStringOutputStreamFallback : public tStringOutputStream
 {
 public:
-  xml2::tXMLNode& wrapped;
+  xml::tNode& wrapped;
 
-  tStringOutputStreamFallback(xml2::tXMLNode& node) :
+  tStringOutputStreamFallback(xml::tNode& node) :
     wrapped(node)
   {}
 
@@ -71,7 +71,7 @@ struct tIsStringOutputSerializable
 } // namespace
 
 template < typename T, bool ENABLE = (!std::is_base_of<rrlib::serialization::tSerializable, T>::value) && rrlib::serialization::detail::tIsStringOutputSerializable<T>::value >
-inline typename std::enable_if<ENABLE, rrlib::xml2::tXMLNode>::type & operator<< (rrlib::serialization::detail::tStringOutputStreamFallback && os, const T & t)
+inline typename std::enable_if<ENABLE, rrlib::xml::tNode>::type & operator<< (rrlib::serialization::detail::tStringOutputStreamFallback && os, const T & t)
 {
   os << t;
   return os.wrapped;

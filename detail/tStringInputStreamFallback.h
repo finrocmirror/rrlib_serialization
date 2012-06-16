@@ -39,9 +39,9 @@ namespace detail
 class tStringInputStreamFallback : public tStringInputStream
 {
 public:
-  const xml2::tXMLNode& node;
+  const xml::tNode& node;
 
-  tStringInputStreamFallback(const xml2::tXMLNode& node_) :
+  tStringInputStreamFallback(const xml::tNode& node_) :
     tStringInputStream(node_.GetTextContent()),
     node(node_)
   {}
@@ -70,7 +70,7 @@ struct tIsStringInputSerializable
 } // namespace
 
 template < typename T, bool ENABLE = (!std::is_base_of<rrlib::serialization::tSerializable, T>::value) && rrlib::serialization::detail::tIsStringInputSerializable<T>::value >
-inline const typename std::enable_if<ENABLE, rrlib::xml2::tXMLNode>::type & operator>> (rrlib::serialization::detail::tStringInputStreamFallback && is, T & t)
+inline const typename std::enable_if<ENABLE, rrlib::xml::tNode>::type & operator>> (rrlib::serialization::detail::tStringInputStreamFallback && is, T & t)
 {
   static_cast<rrlib::serialization::tStringInputStream&>(is) >> t;
   return is.node;
