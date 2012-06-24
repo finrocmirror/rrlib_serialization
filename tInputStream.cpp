@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#include <unistd.h>
+#include <thread>
 
 #include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tStringOutputStream.h"
@@ -39,7 +39,7 @@ tInputStream::tInputStream(tTypeEncoding encoding) :
   cur_skip_offset_target(-1),
   closed(false),
   direct_read_support(false),
-  timeout(-1),
+  timeout(rrlib::time::tDuration::zero()),
   factory(NULL),
   encoding(encoding),
   custom_encoder()
@@ -59,7 +59,7 @@ tInputStream::tInputStream(std::shared_ptr<tTypeEncoder> encoder) :
   cur_skip_offset_target(-1),
   closed(false),
   direct_read_support(false),
-  timeout(-1),
+  timeout(rrlib::time::tDuration::zero()),
   factory(NULL),
   encoding(eCustom),
   custom_encoder(encoder)
@@ -113,15 +113,15 @@ void tInputStream::FetchNextBytes(size_t min_required2)
 
   // if we have a timeout set - wait until more data is available
   // TODO: this doesn't ensure that there are minRequired2 bytes available. However, it should be sufficient in 99.9% of the cases.
-  if (timeout > 0)
+  if (timeout > rrlib::time::tDuration::zero())
   {
-    int initial_sleep = 20;  // timeout-related
-    int slept = 0;  // timeout-related
-    while (timeout > 0 && (!(source != NULL ? source->MoreDataAvailable(this, source_buffer) : const_source->MoreDataAvailable(this, source_buffer))))
+    rrlib::time::tDuration initial_sleep = std::chrono::milliseconds(20);  // timeout-related
+    rrlib::time::tDuration slept = rrlib::time::tDuration::zero();  // timeout-related
+    while (timeout > rrlib::time::tDuration::zero() && (!(source != NULL ? source->MoreDataAvailable(this, source_buffer) : const_source->MoreDataAvailable(this, source_buffer))))
     {
       initial_sleep *= 2;
 
-      usleep(initial_sleep * 1000);
+      std::this_thread::sleep_for(initial_sleep);
 
       slept += initial_sleep;
       if (slept > timeout)

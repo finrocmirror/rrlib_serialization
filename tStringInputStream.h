@@ -22,6 +22,7 @@
 #ifndef __rrlib__serialization__tStringInputStream_h__
 #define __rrlib__serialization__tStringInputStream_h__
 
+#include "rrlib/time/time.h"
 #include "rrlib/serialization/tSerializable.h"
 #include <boost/utility.hpp>
 #include <boost/algorithm/string.hpp>
@@ -264,6 +265,18 @@ inline tStringInputStream& operator>> (tStringInputStream& is, std::vector<bool>
 inline tStringInputStream& operator>> (tStringInputStream& is, std::string& t)
 {
   t = is.ReadLine();
+  return is;
+}
+template <typename R, typename P>
+inline tStringInputStream& operator>> (tStringInputStream& is, std::chrono::duration<R, P>& t)
+{
+  t = rrlib::time::ParseIsoDuration(is.ReadLine());
+  return is;
+}
+template <typename D>
+inline tStringInputStream& operator>> (tStringInputStream& is, std::chrono::time_point<std::chrono::system_clock, D>& t)
+{
+  t = rrlib::time::ParseIsoTimestamp(is.ReadLine());
   return is;
 }
 inline tStringInputStream& operator>> (tStringInputStream& is, tSerializable& t)

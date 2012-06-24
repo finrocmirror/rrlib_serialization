@@ -22,10 +22,10 @@
 #ifndef __rrlib__serialization__tStringOutputStream_h__
 #define __rrlib__serialization__tStringOutputStream_h__
 
+#include "rrlib/time/time.h"
 #include "rrlib/serialization/tSerializable.h"
 #include <boost/utility.hpp>
 #include <string>
-
 #include <sstream>
 
 namespace rrlib
@@ -168,12 +168,24 @@ inline tStringOutputStream& operator<< (tStringOutputStream& os, const std::stri
   os.wrapped << t;
   return os;
 }
+
 inline tStringOutputStream& operator<< (tStringOutputStream& os, const tSerializable& t)
 {
   t.Serialize(os);
   return os;
 }
-
+template <typename R, typename P>
+inline tStringOutputStream& operator<< (tStringOutputStream& os, const std::chrono::duration<R, P>& t)
+{
+  os << rrlib::time::ToIsoString(std::chrono::duration_cast<rrlib::time::tDuration>(t));
+  return os;
+}
+template <typename D>
+inline tStringOutputStream& operator<< (tStringOutputStream& os, const std::chrono::time_point<std::chrono::system_clock, D>& t)
+{
+  os << rrlib::time::ToIsoString(t);
+  return os;
+}
 template <typename ENUM>
 inline tStringOutputStream& operator<< (typename std::enable_if<std::is_enum<ENUM>::value, tStringOutputStream&>::type os, const ENUM& t)
 {

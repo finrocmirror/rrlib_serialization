@@ -22,6 +22,7 @@
 #ifndef __rrlib__serialization__tOutputStream_h__
 #define __rrlib__serialization__tOutputStream_h__
 
+#include "rrlib/time/time.h"
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tTypeEncoder.h"
@@ -569,6 +570,19 @@ inline tOutputStream& operator<< (tOutputStream& os, const char* t)
 inline tOutputStream& operator<< (tOutputStream& os, const std::string& t)
 {
   os.WriteString(t);
+  return os;
+}
+template <typename R, typename P>
+inline tOutputStream& operator<< (tOutputStream& os, const std::chrono::duration<R, P>& t)
+{
+  std::chrono::nanoseconds ns = t;
+  os.WriteLong(ns.count());
+  return os;
+}
+template <typename D>
+inline tOutputStream& operator<< (tOutputStream& os, const std::chrono::time_point<std::chrono::system_clock, D>& t)
+{
+  os << t.time_since_epoch();
   return os;
 }
 inline tOutputStream& operator<< (tOutputStream& os, const tSerializable& t)

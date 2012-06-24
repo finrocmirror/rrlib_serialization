@@ -22,6 +22,7 @@
 #ifndef __rrlib__serialization__tInputStream_h__
 #define __rrlib__serialization__tInputStream_h__
 
+#include "rrlib/time/time.h"
 #include "rrlib/serialization/tSerializable.h"
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tFixedBuffer.h"
@@ -38,6 +39,7 @@
 #include <list>
 #include <deque>
 #include <endian.h>
+#include <chrono>
 
 namespace rrlib
 {
@@ -94,7 +96,7 @@ class tInputStream : public boost::noncopyable, public tSource
   bool direct_read_support;
 
   /*! timeout for blocking calls (<= 0 when disabled) */
-  int timeout;
+  rrlib::time::tDuration timeout;
 
   /*! Factory to use for creating objects. */
   rtti::tFactory* factory;
@@ -159,7 +161,7 @@ public:
     cur_skip_offset_target(-1),
     closed(false),
     direct_read_support(false),
-    timeout(-1),
+    timeout(rrlib::time::tDuration::zero()),
     factory(NULL),
     encoding(encoding_),
     custom_encoder()
@@ -182,7 +184,7 @@ public:
     cur_skip_offset_target(-1),
     closed(false),
     direct_read_support(false),
-    timeout(-1),
+    timeout(rrlib::time::tDuration::zero()),
     factory(NULL),
     encoding(eCustom),
     custom_encoder(encoder)
@@ -246,7 +248,7 @@ public:
   /*!
    * \return timeout for blocking calls (<= 0 when disabled)
    */
-  inline int GetTimeout()
+  inline rrlib::time::tDuration GetTimeout()
   {
     return timeout;
   }
@@ -543,9 +545,9 @@ public:
   /*!
    * \param timeout for blocking calls (<= 0 when disabled)
    */
-  inline void SetTimeout(int timeout_)
+  inline void SetTimeout(const rrlib::time::tDuration& timeout)
   {
-    this->timeout = timeout_;
+    this->timeout = timeout;
   }
 
   /*!
@@ -650,6 +652,20 @@ inline tInputStream& operator>> (tInputStream& is, std::vector<bool>::reference 
 inline tInputStream& operator>> (tInputStream& is, std::string& t)
 {
   t = is.ReadString();
+  return is;
+}
+template <typename R, typename P>
+inline tInputStream& operator>> (tInputStream& is, std::chrono::duration<R, P>& t)
+{
+  t = std::chrono::duration_cast<std::chrono::duration<R, P>>(std::chrono::nanoseconds(is.ReadLong()));
+  return is;
+}
+template <typename D>
+inline tInputStream& operator>> (tInputStream& is, std::chrono::time_point<std::chrono::system_clock, D>& t)
+{
+  D d;
+  is >> d;
+  t = std::chrono::time_point<std::chrono::system_clock, D>(d);
   return is;
 }
 inline tInputStream& operator>> (tInputStream& is, tSerializable& t)
