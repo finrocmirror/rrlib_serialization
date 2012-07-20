@@ -389,29 +389,25 @@ public:
   template <typename ENUM>
   inline void WriteEnum(ENUM e)
   {
-#ifdef _LIB_ENUM_STRINGS_PRESENT_
-    const std::vector<const char*>* strings = make_builder::GetEnumStrings<ENUM>();
-#else
-    const std::vector<const char*>* strings = NULL;
-#endif
-    if (strings == NULL)
-    {
-      WriteInt((int)e);
-      return;
-    }
 
-    size_t string_count = strings->size();
-    if (string_count <= 0x100)
+#ifndef _LIB_ENUM_STRINGS_PRESENT_
+    WriteInt((int)e);
+    return;
+#endif
+
+    const make_builder::tEnumStrings &enum_strings = make_builder::GetEnumStrings<ENUM>();
+
+    if (enum_strings.size <= 0x100)
     {
       WriteByte((int8_t)e);
     }
-    else if (string_count <= 0x1000)
+    else if (enum_strings.size <= 0x1000)
     {
       WriteShort((int16_t)e);
     }
     else
     {
-      assert(string_count < 0x7FFFFFFF && "What?");
+      assert(enum_strings.size < 0x7FFFFFFF && "What?");
       WriteInt((int)e);
     }
   }

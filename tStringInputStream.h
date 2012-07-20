@@ -52,7 +52,7 @@ private:
   /*!
    * Non-template core functionality of ReadEnum method
    */
-  int ReadEnumHelper(const std::vector<const char*>* strings);
+  int ReadEnumHelper(const make_builder::tEnumStrings &enum_strings);
 
 public:
 

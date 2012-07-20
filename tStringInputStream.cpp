@@ -69,7 +69,7 @@ int tStringInputStream::InitCharMap()
   return 0;
 }
 
-int tStringInputStream::ReadEnumHelper(const std::vector<const char*>* strings)
+int tStringInputStream::ReadEnumHelper(const make_builder::tEnumStrings &enum_strings)
 {
   // parse input
   std::string enum_string(ReadWhile("", cDIGIT | cLETTER | cWHITESPACE, true));
@@ -90,14 +90,11 @@ int tStringInputStream::ReadEnumHelper(const std::vector<const char*>* strings)
   // deal with input
   if (enum_string.length() > 0)
   {
-    if (strings != NULL)
+    for (size_t i = 0; i < enum_strings.size; i++)
     {
-      for (size_t i = 0; i < strings->size(); i++)
+      if (boost::iequals(enum_string, enum_strings.strings[i]))
       {
-        if (boost::iequals(enum_string, (*strings)[i]))
-        {
-          return i;
-        }
+        return i;
       }
     }
     RRLIB_LOG_PRINTF(WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
@@ -111,7 +108,7 @@ int tStringInputStream::ReadEnumHelper(const std::vector<const char*>* strings)
   else
   {
     int n = atoi(num_string.c_str());
-    if (strings != NULL && n >= static_cast<int64_t>(strings->size()))
+    if (n >= static_cast<int64_t>(enum_strings.size))
     {
       RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%d)", n, enum_strings.size);
       throw std::invalid_argument("Number out of range");

@@ -299,30 +299,25 @@ public:
   template <typename ENUM>
   inline ENUM ReadEnum()
   {
-#ifdef _LIB_ENUM_STRINGS_PRESENT_
-    const std::vector<const char*>* strings = make_builder::GetEnumStrings<ENUM>();
-#else
-    const std::vector<const char*>* strings = NULL;
-#endif
-    if (strings == NULL)
-    {
-      return static_cast<ENUM>(ReadInt());
-    }
 
-    size_t string_count = strings->size();
-    if (string_count <= 0x100)
+#ifndef _LIB_ENUM_STRINGS_PRESENT_
+    return static_cast<ENUM>(ReadInt());
+#endif
+
+    const make_builder::tEnumStrings &enum_strings(make_builder::GetEnumStrings<ENUM>());
+
+    if (enum_strings.size <= 0x100)
     {
       return static_cast<ENUM>(ReadByte());
     }
-    else if (string_count <= 0x1000)
+
+    if (enum_strings.size <= 0x1000)
     {
       return static_cast<ENUM>(ReadShort());
     }
-    else
-    {
-      assert(string_count < 0x7FFFFFFF && "What?");
-      return static_cast<ENUM>(ReadInt());
-    }
+
+    assert(enum_strings.size < 0x7FFFFFFF && "What?");
+    return static_cast<ENUM>(ReadInt());
   }
 
   /*!
