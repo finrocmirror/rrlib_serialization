@@ -131,7 +131,7 @@ void Deserialize(tInputStream& stream, T& t, tDataEncoding enc)
     }
     catch (const std::exception& e)
     {
-      RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, e);
+      RRLIB_LOG_PRINT(ERROR, e);
     }
   }
   else
@@ -145,7 +145,7 @@ void Deserialize(tInputStream& stream, T& t, tDataEncoding enc)
     }
     catch (const std::exception& e)
     {
-      RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, e);
+      RRLIB_LOG_PRINT(ERROR, e);
     }
   }
 }
@@ -300,7 +300,7 @@ void Serialize(tOutputStream& stream, const T& t, tDataEncoding enc)
     }
     catch (const std::exception& e)
     {
-      RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, "Error generating XML code: ", e);
+      RRLIB_LOG_PRINT(ERROR, "Error generating XML code: ", e);
     }
   }
 }

@@ -100,7 +100,7 @@ int tStringInputStream::ReadEnumHelper(const std::vector<const char*>* strings)
         }
       }
     }
-    RRLIB_LOG_PRINTF(rrlib::logging::eLL_WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
+    RRLIB_LOG_PRINTF(WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
     if (num_string.length() == 0)
     {
       throw std::invalid_argument("No Number String specified either");
@@ -113,7 +113,7 @@ int tStringInputStream::ReadEnumHelper(const std::vector<const char*>* strings)
     int n = atoi(num_string.c_str());
     if (strings != NULL && n >= static_cast<int64_t>(strings->size()))
     {
-      RRLIB_LOG_PRINTF(rrlib::logging::eLL_ERROR, "Number %d out of range for enum (%d)", n, strings->size());
+      RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%d)", n, enum_strings.size);
       throw std::invalid_argument("Number out of range");
     }
     return n;

@@ -51,12 +51,12 @@ struct tBinarySerialization<T, false>
 {
   static void Deserialize(T& t, serialization::tInputStream& sis)
   {
-    RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, "Type ", typeid(T).name(), " is not serializable to binary data.");
+    RRLIB_LOG_PRINT(ERROR, "Type ", typeid(T).name(), " is not serializable to binary data.");
   }
 
   static void Serialize(const T& t, serialization::tOutputStream& sos)
   {
-    RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, "Type ", typeid(T).name(), " is not serializable to binary data.");
+    RRLIB_LOG_PRINT(ERROR, "Type ", typeid(T).name(), " is not serializable to binary data.");
   }
 };
 
@@ -79,7 +79,7 @@ struct tStringSerialization<T, false>
 {
   static void Deserialize(T& t, serialization::tStringInputStream& sis)
   {
-    RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, "Type ", typeid(T).name(), " is not serializable to string.");
+    RRLIB_LOG_PRINT(ERROR, "Type ", typeid(T).name(), " is not serializable to string.");
     std::string tmp; // read string so that stream is not corrupted
     sis >> tmp;
   }
@@ -87,7 +87,7 @@ struct tStringSerialization<T, false>
   static void Serialize(const T& t, serialization::tStringOutputStream& sos)
   {
     std::string tmp(std::string("Type ") + typeid(T).name() + " is not serializable to string.");
-    RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, tmp);
+    RRLIB_LOG_PRINT(ERROR, tmp);
     sos << tmp; // write empty string so that stream is not corrupted
   }
 };
@@ -111,13 +111,13 @@ struct tXMLSerialization<T, false>
 {
   static void Deserialize(T& t, const xml::tNode& x)
   {
-    RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, "Type ", typeid(T).name(), " is not serializable to XML.");
+    RRLIB_LOG_PRINT(ERROR, "Type ", typeid(T).name(), " is not serializable to XML.");
   }
 
   static void Serialize(const T& t, xml::tNode& x)
   {
     std::string tmp(std::string("Type ") + typeid(T).name() + " is not serializable to XML.");
-    RRLIB_LOG_PRINT(rrlib::logging::eLL_ERROR, tmp);
+    RRLIB_LOG_PRINT(ERROR, tmp);
     x.SetContent(tmp);
   }
 };

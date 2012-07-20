@@ -88,7 +88,7 @@ void tMemoryBuffer::EnsureCapacity(int new_size, bool keep_contents, size_t old_
   if (resize_reserve_factor <= 1.2)
   {
     //System.out.println("warning: small resizeReserveFactor");
-    RRLIB_LOG_PRINT(logging::eLL_DEBUG_WARNING, "warning: small resizeReserveFactor");
+    RRLIB_LOG_PRINT(DEBUG_WARNING, "warning: small resizeReserveFactor");
   }
 
   Reallocate(new_size, keep_contents, old_size);
