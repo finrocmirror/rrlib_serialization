@@ -33,20 +33,28 @@ namespace serialization
  * This type-trait-like struct is used to determine whether a type is binary serializable
  */
 template <typename T>
-struct tIsBinarySerializable
+class tIsBinarySerializable
 {
-  template < typename U = T >
-  static int16_t Test(decltype((*(tOutputStream*)(NULL)) << (*(U*)(NULL))))
-  {
-    return 0;
-  }
+  static tOutputStream &MakeOutputStream();
 
-  static int32_t Test(...)
-  {
-    return 0;
-  }
+  static tInputStream &MakeInputStream();
 
-  enum { value = sizeof(Test(*(tOutputStream*)(NULL))) == sizeof(int16_t) };
+  template <typename U>
+  static U &Make();
+
+  template <typename U = T>
+  static int16_t TestOutput(decltype(MakeOutputStream() << Make<U>()));
+
+  template <typename U = T>
+  static int16_t TestInput(decltype(MakeInputStream() >> Make<U>()));
+
+  static int32_t TestOutput(...);
+
+  static int32_t TestInput(...);
+
+public:
+
+  enum { value = sizeof(TestOutput(MakeOutputStream())) == sizeof(int16_t) && sizeof(TestInput(MakeInputStream())) == sizeof(int16_t) };
 };
 
 /*!
@@ -55,27 +63,33 @@ struct tIsBinarySerializable
 template <typename T>
 struct tIsStringSerializable
 {
-  enum { value = detail::tIsStringOutputSerializable<T>::value };
+  enum { value = detail::tIsStringOutputSerializable<T>::value && detail::tIsStringInputSerializable<T>::value };
 };
 
 /*!
  * This type-trait-like struct is used to determine whether a type is string serializable
  */
 template <typename T>
-struct tIsXMLSerializable
+class tIsXMLSerializable
 {
-  template < typename U = T >
-  static int16_t Test(decltype((*(xml::tNode*)(NULL)) << (*(U*)(NULL))))
-  {
-    return 0;
-  }
+  static xml::tNode &MakeXMLNode();
 
-  static int32_t Test(...)
-  {
-    return 0;
-  }
+  template <typename U>
+  static U &Make();
 
-  enum { value = sizeof(Test(*(xml::tNode*)(NULL))) == sizeof(int16_t) };
+  template <typename U = T>
+  static int16_t TestOutput(decltype(MakeXMLNode() << Make<U>()));
+
+  template <typename U = T>
+  static int16_t TestInput(decltype(MakeXMLNode() >> Make<U>()));
+
+  static int32_t TestOutput(...);
+
+  static int32_t TestInput(...);
+
+public:
+
+  enum { value = sizeof(TestOutput(MakeXMLNode())) == sizeof(int16_t) && sizeof(TestInput(MakeXMLNode())) == sizeof(int16_t) };
 };
 
 } // namespace
