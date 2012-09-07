@@ -141,7 +141,7 @@ public:
   /*!
    * \param encoding Data type encoding that is used
    */
-  tOutputStream(tTypeEncoding encoding_ = eLocalUids);
+  tOutputStream(tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS);
 
   tOutputStream(std::shared_ptr<tTypeEncoder> encoder);
 
@@ -151,7 +151,7 @@ public:
    */
   tOutputStream(std::shared_ptr<tSink> sink_, tTypeEncoding encoding_);
 
-  tOutputStream(tSink* sink_, tTypeEncoding encoding_ = eLocalUids);
+  tOutputStream(tSink* sink_, tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS);
 
   /*!
    * \param sink_ Sink to write to

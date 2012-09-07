@@ -48,7 +48,7 @@ tOutputStream::tOutputStream(std::shared_ptr<tTypeEncoder> encoder) :
   cur_skip_offset_placeholder(-1),
   buffer_copy_fraction(0),
   direct_write_support(false),
-  encoding(eCustom),
+  encoding(tTypeEncoding::CUSTOM),
   custom_encoder(encoder)
 {
 }
@@ -89,7 +89,7 @@ tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, std::shared_ptr<tType
   cur_skip_offset_placeholder(-1),
   buffer_copy_fraction(0),
   direct_write_support(false),
-  encoding(eCustom),
+  encoding(tTypeEncoding::CUSTOM),
   custom_encoder(encoder)
 {
   Reset(sink_);
@@ -103,7 +103,7 @@ tOutputStream::tOutputStream(tSink* sink_, std::shared_ptr<tTypeEncoder> encoder
   cur_skip_offset_placeholder(-1),
   buffer_copy_fraction(0),
   direct_write_support(false),
-  encoding(eCustom),
+  encoding(tTypeEncoding::CUSTOM),
   custom_encoder(encoder)
 {
   Reset(sink_);

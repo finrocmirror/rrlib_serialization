@@ -61,7 +61,7 @@ tInputStream::tInputStream(std::shared_ptr<tTypeEncoder> encoder) :
   direct_read_support(false),
   timeout(rrlib::time::tDuration::zero()),
   factory(NULL),
-  encoding(eCustom),
+  encoding(tTypeEncoding::CUSTOM),
   custom_encoder(encoder)
 {
   boundary_buffer.buffer = &(boundary_buffer_backend);

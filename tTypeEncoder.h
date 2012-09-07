@@ -37,7 +37,10 @@ class tOutputStream;
 /*!
  * Type encoding for streams
  */
-enum tTypeEncoding { eLocalUids, eNames, eCustom };
+enum class tTypeEncoding
+{
+  LOCAL_UIDS, NAMES, CUSTOM
+};
 
 /*!
  * \author Max Reichardt

@@ -144,12 +144,12 @@ protected:
 
 public:
 
-  tInputStream(tTypeEncoding encoding_ = eLocalUids);
+  tInputStream(tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS);
 
   tInputStream(std::shared_ptr<tTypeEncoder> encoder);
 
   template <typename T>
-  tInputStream(T source_, tTypeEncoding encoding_ = eLocalUids, decltype(source->DirectReadSupport()) dummy = true) :
+  tInputStream(T source_, tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS, decltype(source->DirectReadSupport()) dummy = true) :
     source_lock(),
     source_buffer(),
     boundary_buffer(),
@@ -186,7 +186,7 @@ public:
     direct_read_support(false),
     timeout(rrlib::time::tDuration::zero()),
     factory(NULL),
-    encoding(eCustom),
+    encoding(tTypeEncoding::CUSTOM),
     custom_encoder(encoder)
   {
     boundary_buffer.buffer = &(boundary_buffer_backend);
