@@ -562,13 +562,7 @@ public:
 
 };
 
-} // namespace rrlib
-} // namespace serialization
 
-namespace rrlib
-{
-namespace serialization
-{
 inline tInputStream& operator>> (tInputStream& is, char& t)
 {
   t = is.ReadNumber<char>();
@@ -675,6 +669,34 @@ inline tInputStream& operator>> (typename std::enable_if<std::is_enum<T>::value,
   tInputStream& is2 = is;
   t = is2.ReadEnum<T>();
   return is;
+}
+
+namespace internal
+{
+template <int ELEMENT, typename ... TArgs>
+struct tTupleDeserializer
+{
+  static void DeserializeTuple(tInputStream& stream, std::tuple<TArgs...>& tuple)
+  {
+    tTupleDeserializer < ELEMENT - 1, TArgs... >::DeserializeTuple(stream, tuple);
+    stream >> std::get<ELEMENT>(tuple);
+  }
+};
+
+template <typename ... TArgs>
+struct tTupleDeserializer < -1, TArgs... >
+{
+  static void DeserializeTuple(tInputStream& stream, std::tuple<TArgs...>& tuple)
+  {
+  }
+};
+} // namespace internal
+
+template <typename ... TArgs>
+inline tInputStream& operator>> (tInputStream& stream, std::tuple<TArgs...>& tuple)
+{
+  internal::tTupleDeserializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::DeserializeTuple(stream, tuple);
+  return stream;
 }
 
 } // namespace rrlib

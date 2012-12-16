@@ -481,13 +481,7 @@ public:
 
 };
 
-} // namespace rrlib
-} // namespace serialization
 
-namespace rrlib
-{
-namespace serialization
-{
 inline tOutputStream& operator<< (tOutputStream& os, char t)
 {
   os.WriteNumber(t);
@@ -592,6 +586,34 @@ inline tOutputStream& operator<< (typename std::enable_if<std::is_enum<T>::value
   tOutputStream& os2 = os;
   os2.WriteEnum<T>(t);
   return os;
+}
+
+namespace internal
+{
+template <int ELEMENT, typename ... TArgs>
+struct tTupleSerializer
+{
+  static void SerializeTuple(tOutputStream& stream, const std::tuple<TArgs...>& tuple)
+  {
+    tTupleSerializer < ELEMENT - 1, TArgs... >::SerializeTuple(stream, tuple);
+    stream << std::get<ELEMENT>(tuple);
+  }
+};
+
+template <typename ... TArgs>
+struct tTupleSerializer < -1, TArgs... >
+{
+  static void SerializeTuple(tOutputStream& stream, const std::tuple<TArgs...>& tuple)
+  {
+  }
+};
+} // namespace internal
+
+template <typename ... TArgs>
+inline tOutputStream& operator<< (tOutputStream& stream, const std::tuple<TArgs...>& tuple)
+{
+  internal::tTupleSerializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::SerializeTuple(stream, tuple);
+  return stream;
 }
 
 
