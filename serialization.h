@@ -153,10 +153,10 @@ void Deserialize(tInputStream& stream, T& t, tDataEncoding enc)
 /*!
  * Deserializes binary CoreSerializable from hex string
  *
- * \param cs CoreSerializable
+ * \param cs serializable
  * \param s Hex String to deserialize from
  */
-void DeserializeFromHexString(tSerializable* cs, tStringInputStream& s);
+void DeserializeFromHexString(tSerializable& cs, tStringInputStream& s);
 
 /*!
  * Creates deep copy of serializable object using serialization to and from memory buffer
@@ -184,12 +184,12 @@ template <typename T>
 void SerializationBasedDeepCopy(const T& src, T& dest, tMemoryBuffer& buf, rtti::tFactory* f = NULL)
 {
   buf.Clear();
-  tOutputStream os(&(buf));
+  tOutputStream os(buf);
 
   os << src;
 
   os.Close();
-  tInputStream ci(&(buf));
+  tInputStream ci(buf);
   ci.SetFactory(f);
 
   ci >> dest;
@@ -212,8 +212,8 @@ bool SerializationEquals(const T& o1, const T& o2)
 {
   tStackMemoryBuffer < cSTACK_BUFFERS_SIZE / 2 > buf1;
   tStackMemoryBuffer < cSTACK_BUFFERS_SIZE / 2 > buf2;
-  tOutputStream os1(&buf1);
-  tOutputStream os2(&buf2);
+  tOutputStream os1(buf1);
+  tOutputStream os2(buf2);
   os1 << o1;
   os2 << o2;
   os1.Close();
@@ -308,10 +308,10 @@ void Serialize(tOutputStream& stream, const T& t, tDataEncoding enc)
 /*!
  * Serializes binary serializable to hex string
  *
- * \param cs CoreSerializable
+ * \param cs Serializable
  * \param os String output stream
  */
-void SerializeToHexString(const tSerializable* cs, tStringOutputStream& os);
+void SerializeToHexString(const tSerializable& cs, tStringOutputStream& os);
 
 } // namespace serialization
 

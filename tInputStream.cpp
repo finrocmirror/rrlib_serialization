@@ -316,18 +316,18 @@ void tInputStream::Reset()
   absolute_read_pos = 0;
 }
 
-void tInputStream::Reset(const tConstSource* source_)
+void tInputStream::Reset(const tConstSource& source)
 {
   Close();
   this->source = NULL;
-  this->const_source = source_;
+  this->const_source = &source;
   Reset();
 }
 
-void tInputStream::Reset(tSource* source_)
+void tInputStream::Reset(tSource& source)
 {
   Close();
-  this->source = source_;
+  this->source = &source;
   this->const_source = NULL;
   Reset();
 }

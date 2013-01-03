@@ -28,7 +28,7 @@ namespace serialization
 {
 void tSerializable::Deserialize(tStringInputStream& s)
 {
-  serialization::DeserializeFromHexString(this, s);
+  serialization::DeserializeFromHexString(*this, s);
 }
 
 void tSerializable::Deserialize(const xml::tNode& node)
@@ -45,7 +45,7 @@ void tSerializable::Deserialize(serialization::tInputStream& is, serialization::
 
 void tSerializable::Serialize(tStringOutputStream& os) const
 {
-  serialization::SerializeToHexString(this, os);
+  serialization::SerializeToHexString(*this, os);
 }
 
 void tSerializable::Serialize(xml::tNode& node) const

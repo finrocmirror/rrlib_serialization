@@ -104,14 +104,14 @@ void ConvertHexStringToBinary(tStringInputStream& src, tOutputStream& co)
   }
 }
 
-void DeserializeFromHexString(tSerializable* cs, tStringInputStream& s)
+void DeserializeFromHexString(tSerializable& cs, tStringInputStream& s)
 {
   tStackMemoryBuffer<65536> cb;
-  tOutputStream co(&(cb));
+  tOutputStream co(cb);
   ConvertHexStringToBinary(s, co);
   co.Close();
-  tInputStream ci(&(cb));
-  cs->Deserialize(ci);
+  tInputStream ci(cb);
+  cs.Deserialize(ci);
   ci.Close();
 }
 
@@ -122,13 +122,13 @@ std::string Serialize(const tSerializable& rs)
   return os.ToString();
 }
 
-void SerializeToHexString(const tSerializable* cs, tStringOutputStream& os)
+void SerializeToHexString(const tSerializable& cs, tStringOutputStream& os)
 {
   tStackMemoryBuffer<65536> cb;
-  tOutputStream co(&(cb));
-  cs->Serialize(co);
+  tOutputStream co(cb);
+  cs.Serialize(co);
   co.Close();
-  tInputStream ci(&(cb));
+  tInputStream ci(cb);
   ConvertBinaryToHexString(ci, os);
   ci.Close();
 }

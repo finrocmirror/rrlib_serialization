@@ -53,7 +53,7 @@ tOutputStream::tOutputStream(std::shared_ptr<tTypeEncoder> encoder) :
 {
 }
 
-tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, tTypeEncoding encoding) :
+tOutputStream::tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoding encoding) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -64,10 +64,10 @@ tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, tTypeEncoding encodin
   encoding(encoding),
   custom_encoder()
 {
-  Reset(sink_);
+  Reset(sink);
 }
 
-tOutputStream::tOutputStream(tSink* sink_, tTypeEncoding encoding) :
+tOutputStream::tOutputStream(tSink& sink, tTypeEncoding encoding) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -78,10 +78,10 @@ tOutputStream::tOutputStream(tSink* sink_, tTypeEncoding encoding) :
   encoding(encoding),
   custom_encoder()
 {
-  Reset(sink_);
+  Reset(sink);
 }
 
-tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, std::shared_ptr<tTypeEncoder> encoder) :
+tOutputStream::tOutputStream(std::shared_ptr<tSink> sink, std::shared_ptr<tTypeEncoder> encoder) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -92,10 +92,10 @@ tOutputStream::tOutputStream(std::shared_ptr<tSink> sink_, std::shared_ptr<tType
   encoding(tTypeEncoding::CUSTOM),
   custom_encoder(encoder)
 {
-  Reset(sink_);
+  Reset(sink);
 }
 
-tOutputStream::tOutputStream(tSink* sink_, std::shared_ptr<tTypeEncoder> encoder) :
+tOutputStream::tOutputStream(tSink& sink, std::shared_ptr<tTypeEncoder> encoder) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -106,7 +106,7 @@ tOutputStream::tOutputStream(tSink* sink_, std::shared_ptr<tTypeEncoder> encoder
   encoding(tTypeEncoding::CUSTOM),
   custom_encoder(encoder)
 {
-  Reset(sink_);
+  Reset(sink);
 }
 
 void tOutputStream::Close()
@@ -140,10 +140,10 @@ void tOutputStream::Println(const std::string& s)
   CheckFlush();
 }
 
-void tOutputStream::Reset(tSink* sink_)
+void tOutputStream::Reset(tSink& sink)
 {
   Close();
-  this->sink = sink_;
+  this->sink = &sink;
   Reset();
 }
 

@@ -141,25 +141,22 @@ public:
   /*!
    * \param encoding Data type encoding that is used
    */
-  tOutputStream(tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS);
-
+  tOutputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
   tOutputStream(std::shared_ptr<tTypeEncoder> encoder);
 
   /*!
-   * \param sink_ Sink to write to
+   * \param sink Sink to write to
    * \param encoding Data type encoding that is used
    */
-  tOutputStream(std::shared_ptr<tSink> sink_, tTypeEncoding encoding_);
-
-  tOutputStream(tSink* sink_, tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS);
+  tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoding encoding);
+  tOutputStream(tSink& sink, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
 
   /*!
-   * \param sink_ Sink to write to
+   * \param sink Sink to write to
    * \param encoder Custom type encoder
    */
-  tOutputStream(std::shared_ptr<tSink> sink_, std::shared_ptr<tTypeEncoder> encoder);
-
-  tOutputStream(tSink* sink_, std::shared_ptr<tTypeEncoder> encoder);
+  tOutputStream(std::shared_ptr<tSink> sink, std::shared_ptr<tTypeEncoder> encoder);
+  tOutputStream(tSink& sink, std::shared_ptr<tTypeEncoder> encoder);
 
   void Close();
 
@@ -268,7 +265,7 @@ public:
   void Reset(std::shared_ptr<tSink> sink)
   {
     sink_lock = sink;
-    Reset(sink.get());
+    Reset(*sink);
   }
 
   /*!
@@ -276,7 +273,7 @@ public:
    *
    * \param sink New Sink to use
    */
-  void Reset(tSink* sink_);
+  void Reset(tSink& sink);
 
   /*!
    * Resets/clears buffer for writing

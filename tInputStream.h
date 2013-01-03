@@ -149,7 +149,7 @@ public:
   tInputStream(std::shared_ptr<tTypeEncoder> encoder);
 
   template <typename T>
-  tInputStream(T source_, tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS, decltype(source->DirectReadSupport()) dummy = true) :
+  tInputStream(T && source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS, decltype(source.DirectReadSupport()) dummy = true) :
     source_lock(),
     source_buffer(),
     boundary_buffer(),
@@ -163,16 +163,16 @@ public:
     direct_read_support(false),
     timeout(rrlib::time::tDuration::zero()),
     factory(NULL),
-    encoding(encoding_),
+    encoding(encoding),
     custom_encoder()
   {
     boundary_buffer.buffer = &(boundary_buffer_backend);
 
-    Reset(source_);
+    Reset(source);
   }
 
   template <typename T>
-  tInputStream(T source_, std::shared_ptr<tTypeEncoder> encoder) :
+  tInputStream(T && source, std::shared_ptr<tTypeEncoder> encoder) :
     source_lock(),
     source_buffer(),
     boundary_buffer(),
@@ -191,7 +191,7 @@ public:
   {
     boundary_buffer.buffer = &(boundary_buffer_backend);
 
-    Reset(source_);
+    Reset(source);
   }
 
   /*!
@@ -508,7 +508,7 @@ public:
    *
    * \param source New Source
    */
-  void Reset(const tConstSource* source_);
+  void Reset(const tConstSource& source);
 
   /*!
    * Use this object with different source.
@@ -516,7 +516,7 @@ public:
    *
    * \param source New Source
    */
-  void Reset(tSource* source_);
+  void Reset(tSource& source);
 
   virtual void Reset(tInputStream* buf, tBufferInfo& buffer)
   {

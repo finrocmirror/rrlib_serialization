@@ -27,7 +27,7 @@ namespace rrlib
 {
 namespace rtti
 {
-class tDataTypeBase;
+class tType;
 }
 namespace serialization
 {
@@ -55,13 +55,13 @@ public:
    * \param is Input Stream
    * \return Type decoded from input stream
    */
-  virtual rtti::tDataTypeBase ReadType(tInputStream& is) = 0;
+  virtual rtti::tType ReadType(tInputStream& is) = 0;
 
   /*!
    * \param os Output stream
    * \param type Type to encode to output stream
    */
-  virtual void WriteType(tOutputStream& os, rtti::tDataTypeBase type) = 0;
+  virtual void WriteType(tOutputStream& os, rtti::tType type) = 0;
 
 };
 
