@@ -588,6 +588,13 @@ inline tOutputStream& operator<< (typename std::enable_if<std::is_enum<T>::value
   return os;
 }
 
+template <typename T1, typename T2>
+inline tOutputStream& operator<< (tOutputStream& os, const std::pair<T1, T2>& pair)
+{
+  os << pair.first << pair.second;
+  return os;
+}
+
 namespace internal
 {
 template <int ELEMENT, typename ... TArgs>

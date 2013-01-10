@@ -671,6 +671,13 @@ inline tInputStream& operator>> (typename std::enable_if<std::is_enum<T>::value,
   return is;
 }
 
+template <typename T1, typename T2>
+inline tInputStream& operator>> (tInputStream& is, std::pair<T1, T2>& pair)
+{
+  is >> pair.first >> pair.second;
+  return is;
+}
+
 namespace internal
 {
 template <int ELEMENT, typename ... TArgs>
