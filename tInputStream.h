@@ -304,19 +304,19 @@ public:
     return static_cast<ENUM>(ReadInt());
 #endif
 
-    const make_builder::tEnumStrings &enum_strings(make_builder::GetEnumStrings<ENUM>());
+    size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
 
-    if (enum_strings.size <= 0x100)
+    if (enum_strings_dimension <= 0x100)
     {
       return static_cast<ENUM>(ReadByte());
     }
 
-    if (enum_strings.size <= 0x1000)
+    if (enum_strings_dimension <= 0x1000)
     {
       return static_cast<ENUM>(ReadShort());
     }
 
-    assert(enum_strings.size < 0x7FFFFFFF && "What?");
+    assert(enum_strings_dimension < 0x7FFFFFFF && "What?");
     return static_cast<ENUM>(ReadInt());
   }
 

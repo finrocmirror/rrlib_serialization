@@ -31,6 +31,8 @@
 #include <vector>
 #include <sstream>
 
+#include "rrlib/logging/messages.h"
+
 namespace rrlib
 {
 namespace serialization
@@ -48,11 +50,6 @@ private:
 
   /*! Map with flags of all 256 UTF Characters */
   static int8_t char_map[256];
-
-  /*!
-   * Non-template core functionality of ReadEnum method
-   */
-  int ReadEnumHelper(const make_builder::tEnumStrings &enum_strings);
 
 public:
 
@@ -168,9 +165,53 @@ public:
   ENUM ReadEnum()
   {
 #ifdef _LIB_ENUM_STRINGS_PRESENT_
-    return static_cast<ENUM>(ReadEnumHelper(make_builder::GetEnumStrings<ENUM>()));
+    // parse input
+    std::string enum_string(ReadWhile("", cDIGIT | cLETTER | cWHITESPACE, true));
+    boost::trim(enum_string);
+    int c1 = Read();
+    std::string num_string;
+    if (c1 == '(')
+    {
+      num_string = ReadUntil(")");
+      boost::trim(num_string);
+      int c2 = Read();
+      if (c2 != ')')
+      {
+        throw std::invalid_argument("Did not read expected bracket");
+      }
+    }
+
+    // deal with input
+    if (enum_string.length() > 0)
+    {
+      try
+      {
+        return make_builder::GetEnumValueFromString<ENUM>(enum_string);
+      }
+      catch (std::runtime_error &)
+      {
+        RRLIB_LOG_PRINTF(WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
+      }
+      if (num_string.length() == 0)
+      {
+        throw std::invalid_argument("No Number String specified either");
+      }
+      int n = atoi(num_string.c_str());
+      return static_cast<ENUM>(n);
+    }
+    else
+    {
+      int n = atoi(num_string.c_str());
+      size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
+      if (n >= static_cast<int64_t>(enum_strings_dimension))
+      {
+        RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%d)", n, enum_strings_dimension);
+        throw std::invalid_argument("Number out of range");
+      }
+      return static_cast<ENUM>(n);
+    }
 #else
-    return static_cast<ENUM>(ReadEnumHelper(NULL));
+    // How was this supposed to work? return 0;?
 #endif
   }
 };

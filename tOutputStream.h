@@ -395,19 +395,19 @@ public:
     return;
 #endif
 
-    const make_builder::tEnumStrings &enum_strings = make_builder::GetEnumStrings<ENUM>();
+    size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
 
-    if (enum_strings.size <= 0x100)
+    if (enum_strings_dimension <= 0x100)
     {
       WriteByte((int8_t)e);
     }
-    else if (enum_strings.size <= 0x1000)
+    else if (enum_strings_dimension <= 0x1000)
     {
       WriteShort((int16_t)e);
     }
     else
     {
-      assert(enum_strings.size < 0x7FFFFFFF && "What?");
+      assert(enum_strings_dimension < 0x7FFFFFFF && "What?");
       WriteInt((int)e);
     }
   }
