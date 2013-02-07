@@ -304,19 +304,19 @@ public:
     return static_cast<ENUM>(ReadInt());
 #endif
 
-    const make_builder::tEnumStrings &enum_strings(make_builder::GetEnumStrings<ENUM>());
+    size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
 
-    if (enum_strings.size <= 0x100)
+    if (enum_strings_dimension <= 0x100)
     {
       return static_cast<ENUM>(ReadByte());
     }
 
-    if (enum_strings.size <= 0x1000)
+    if (enum_strings_dimension <= 0x1000)
     {
       return static_cast<ENUM>(ReadShort());
     }
 
-    assert(enum_strings.size < 0x7FFFFFFF && "What?");
+    assert(enum_strings_dimension < 0x7FFFFFFF && "What?");
     return static_cast<ENUM>(ReadInt());
   }
 
@@ -668,6 +668,13 @@ inline tInputStream& operator>> (typename std::enable_if<std::is_enum<T>::value,
 {
   tInputStream& is2 = is;
   t = is2.ReadEnum<T>();
+  return is;
+}
+
+template <typename T1, typename T2>
+inline tInputStream& operator>> (tInputStream& is, std::pair<T1, T2>& pair)
+{
+  is >> pair.first >> pair.second;
   return is;
 }
 

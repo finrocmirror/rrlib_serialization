@@ -395,19 +395,19 @@ public:
     return;
 #endif
 
-    const make_builder::tEnumStrings &enum_strings = make_builder::GetEnumStrings<ENUM>();
+    size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
 
-    if (enum_strings.size <= 0x100)
+    if (enum_strings_dimension <= 0x100)
     {
       WriteByte((int8_t)e);
     }
-    else if (enum_strings.size <= 0x1000)
+    else if (enum_strings_dimension <= 0x1000)
     {
       WriteShort((int16_t)e);
     }
     else
     {
-      assert(enum_strings.size < 0x7FFFFFFF && "What?");
+      assert(enum_strings_dimension < 0x7FFFFFFF && "What?");
       WriteInt((int)e);
     }
   }
@@ -589,6 +589,13 @@ inline tOutputStream& operator<< (typename std::enable_if<std::is_enum<T>::value
 {
   tOutputStream& os2 = os;
   os2.WriteEnum<T>(t);
+  return os;
+}
+
+template <typename T1, typename T2>
+inline tOutputStream& operator<< (tOutputStream& os, const std::pair<T1, T2>& pair)
+{
+  os << pair.first << pair.second;
   return os;
 }
 

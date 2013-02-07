@@ -23,8 +23,6 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-#include "rrlib/logging/messages.h"
-
 namespace rrlib
 {
 namespace serialization
@@ -67,54 +65,6 @@ int tStringInputStream::InitCharMap()
     char_map[i] = mask;
   }
   return 0;
-}
-
-int tStringInputStream::ReadEnumHelper(const make_builder::tEnumStrings &enum_strings)
-{
-  // parse input
-  std::string enum_string(ReadWhile("", cDIGIT | cLETTER | cWHITESPACE, true));
-  boost::trim(enum_string);
-  int c1 = Read();
-  std::string num_string;
-  if (c1 == '(')
-  {
-    num_string = ReadUntil(")");
-    boost::trim(num_string);
-    int c2 = Read();
-    if (c2 != ')')
-    {
-      throw std::invalid_argument("Did not read expected bracket");
-    }
-  }
-
-  // deal with input
-  if (enum_string.length() > 0)
-  {
-    for (size_t i = 0; i < enum_strings.size; i++)
-    {
-      if (boost::iequals(enum_string, enum_strings.strings[i]))
-      {
-        return i;
-      }
-    }
-    RRLIB_LOG_PRINTF(WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
-    if (num_string.length() == 0)
-    {
-      throw std::invalid_argument("No Number String specified either");
-    }
-    int n = atoi(num_string.c_str());
-    return n;
-  }
-  else
-  {
-    int n = atoi(num_string.c_str());
-    if (n >= static_cast<int64_t>(enum_strings.size))
-    {
-      RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%d)", n, enum_strings.size);
-      throw std::invalid_argument("Number out of range");
-    }
-    return n;
-  }
 }
 
 std::string tStringInputStream::ReadUntil(const char* stop_at_chars, int stop_at_flags, bool trim_whitespace)
