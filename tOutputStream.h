@@ -94,6 +94,9 @@ class tOutputStream : public boost::noncopyable, public tSink
   /*! -1 by default - buffer position when a skip offset placeholder has been set/written */
   int cur_skip_offset_placeholder;
 
+  /*! if true, indicates that only 1 byte has been reserved for skip offset placeholder */
+  bool short_skip_offset;
+
   /*! hole Buffers are only buffered/copied, when they are smaller than this */
   size_t buffer_copy_fraction;
 
@@ -104,7 +107,7 @@ class tOutputStream : public boost::noncopyable, public tSink
   tTypeEncoding encoding;
 
   /*! Custom type encoder */
-  std::shared_ptr<tTypeEncoder> custom_encoder;
+  tTypeEncoder* custom_encoder;
 
 protected:
 
@@ -142,7 +145,7 @@ public:
    * \param encoding Data type encoding that is used
    */
   tOutputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-  tOutputStream(std::shared_ptr<tTypeEncoder> encoder);
+  tOutputStream(tTypeEncoder& encoder);
 
   /*!
    * \param sink Sink to write to
@@ -155,8 +158,8 @@ public:
    * \param sink Sink to write to
    * \param encoder Custom type encoder
    */
-  tOutputStream(std::shared_ptr<tSink> sink, std::shared_ptr<tTypeEncoder> encoder);
-  tOutputStream(tSink& sink, std::shared_ptr<tTypeEncoder> encoder);
+  tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoder& encoder);
+  tOutputStream(tSink& sink, tTypeEncoder& encoder);
 
   void Close();
 
@@ -216,7 +219,7 @@ public:
    */
   tTypeEncoder* GetCustomTypeEncoder() const
   {
-    return custom_encoder.get();
+    return custom_encoder;
   }
 
   /*!
@@ -448,10 +451,14 @@ public:
    *
    * (only one such position can be set/remembered at a time)
    *
-   * As soon as the stream has reached the position to which are reader might want to skip
-   * call setSkipTargetHere()
+   * As soon as the stream has reached the position to which a reader might want to skip
+   * call SetSkipTargetHere()
+   *
+   * (Is equivalent to writing the size of the data until SetSkipTargetHere() to stream)
+   *
+   * \param If skip offset will be smaller than 256, can be set to true, to make stream 3 bytes shorter
    */
-  void WriteSkipOffsetPlaceholder();
+  void WriteSkipOffsetPlaceholder(bool short_skip_offset = false);
 
   void WriteString(const char* s)
   {

@@ -78,7 +78,7 @@ class tInputStream : public boost::noncopyable, public tSource
   tBufferInfo* cur_buffer;
 
   /*! Manager that handles, where the data blocks come from etc. */
-  ::rrlib::serialization::tSource* source;
+  tSource* source;
 
   /*! Manager that handles, where the data blocks come from etc. */
   const tConstSource* const_source;
@@ -105,7 +105,7 @@ class tInputStream : public boost::noncopyable, public tSource
   tTypeEncoding encoding;
 
   /*! Custom type encoder */
-  std::shared_ptr<tTypeEncoder> custom_encoder;
+  tTypeEncoder* custom_encoder;
 
 private:
 
@@ -146,7 +146,7 @@ public:
 
   tInputStream(tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS);
 
-  tInputStream(std::shared_ptr<tTypeEncoder> encoder);
+  tInputStream(tTypeEncoder& encoder);
 
   template <typename T>
   tInputStream(T && source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS, decltype(source.DirectReadSupport()) dummy = true) :
@@ -164,7 +164,7 @@ public:
     timeout(rrlib::time::tDuration::zero()),
     factory(NULL),
     encoding(encoding),
-    custom_encoder()
+    custom_encoder(NULL)
   {
     boundary_buffer.buffer = &(boundary_buffer_backend);
 
@@ -172,7 +172,7 @@ public:
   }
 
   template <typename T>
-  tInputStream(T && source, std::shared_ptr<tTypeEncoder> encoder) :
+  tInputStream(T && source, tTypeEncoder& encoder) :
     source_lock(),
     source_buffer(),
     boundary_buffer(),
@@ -187,7 +187,7 @@ public:
     timeout(rrlib::time::tDuration::zero()),
     factory(NULL),
     encoding(tTypeEncoding::CUSTOM),
-    custom_encoder(encoder)
+    custom_encoder(&encoder)
   {
     boundary_buffer.buffer = &(boundary_buffer_backend);
 
@@ -234,7 +234,7 @@ public:
    */
   tTypeEncoder* GetCustomTypeEncoder() const
   {
-    return custom_encoder.get();
+    return custom_encoder;
   }
 
   /*!

@@ -42,12 +42,12 @@ tInputStream::tInputStream(tTypeEncoding encoding) :
   timeout(rrlib::time::tDuration::zero()),
   factory(NULL),
   encoding(encoding),
-  custom_encoder()
+  custom_encoder(NULL)
 {
   boundary_buffer.buffer = &(boundary_buffer_backend);
 }
 
-tInputStream::tInputStream(std::shared_ptr<tTypeEncoder> encoder) :
+tInputStream::tInputStream(tTypeEncoder& encoder) :
   source_lock(),
   source_buffer(),
   boundary_buffer(),
@@ -62,7 +62,7 @@ tInputStream::tInputStream(std::shared_ptr<tTypeEncoder> encoder) :
   timeout(rrlib::time::tDuration::zero()),
   factory(NULL),
   encoding(tTypeEncoding::CUSTOM),
-  custom_encoder(encoder)
+  custom_encoder(&encoder)
 {
   boundary_buffer.buffer = &(boundary_buffer_backend);
 }

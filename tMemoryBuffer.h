@@ -253,7 +253,7 @@ public:
   /*!
    * \return Buffer size
    */
-  inline int GetSize() const
+  inline size_t GetSize() const
   {
     return cur_size;
   }

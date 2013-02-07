@@ -33,23 +33,25 @@ tOutputStream::tOutputStream(tTypeEncoding encoding) :
   closed(true),
   buffer(),
   cur_skip_offset_placeholder(-1),
+  short_skip_offset(false),
   buffer_copy_fraction(0),
   direct_write_support(false),
   encoding(encoding),
-  custom_encoder()
+  custom_encoder(NULL)
 {
 }
 
-tOutputStream::tOutputStream(std::shared_ptr<tTypeEncoder> encoder) :
+tOutputStream::tOutputStream(tTypeEncoder& encoder) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
   buffer(),
   cur_skip_offset_placeholder(-1),
+  short_skip_offset(false),
   buffer_copy_fraction(0),
   direct_write_support(false),
   encoding(tTypeEncoding::CUSTOM),
-  custom_encoder(encoder)
+  custom_encoder(&encoder)
 {
 }
 
@@ -59,10 +61,11 @@ tOutputStream::tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoding encoding
   closed(true),
   buffer(),
   cur_skip_offset_placeholder(-1),
+  short_skip_offset(false),
   buffer_copy_fraction(0),
   direct_write_support(false),
   encoding(encoding),
-  custom_encoder()
+  custom_encoder(NULL)
 {
   Reset(sink);
 }
@@ -73,15 +76,16 @@ tOutputStream::tOutputStream(tSink& sink, tTypeEncoding encoding) :
   closed(true),
   buffer(),
   cur_skip_offset_placeholder(-1),
+  short_skip_offset(false),
   buffer_copy_fraction(0),
   direct_write_support(false),
   encoding(encoding),
-  custom_encoder()
+  custom_encoder(NULL)
 {
   Reset(sink);
 }
 
-tOutputStream::tOutputStream(std::shared_ptr<tSink> sink, std::shared_ptr<tTypeEncoder> encoder) :
+tOutputStream::tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoder& encoder) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -90,12 +94,12 @@ tOutputStream::tOutputStream(std::shared_ptr<tSink> sink, std::shared_ptr<tTypeE
   buffer_copy_fraction(0),
   direct_write_support(false),
   encoding(tTypeEncoding::CUSTOM),
-  custom_encoder(encoder)
+  custom_encoder(&encoder)
 {
   Reset(sink);
 }
 
-tOutputStream::tOutputStream(tSink& sink, std::shared_ptr<tTypeEncoder> encoder) :
+tOutputStream::tOutputStream(tSink& sink, tTypeEncoder& encoder) :
   sink(NULL),
   immediate_flush(false),
   closed(true),
@@ -104,7 +108,7 @@ tOutputStream::tOutputStream(tSink& sink, std::shared_ptr<tTypeEncoder> encoder)
   buffer_copy_fraction(0),
   direct_write_support(false),
   encoding(tTypeEncoding::CUSTOM),
-  custom_encoder(encoder)
+  custom_encoder(&encoder)
 {
   Reset(sink);
 }
@@ -158,8 +162,15 @@ void tOutputStream::Reset()
 
 void tOutputStream::SkipTargetHere()
 {
-  assert((cur_skip_offset_placeholder >= 0));
-  buffer.buffer->PutInt(cur_skip_offset_placeholder, buffer.position - cur_skip_offset_placeholder - 4);
+  assert(cur_skip_offset_placeholder >= 0);
+  if (short_skip_offset)
+  {
+    buffer.buffer->PutByte(cur_skip_offset_placeholder, buffer.position - cur_skip_offset_placeholder - 1);
+  }
+  else
+  {
+    buffer.buffer->PutInt(cur_skip_offset_placeholder, buffer.position - cur_skip_offset_placeholder - 4);
+  }
   cur_skip_offset_placeholder = -1;
 }
 
@@ -214,12 +225,20 @@ void tOutputStream::WriteAllAvailable(tInputStream* input_stream)
   }
 }
 
-void tOutputStream::WriteSkipOffsetPlaceholder()
+void tOutputStream::WriteSkipOffsetPlaceholder(bool short_skip_offset)
 {
   assert((cur_skip_offset_placeholder < 0));
   cur_skip_offset_placeholder = buffer.position;
+  this->short_skip_offset = short_skip_offset;
 
-  WriteInt(0x80000000);
+  if (short_skip_offset)
+  {
+    WriteByte(0x80);
+  }
+  else
+  {
+    WriteInt(0x80000000);
+  }
 }
 
 void tOutputStream::WriteString(const std::string& s, bool terminate)
