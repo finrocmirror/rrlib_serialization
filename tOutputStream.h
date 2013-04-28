@@ -456,7 +456,7 @@ public:
    *
    * (Is equivalent to writing the size of the data until SetSkipTargetHere() to stream)
    *
-   * \param If skip offset will be smaller than 256, can be set to true, to make stream 3 bytes shorter
+   * \param short_skip_offset If skip offset will be smaller than 256, can be set to true, to make stream 3 bytes shorter
    */
   void WriteSkipOffsetPlaceholder(bool short_skip_offset = false);
 

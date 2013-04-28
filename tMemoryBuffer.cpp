@@ -141,6 +141,7 @@ void tMemoryBuffer::Reset(tInputStream* input_stream_buffer, tBufferInfo& buffer
 
 void tMemoryBuffer::Reset(tOutputStream* output_stream_buffer, tBufferInfo& buffer)
 {
+  EnsureCapacity(16, false, 0); // buffer should have at least space for 8+ bytes (in order to avoid assertion)
   buffer.buffer = &backend;
   buffer.position = 0u;
   buffer.SetRange(0u, backend.Capacity());
