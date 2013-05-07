@@ -19,6 +19,14 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
+/*!\file    rrlib/serialization/serialization.cpp
+ *
+ * \author  Max Reichardt
+ *
+ * \date    2012-02-05
+ *
+ */
+//----------------------------------------------------------------------
 #include "rrlib/serialization/serialization.h"
 #include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/tStringInputStream.h"

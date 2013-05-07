@@ -19,6 +19,16 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
+/*!\file    rrlib/serialization/detail/utility.h
+ *
+ * \author  Max Reichardt
+ *
+ * \date    2012-04-30
+ *
+ * \brief
+ *
+ */
+//----------------------------------------------------------------------
 #ifndef __rrlib__serialization__detail__utility_h__
 #define __rrlib__serialization__detail__utility_h__
 

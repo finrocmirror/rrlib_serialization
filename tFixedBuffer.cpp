@@ -19,6 +19,14 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
+/*!\file    rrlib/serialization/tFixedBuffer.cpp
+ *
+ * \author  Max Reichardt
+ *
+ * \date    2011-02-01
+ *
+ */
+//----------------------------------------------------------------------
 #include "rrlib/serialization/tFixedBuffer.h"
 #include "rrlib/serialization/tStringOutputStream.h"
 #include <stdexcept>

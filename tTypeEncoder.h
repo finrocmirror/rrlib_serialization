@@ -19,6 +19,16 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
+/*!\file    rrlib/serialization/tTypeEncoder.h
+ *
+ * \author  Max Reichardt
+ *
+ * \date    2011-05-22
+ *
+ * \brief
+ *
+ */
+//----------------------------------------------------------------------
 #ifndef __rrlib__serialization__tTypeEncoder_h__
 #define __rrlib__serialization__tTypeEncoder_h__
 

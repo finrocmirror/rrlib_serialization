@@ -19,6 +19,16 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
+/*!\file    rrlib/serialization/tOutputStream.h
+ *
+ * \author  Max Reichardt
+ *
+ * \date    2011-02-01
+ *
+ * \brief
+ *
+ */
+//----------------------------------------------------------------------
 #ifndef __rrlib__serialization__tOutputStream_h__
 #define __rrlib__serialization__tOutputStream_h__
 
