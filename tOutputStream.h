@@ -455,7 +455,7 @@ private:
   tBufferInfo buffer;
 
   /*! -1 by default - buffer position when a skip offset placeholder has been set/written */
-  size_t cur_skip_offset_placeholder;
+  int64_t cur_skip_offset_placeholder;
 
   /*! if true, indicates that only 1 byte has been reserved for skip offset placeholder */
   bool short_skip_offset;
