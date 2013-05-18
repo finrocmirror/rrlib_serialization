@@ -23,24 +23,56 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
  */
 //----------------------------------------------------------------------
+#include "rrlib/serialization/tInputStream.h"
+
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 #include <thread>
 
-#include "rrlib/serialization/tInputStream.h"
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
 #include "rrlib/serialization/tStringOutputStream.h"
 
+//----------------------------------------------------------------------
+// Debugging
+//----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Const values
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
 tInputStream::tInputStream(tTypeEncoding encoding) :
-  source_lock(),
   source_buffer(),
   boundary_buffer(),
-  boundary_buffer_backend(14u),
+  boundary_buffer_memory(),
+  boundary_buffer_backend(boundary_buffer_memory, 14u),
   cur_buffer(NULL),
   source(NULL),
   const_source(NULL),
@@ -57,10 +89,10 @@ tInputStream::tInputStream(tTypeEncoding encoding) :
 }
 
 tInputStream::tInputStream(tTypeEncoder& encoder) :
-  source_lock(),
   source_buffer(),
   boundary_buffer(),
-  boundary_buffer_backend(14u),
+  boundary_buffer_memory(),
+  boundary_buffer_backend(boundary_buffer_memory, 14u),
   cur_buffer(NULL),
   source(NULL),
   const_source(NULL),
@@ -76,19 +108,102 @@ tInputStream::tInputStream(tTypeEncoder& encoder) :
   boundary_buffer.buffer = &(boundary_buffer_backend);
 }
 
+tInputStream::tInputStream(tSource& source, tTypeEncoding encoding) :
+  source_buffer(),
+  boundary_buffer(),
+  boundary_buffer_memory(),
+  boundary_buffer_backend(boundary_buffer_memory, 14u),
+  cur_buffer(NULL),
+  source(NULL),
+  const_source(NULL),
+  absolute_read_pos(0),
+  cur_skip_offset_target(-1),
+  closed(false),
+  direct_read_support(false),
+  timeout(rrlib::time::tDuration::zero()),
+  factory(NULL),
+  encoding(encoding),
+  custom_encoder(NULL)
+{
+  boundary_buffer.buffer = &(boundary_buffer_backend);
+  Reset(source);
+}
+
+tInputStream::tInputStream(tSource& source, tTypeEncoder& encoder) :
+  source_buffer(),
+  boundary_buffer(),
+  boundary_buffer_memory(),
+  boundary_buffer_backend(boundary_buffer_memory, 14u),
+  cur_buffer(NULL),
+  source(NULL),
+  const_source(NULL),
+  absolute_read_pos(0),
+  cur_skip_offset_target(-1),
+  closed(false),
+  direct_read_support(false),
+  timeout(rrlib::time::tDuration::zero()),
+  factory(NULL),
+  encoding(tTypeEncoding::CUSTOM),
+  custom_encoder(&encoder)
+{
+  boundary_buffer.buffer = &(boundary_buffer_backend);
+  Reset(source);
+}
+
+tInputStream::tInputStream(const tConstSource& source, tTypeEncoding encoding) :
+  source_buffer(),
+  boundary_buffer(),
+  boundary_buffer_memory(),
+  boundary_buffer_backend(boundary_buffer_memory, 14u),
+  cur_buffer(NULL),
+  source(NULL),
+  const_source(NULL),
+  absolute_read_pos(0),
+  cur_skip_offset_target(-1),
+  closed(false),
+  direct_read_support(false),
+  timeout(rrlib::time::tDuration::zero()),
+  factory(NULL),
+  encoding(encoding),
+  custom_encoder(NULL)
+{
+  boundary_buffer.buffer = &(boundary_buffer_backend);
+  Reset(source);
+}
+
+tInputStream::tInputStream(const tConstSource& source, tTypeEncoder& encoder) :
+  source_buffer(),
+  boundary_buffer(),
+  boundary_buffer_memory(),
+  boundary_buffer_backend(boundary_buffer_memory, 14u),
+  cur_buffer(NULL),
+  source(NULL),
+  const_source(NULL),
+  absolute_read_pos(0),
+  cur_skip_offset_target(-1),
+  closed(false),
+  direct_read_support(false),
+  timeout(rrlib::time::tDuration::zero()),
+  factory(NULL),
+  encoding(tTypeEncoding::CUSTOM),
+  custom_encoder(&encoder)
+{
+  boundary_buffer.buffer = &(boundary_buffer_backend);
+  Reset(source);
+}
+
 void tInputStream::Close()
 {
   if (!closed)
   {
     if (source != NULL)
     {
-      source->Close(this, source_buffer);
+      source->Close(*this, source_buffer);
     }
     else if (const_source != NULL)
     {
-      const_source->Close(this, source_buffer);
+      const_source->Close(*this, source_buffer);
     }
-    source_lock.reset();
   }
   closed = true;
 }
@@ -126,7 +241,7 @@ void tInputStream::FetchNextBytes(size_t min_required2)
   {
     rrlib::time::tDuration initial_sleep = std::chrono::milliseconds(20);  // timeout-related
     rrlib::time::tDuration slept = rrlib::time::tDuration::zero();  // timeout-related
-    while (timeout > rrlib::time::tDuration::zero() && (!(source != NULL ? source->MoreDataAvailable(this, source_buffer) : const_source->MoreDataAvailable(this, source_buffer))))
+    while (timeout > rrlib::time::tDuration::zero() && (!(source != NULL ? source->MoreDataAvailable(*this, source_buffer) : const_source->MoreDataAvailable(*this, source_buffer))))
     {
       initial_sleep *= 2;
 
@@ -143,11 +258,11 @@ void tInputStream::FetchNextBytes(size_t min_required2)
   // read next block
   if (source != NULL)
   {
-    source->Read(this, source_buffer, min_required2);
+    source->Read(*this, source_buffer, min_required2);
   }
   else
   {
-    const_source->Read(this, source_buffer, min_required2);
+    const_source->Read(*this, source_buffer, min_required2);
   }
   assert((source_buffer.Remaining() >= min_required2));
 
@@ -161,18 +276,6 @@ void tInputStream::FetchNextBytes(size_t min_required2)
   }
 }
 
-bool tInputStream::MoreDataAvailable(tInputStream* input_stream_buffer, tBufferInfo& buffer)
-{
-  if (source != NULL)
-  {
-    return source->MoreDataAvailable(this, buffer);
-  }
-  else
-  {
-    return const_source->MoreDataAvailable(this, buffer);
-  }
-}
-
 bool tInputStream::MoreDataAvailable()
 {
   if (Remaining() > 0)
@@ -180,7 +283,7 @@ bool tInputStream::MoreDataAvailable()
     return true;
   }
   //System.out.println("Not here");
-  return source != NULL ? source->MoreDataAvailable(this, source_buffer) : const_source->MoreDataAvailable(this, source_buffer);
+  return source != NULL ? source->MoreDataAvailable(*this, source_buffer) : const_source->MoreDataAvailable(*this, source_buffer);
 }
 
 int8_t tInputStream::Peek()
@@ -188,14 +291,6 @@ int8_t tInputStream::Peek()
   EnsureAvailable(1u);
   int8_t b = cur_buffer->buffer->GetByte(cur_buffer->position);
   return b;
-}
-
-void tInputStream::Read(tInputStream* buf, tBufferInfo& buffer, size_t len)
-{
-  // read next chunk - and copy this info to chained input stream buffer
-  cur_buffer->position = cur_buffer->end;  // move marker to end so that ensureAvailable fetches next bytes
-  EnsureAvailable(len);
-  buffer.Assign(*cur_buffer);
 }
 
 int8_t tInputStream::ReadByte()
@@ -242,7 +337,7 @@ void tInputStream::ReadFully(tFixedBuffer& bb, size_t off, size_t len)
     }
     else
     {
-      source->DirectRead(this, bb, off, len);  // shortcut
+      source->DirectRead(*this, bb, off, len);  // shortcut
       absolute_read_pos += len;
       assert((cur_buffer->position == cur_buffer->end));
       break;
@@ -275,14 +370,14 @@ void tInputStream::ReadSkipOffset()
 std::string tInputStream::ReadString()
 {
   tStringOutputStream sb;  // no shortcut in C++, since String could be in this chunk only partly
-  ReadStringImpl(sb);
+  ReadStringImplementation(sb);
   return sb.ToString();
 }
 
 void tInputStream::ReadString(tStringOutputStream& sb)
 {
   sb.Clear();
-  ReadStringImpl(sb);
+  ReadStringImplementation(sb);
 }
 
 std::string tInputStream::ReadString(size_t length)
@@ -294,6 +389,7 @@ std::string tInputStream::ReadString(size_t length)
 
 void tInputStream::ReadString(tStringOutputStream& sb, size_t length)
 {
+  // TODO: optimize
   size_t count = 0u;
   while (true)
   {
@@ -302,8 +398,22 @@ void tInputStream::ReadString(tStringOutputStream& sb, size_t length)
     {
       break;
     }
-    sb.Append(b);
+    sb.Append(static_cast<char>(b));
     count++;
+  }
+}
+
+void tInputStream::ReadStringImplementation(rrlib::serialization::tStringOutputStream& sb)
+{
+  // TODO: optimize
+  while (true)
+  {
+    int8_t b = ReadByte();
+    if (b == 0)
+    {
+      break;
+    }
+    sb.Append(static_cast<char>(b));
   }
 }
 
@@ -311,13 +421,13 @@ void tInputStream::Reset()
 {
   if (source != NULL)
   {
-    source->Reset(this, source_buffer);
+    source->Reset(*this, source_buffer);
     direct_read_support = source->DirectReadSupport();
     closed = false;
   }
   else if (const_source != NULL)
   {
-    const_source->Reset(this, source_buffer);
+    const_source->Reset(*this, source_buffer);
     direct_read_support = const_source->DirectReadSupport();
     closed = false;
   }
@@ -358,6 +468,7 @@ void tInputStream::Skip(size_t n)
 
 void tInputStream::SkipString()
 {
+  // TODO: optimize
   while (true)
   {
     int8_t c = ReadByte();
@@ -376,6 +487,8 @@ void tInputStream::ToSkipTarget()
   cur_skip_offset_target = 0;
 }
 
-} // namespace rrlib
-} // namespace serialization
-
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}

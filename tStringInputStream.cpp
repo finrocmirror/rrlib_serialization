@@ -23,57 +23,95 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-18
  *
  */
 //----------------------------------------------------------------------
 #include "rrlib/serialization/tStringInputStream.h"
 
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/predicate.hpp>
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+#include <cstring>
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Debugging
+//----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
-int8_t tStringInputStream::char_map[256];
-int string_input_stream_initializer = tStringInputStream::InitCharMap();
 
-const int8_t tStringInputStream::cLCASE, tStringInputStream::cUCASE, tStringInputStream::cLETTER, tStringInputStream::cDIGIT, tStringInputStream::cWHITESPACE;
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Const values
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
+namespace internal
+{
+
+static uint8_t char_map[256];
+
+int InitCharMap()
+{
+  for (int i = 0; i < 256; i++)
+  {
+    int mask = 0;
+    if (islower(i))
+    {
+      mask |= tStringInputStream::cLCASE;
+    }
+    if (isupper(i))
+    {
+      mask |= tStringInputStream::cUCASE;
+    }
+    if (isalpha(i))
+    {
+      mask |= tStringInputStream::cLETTER;
+    }
+    if (isdigit(i))
+    {
+      mask |= tStringInputStream::cDIGIT;
+    }
+    if (isspace(i))
+    {
+      mask |= tStringInputStream::cWHITESPACE;
+    }
+    char_map[i] = static_cast<uint8_t>(mask);
+  }
+  return 0;
+}
+
+int string_input_stream_initializer = InitCharMap();
+
+}
+
+const int tStringInputStream::cLCASE, tStringInputStream::cUCASE, tStringInputStream::cLETTER,
+      tStringInputStream::cDIGIT, tStringInputStream::cWHITESPACE;
 
 tStringInputStream::tStringInputStream(const std::string& s) :
   wrapped(s)
 {
-}
-
-int tStringInputStream::InitCharMap()
-{
-  for (int i = 0; i < 256; i++)
-  {
-    int8_t mask = 0;
-    if (islower(i))
-    {
-      mask |= cLCASE;
-    }
-    if (isupper(i))
-    {
-      mask |= cUCASE;
-    }
-    if (isalpha(i))
-    {
-      mask |= cLETTER;
-    }
-    if (isdigit(i))
-    {
-      mask |= cDIGIT;
-    }
-    if (isspace(i))
-    {
-      mask |= cWHITESPACE;
-    }
-    char_map[i] = mask;
-  }
-  return 0;
 }
 
 std::string tStringInputStream::ReadUntil(const char* stop_at_chars, int stop_at_flags, bool trim_whitespace)
@@ -89,7 +127,7 @@ std::string tStringInputStream::ReadUntil(const char* stop_at_chars, int stop_at
       break;
     }
 
-    if ((char_map[c] & stop_at_flags) != 0)
+    if ((internal::char_map[c] & stop_at_flags) != 0)
     {
       Unget();
       break;
@@ -135,7 +173,7 @@ std::string tStringInputStream::ReadWhile(const char* valid_chars, int valid_fla
       break;
     }
 
-    if ((char_map[c] & valid_flags) == 0)
+    if ((internal::char_map[c] & valid_flags) == 0)
     {
       bool valid = false;
       for (size_t i = 0u; i < valid_char_len; i++)
@@ -165,6 +203,41 @@ std::string tStringInputStream::ReadWhile(const char* valid_chars, int valid_fla
   return sb.str();
 }
 
-} // namespace rrlib
-} // namespace serialization
+bool tStringInputStream::StringsEqualIgnoreCase(const std::string& string1, const std::string& string2)
+{
+  if (string1.length() != string2.length())
+  {
+    return false;
+  }
+  for (size_t i = 0; i < string1.length(); i++)
+  {
+    if (string1[i] != string2[i] && tolower(string1[i]) != tolower(string2[i]))
+    {
+      return false;
+    }
+  }
+  return true;
+}
 
+std::string tStringInputStream::Trim(const std::string& s)
+{
+  std::string result;
+  size_t len = s.size();
+  size_t st = 0;
+
+  while ((st < len) && (isspace(s[st])))
+  {
+    st++;
+  }
+  while ((st < len) && (isspace(s[len - 1])))
+  {
+    len--;
+  }
+  return ((st > 0) || (len < s.size())) ? s.substr(st, len - st) : s;
+}
+
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}

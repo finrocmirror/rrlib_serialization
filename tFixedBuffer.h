@@ -23,149 +23,118 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
- * \brief
+ * \brief   Contains tFixedBuffer
+ *
+ * \b tFixedBuffer
+ *
+ * This is a simple fixed-size memory buffer.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__tFixedBuffer_h__
 #define __rrlib__serialization__tFixedBuffer_h__
 
-#include <assert.h>
-#include <boost/utility.hpp>
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+#include "rrlib/util/tNoncopyable.h"
 #include <cstring>
-#include <stdint.h>
-#include <string>
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! Simple fixed-size memory buffer.
 /*!
- * \author Max Reichardt
- *
  * This is a simple fixed-size memory buffer.
- *
- * In Java it wraps a java.nio.ByteBuffer (this allows sharing the buffer with C++).
- * Its methods are also very similar to ByteBuffer's - which makes ByteBuffer
- * a good source for documentation ;-)
- *
- * Writing arrays/buffers to the buffer is not thread-safe in Java. Everything else is.
  */
-class tFixedBuffer : public boost::noncopyable
+class tFixedBuffer : private util::tNoncopyable
 {
-protected:
 
-  /*! Actual (wrapped) buffer - may be replaced by subclasses */
-  friend class tReadView;
-
-  char* buffer; // pointer to buffer start
-  size_t capacity_x; // buffer capacity
-  bool owns_buf; // owned buffers are deleted when this class is
-
-  /*!
-   * Set wrapped buffer to buffer contained in other fixed buffer
-   * (only call, when FixedBuffer doesn't own a buffer himself)
-   *
-   * \param fb
-   */
-  void SetCurrentBuffer(tFixedBuffer* fb);
-
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
 
-  // \param buffer_ pointer to buffer start
-  // \param capacity_ capacity of wrapped buffer
-  tFixedBuffer(char* buffer_, size_t capacity_) :
-    buffer(buffer_),
-    capacity_x(capacity_),
-    owns_buf(false)
+  /*!
+   * Wraps arbitrary memory as fixed buffer.
+   *
+   * \param buffer_memory pointer to buffer start
+   * \param capacity capacity of wrapped buffer
+   */
+  tFixedBuffer(char* buffer_memory, size_t capacity) :
+    buffer_memory(buffer_memory),
+    capacity(capacity),
+    owns_buffer(false)
   {}
 
-  tFixedBuffer(size_t capacity_ = 0);
+  /*!
+   * Creates new buffer with specified capacity.
+   * (Owns this buffer.)
+   *
+   * \param capacity Capacity of this buffer
+   */
+  tFixedBuffer(size_t capacity = 0);
 
-  // move constructor
+  /*! move constructor */
   tFixedBuffer(tFixedBuffer && fb);
 
-  // move assignment
+  /*! move assignment */
   tFixedBuffer& operator=(tFixedBuffer && o);
 
-  virtual ~tFixedBuffer();
+  ~tFixedBuffer();
+
 
   /*!
    * \return Capacity of buffer (in bytes)
    */
   inline size_t Capacity() const
   {
-    return capacity_x;
+    return capacity;
   }
 
-  // returns raw pointer to buffer start
-  const char* GetPointer() const
+  /*!
+   * Copy data to destination buffer
+   *
+   * \param offset Offset in this buffer
+   * \param destination Destination buffer
+   * \param length Number of bytes to copy
+   */
+  void Get(size_t offset, void* destination, size_t length) const
   {
-    return buffer;
-  }
-
-  // returns raw pointer to buffer start
-  char* GetPointer()
-  {
-    return buffer;
-  }
-
-  // Generic put method...
-  // \param offset absolute offset
-  // \param t Data to write
-  template <typename T>
-  void PutImpl(size_t offset, T t)
-  {
-    assert(offset + sizeof(T) <= capacity_x);
-    T* ptr = (T*)(buffer + offset);
-    (*ptr) = t;
-  }
-
-  // Generic get method...
-  // \param offset absolute offset
-  // \return t Data at offset
-  template <typename T>
-  T GetImpl(size_t offset) const
-  {
-    assert(offset + sizeof(T) <= capacity_x);
-    T* ptr = (T*)(buffer + offset);
-    return *ptr;
-  }
-
-  // Copy data from source buffer
-  // \param off absolute offset
-  // \param other source buffer
-  // \param len number of bytes to copy
-  void Put(size_t off, const void* other, size_t len)
-  {
-    assert(off + len <= capacity_x);
-    memcpy(buffer + off, other, len);
-  }
-
-  // Copy data to destination buffer
-  // \param off absolute offset
-  // \param other destination buffer
-  // \param len number of bytes to copy
-  void Get(size_t off, void* other, size_t len) const
-  {
-    assert(off + len <= capacity_x);
-    memcpy(other, buffer + off, len);
+    assert(offset + length <= capacity);
+    memcpy(destination, buffer_memory + offset, length);
   }
 
   /*!
    * Copy Data to destination buffer
    *
    * \param offset Offset in this buffer
-   * \param dst Destination array
-   * \param off offset in source array
-   * \param length number of bytes to copy
+   * \param destination Destination buffer
+   * \param destination_offset Offset in destination buffer
+   * \param length Number of bytes to copy
    */
-  inline void Get(size_t offset, tFixedBuffer& dst, size_t off, size_t len) const
+  inline void Get(size_t offset, tFixedBuffer& destination, size_t destination_offset, size_t length) const
   {
-    assert(off + len <= dst.Capacity());
-    Get(offset, dst.GetPointer() + off, len);
+    assert(destination_offset + length <= destination.Capacity());
+    Get(offset, destination.GetPointer() + destination_offset, length);
   }
 
   /*!
@@ -173,11 +142,11 @@ public:
    * (whole buffer is filled)
    *
    * \param offset Offset in this buffer
-   * \param dst Destination array
+   * \param destination Destination buffer
    */
-  inline void Get(size_t offset, tFixedBuffer& dst) const
+  inline void Get(size_t offset, tFixedBuffer& destination) const
   {
-    Get(offset, dst.GetPointer(), dst.Capacity());
+    Get(offset, destination.GetPointer(), destination.Capacity());
   }
 
   /*!
@@ -195,7 +164,7 @@ public:
    */
   inline int8_t GetByte(size_t offset) const
   {
-    return GetImpl<int8_t>(offset);
+    return GetGeneric<int8_t>(offset);
   }
 
   /*!
@@ -204,7 +173,7 @@ public:
    */
   inline char GetChar(size_t offset) const
   {
-    return GetImpl<char>(offset);
+    return GetGeneric<char>(offset);
   }
 
   /*!
@@ -213,7 +182,7 @@ public:
    */
   inline double GetDouble(size_t offset) const
   {
-    return GetImpl<double>(offset);
+    return GetGeneric<double>(offset);
   }
 
   /*!
@@ -222,7 +191,21 @@ public:
    */
   inline float GetFloat(size_t offset) const
   {
-    return GetImpl<float>(offset);
+    return GetGeneric<float>(offset);
+  }
+
+  /*!
+   * Generic get method...
+   *
+   * \param offset absolute offset
+   * \param t Data to write
+   */
+  template <typename T>
+  T GetGeneric(size_t offset) const
+  {
+    assert(offset + sizeof(T) <= capacity);
+    T* ptr = (T*)(buffer_memory + offset);
+    return *ptr;
   }
 
   /*!
@@ -231,7 +214,7 @@ public:
    */
   inline int GetInt(size_t offset) const
   {
-    return GetImpl<int>(offset);
+    return GetGeneric<int>(offset);
   }
 
   /*!
@@ -247,7 +230,19 @@ public:
    */
   inline int64_t GetLong(size_t offset) const
   {
-    return GetImpl<int64_t>(offset);
+    return GetGeneric<int64_t>(offset);
+  }
+
+  /*!
+   * \return Returns raw pointer to buffer memory
+   */
+  const char* GetPointer() const
+  {
+    return buffer_memory;
+  }
+  char* GetPointer()
+  {
+    return buffer_memory;
   }
 
   /*!
@@ -256,7 +251,7 @@ public:
    */
   inline int16_t GetShort(size_t offset) const
   {
-    return GetImpl<int16_t>(offset);
+    return GetGeneric<int16_t>(offset);
   }
 
   /*!
@@ -266,7 +261,7 @@ public:
    */
   inline std::string GetString(size_t offset) const
   {
-    return std::string(buffer + offset);
+    return std::string(buffer_memory + offset);
   }
 
   /*!
@@ -283,7 +278,7 @@ public:
    */
   inline uint GetUnsignedByte(size_t offset) const
   {
-    return GetImpl<uint8_t>(offset);
+    return GetGeneric<uint8_t>(offset);
   }
 
   /*!
@@ -292,21 +287,34 @@ public:
    */
   inline uint GetUnsignedShort(size_t offset) const
   {
-    return GetImpl<uint16_t>(offset);
+    return GetGeneric<uint16_t>(offset);
+  }
+
+  /*!
+   * Copy data from source buffer
+   *
+   * \param offset Absolute offset in this buffer
+   * \param source_buffer Source buffer
+   * \param length Number of bytes to copy
+   */
+  void Put(size_t offset, const void* source_buffer, size_t length)
+  {
+    assert(offset + length <= capacity);
+    memcpy(buffer_memory + offset, source_buffer, length);
   }
 
   /*!
    * Copy Data from source buffer
    *
    * \param offset Offset in this buffer
-   * \param src Source Buffer
-   * \param off offset in source array
+   * \param source_buffer Source Buffer
+   * \param source_offset offset in source array
    * \param length number of bytes to copy
    */
-  inline void Put(size_t offset, const tFixedBuffer& src, size_t off, size_t len)
+  inline void Put(size_t offset, const tFixedBuffer& source_buffer, size_t source_offset, size_t length)
   {
-    assert(off + len <= src.Capacity());
-    Put(offset, src.GetPointer() + off, len);
+    assert(source_offset + length <= source_buffer.Capacity());
+    Put(offset, source_buffer.GetPointer() + source_offset, length);
   }
 
   /*!
@@ -314,11 +322,11 @@ public:
    * (whole buffer is copied)
    *
    * \param offset Offset in this buffer
-   * \param src Source Buffer
+   * \param source_buffer Source Buffer
    */
-  inline void Put(size_t offset, const tFixedBuffer& src)
+  inline void Put(size_t offset, const tFixedBuffer& source_buffer)
   {
-    Put(offset, src.GetPointer(), src.Capacity());
+    Put(offset, source_buffer.GetPointer(), source_buffer.Capacity());
   }
 
   /*!
@@ -336,7 +344,7 @@ public:
    */
   inline void PutByte(size_t offset, int v)
   {
-    PutImpl<int8_t>(offset, v);
+    PutGeneric<int8_t>(offset, v);
   }
 
   /*!
@@ -345,7 +353,7 @@ public:
    */
   inline void PutChar(size_t offset, char v)
   {
-    PutImpl<char>(offset, v);
+    PutGeneric<char>(offset, v);
   }
 
   /*!
@@ -354,7 +362,7 @@ public:
    */
   inline void PutDouble(size_t offset, double v)
   {
-    PutImpl<double>(offset, v);
+    PutGeneric<double>(offset, v);
   }
 
   /*!
@@ -363,7 +371,21 @@ public:
    */
   inline void PutFloat(size_t offset, float v)
   {
-    PutImpl<float>(offset, v);
+    PutGeneric<float>(offset, v);
+  }
+
+  /*!
+   * Generic put method...
+   *
+   * \param offset absolute offset
+   * \param t Data to write
+   */
+  template <typename T>
+  void PutGeneric(size_t offset, T t)
+  {
+    assert(offset + sizeof(T) <= capacity);
+    T* ptr = (T*)(buffer_memory + offset);
+    (*ptr) = t;
   }
 
   /*!
@@ -372,7 +394,7 @@ public:
    */
   inline void PutInt(size_t offset, int v)
   {
-    PutImpl<int>(offset, v);
+    PutGeneric<int>(offset, v);
   }
 
   /*!
@@ -381,7 +403,7 @@ public:
    */
   inline void PutLong(size_t offset, int64_t v)
   {
-    PutImpl<int64_t>(offset, v);
+    PutGeneric<int64_t>(offset, v);
   }
 
   /*!
@@ -390,7 +412,7 @@ public:
    */
   inline void PutShort(size_t offset, int v)
   {
-    PutImpl<int16_t>(offset, v);
+    PutGeneric<int16_t>(offset, v);
   }
 
   /*!
@@ -424,14 +446,31 @@ public:
    */
   inline void ZeroOut(size_t offset, size_t length)
   {
-    assert(offset + length <= capacity_x);
-    memset(buffer + offset, 0, length);
-
+    assert(offset + length <= capacity);
+    memset(buffer_memory + offset, 0, length);
   }
+
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  /*! Pointer to buffer start */
+  char* buffer_memory;
+
+  /*! Buffer capacity */
+  size_t capacity;
+
+  /*! Owned buffers are deleted when this class is */
+  bool owns_buffer;
 
 };
 
-} // namespace rrlib
-} // namespace serialization
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
-#endif // __rrlib__serialization__tFixedBuffer_h__
+
+#endif

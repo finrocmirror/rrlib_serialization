@@ -23,53 +23,83 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
  */
 //----------------------------------------------------------------------
 #include "rrlib/serialization/tFixedBuffer.h"
-#include "rrlib/serialization/tStringOutputStream.h"
-#include <stdexcept>
 
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+#include "rrlib/serialization/tStringOutputStream.h"
+
+//----------------------------------------------------------------------
+// Debugging
+//----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
 
-tFixedBuffer::tFixedBuffer(size_t capacity_) :
-  buffer(capacity_ > 0 ? new char[capacity_] : NULL),
-  capacity_x(capacity_),
-  owns_buf(capacity_ > 0)
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Const values
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
+tFixedBuffer::tFixedBuffer(size_t capacity) :
+  buffer_memory(capacity > 0 ? new char[capacity] : NULL),
+  capacity(capacity),
+  owns_buffer(capacity > 0)
 {
 }
 
 // move constructor
 tFixedBuffer::tFixedBuffer(tFixedBuffer && o) :
-  buffer(NULL),
-  capacity_x(0),
-  owns_buf(false)
+  buffer_memory(NULL),
+  capacity(0),
+  owns_buffer(false)
 {
-  std::swap(buffer, o.buffer);
-  std::swap(capacity_x, o.capacity_x);
-  std::swap(owns_buf, o.owns_buf);
+  std::swap(buffer_memory, o.buffer_memory);
+  std::swap(capacity, o.capacity);
+  std::swap(owns_buffer, o.owns_buffer);
 }
-
-tFixedBuffer::~tFixedBuffer()
-{
-  if (owns_buf && buffer)
-  {
-    delete[] buffer;
-  }
-}
-
 
 // move assignment
 tFixedBuffer& tFixedBuffer::operator=(tFixedBuffer && o)
 {
-  std::swap(buffer, o.buffer);
-  std::swap(capacity_x, o.capacity_x);
-  std::swap(owns_buf, o.owns_buf);
+  std::swap(buffer_memory, o.buffer_memory);
+  std::swap(capacity, o.capacity);
+  std::swap(owns_buffer, o.owns_buffer);
   return *this;
+}
+
+tFixedBuffer::~tFixedBuffer()
+{
+  if (owns_buffer && buffer_memory)
+  {
+    delete[] buffer_memory;
+  }
 }
 
 std::string tFixedBuffer::GetLine(size_t offset) const
@@ -103,15 +133,8 @@ std::string tFixedBuffer::GetString(size_t offset, size_t length) const
   return sb.ToString();
 }
 
-void tFixedBuffer::SetCurrentBuffer(tFixedBuffer* fb)
-{
-  assert(!owns_buf);
-  buffer = fb->buffer;
-  capacity_x = fb->capacity_x;
-  owns_buf = false;
-
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
 }
-
-} // namespace rrlib
-} // namespace serialization
-
+}

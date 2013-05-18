@@ -19,22 +19,22 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    rrlib/serialization/tTypeEncoder.h
+/*!\file    rrlib/serialization/tStackMemoryBuffer.h
  *
  * \author  Max Reichardt
  *
- * \date    2013-05-18
+ * \date    2013-05-17
  *
- * \brief   Contains tTypeEncoder
+ * \brief   Contains tStackMemoryBuffer
  *
- * \b tTypeEncoder
+ * \b tStackMemoryBuffer
  *
- * Class to encode and decode types in tInputStream and tOutputStream
+ * Memory buffer with initial buffer allocated from stack (with size SIZE)
  *
  */
 //----------------------------------------------------------------------
-#ifndef __rrlib__serialization__tTypeEncoder_h__
-#define __rrlib__serialization__tTypeEncoder_h__
+#ifndef __rrlib__serialization__tStackMemoryBuffer_h__
+#define __rrlib__serialization__tStackMemoryBuffer_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -43,35 +43,30 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-#include "rrlib/serialization/definitions.h"
+#include "rrlib/serialization/tMemoryBuffer.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
 //----------------------------------------------------------------------
 namespace rrlib
 {
+namespace serialization
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
-namespace rtti
-{
-class tType;
-}
-
-namespace serialization
-{
-class tInputStream;
-class tOutputStream;
 
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
-//! Type encoder interface
+//! Memory buffer initially allocated on the stack
 /*!
- * Class to encode and decode types in tInputStream and tOutputStream
+ * Memory buffer with initial buffer allocated from stack (with size SIZE)
+ * Should not be moved!
  */
-class tTypeEncoder
+template <size_t SIZE>
+class tStackMemoryBuffer : public tMemoryBuffer
 {
 
 //----------------------------------------------------------------------
@@ -79,17 +74,20 @@ class tTypeEncoder
 //----------------------------------------------------------------------
 public:
 
-  /*!
-   * \param stream Input Stream
-   * \return Type decoded from input stream
-   */
-  virtual rtti::tType ReadType(tInputStream& stream) = 0;
+  tStackMemoryBuffer(float resize_factor = cDEFAULT_RESIZE_FACTOR, bool empty = false) :
+    tMemoryBuffer(initial_buffer, SIZE, empty),
+    initial_buffer()
+  {
+    this->SetResizeReserveFactor(resize_factor);
+  }
 
-  /*!
-   * \param stream Output stream
-   * \param type Type to encode to output stream
-   */
-  virtual void WriteType(tOutputStream& stream, rtti::tType type) = 0;
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  /*! Memory of buffer initial buffer */
+  char initial_buffer[SIZE];
 
 };
 

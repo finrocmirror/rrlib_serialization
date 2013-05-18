@@ -23,17 +23,50 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
  */
 //----------------------------------------------------------------------
 #include "rrlib/serialization/tOutputStream.h"
+
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
 #include "rrlib/serialization/tInputStream.h"
 
+//----------------------------------------------------------------------
+// Debugging
+//----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Const values
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
 const double tOutputStream::cBUFFER_COPY_FRACTION = 0.25;
 
 tOutputStream::tOutputStream(tTypeEncoding encoding) :
@@ -64,21 +97,6 @@ tOutputStream::tOutputStream(tTypeEncoder& encoder) :
 {
 }
 
-tOutputStream::tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoding encoding) :
-  sink(NULL),
-  immediate_flush(false),
-  closed(true),
-  buffer(),
-  cur_skip_offset_placeholder(-1),
-  short_skip_offset(false),
-  buffer_copy_fraction(0),
-  direct_write_support(false),
-  encoding(encoding),
-  custom_encoder(NULL)
-{
-  Reset(sink);
-}
-
 tOutputStream::tOutputStream(tSink& sink, tTypeEncoding encoding) :
   sink(NULL),
   immediate_flush(false),
@@ -90,20 +108,6 @@ tOutputStream::tOutputStream(tSink& sink, tTypeEncoding encoding) :
   direct_write_support(false),
   encoding(encoding),
   custom_encoder(NULL)
-{
-  Reset(sink);
-}
-
-tOutputStream::tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoder& encoder) :
-  sink(NULL),
-  immediate_flush(false),
-  closed(true),
-  buffer(),
-  cur_skip_offset_placeholder(-1),
-  buffer_copy_fraction(0),
-  direct_write_support(false),
-  encoding(tTypeEncoding::CUSTOM),
-  custom_encoder(&encoder)
 {
   Reset(sink);
 }
@@ -127,8 +131,7 @@ void tOutputStream::Close()
   if (!closed)
   {
     Flush();
-    sink->Close(this, buffer);
-    sink_lock.reset();
+    sink->Close(*this, buffer);
   }
   closed = true;
 }
@@ -137,7 +140,7 @@ void tOutputStream::CommitData(int add_size_hint)
 {
   if (GetWriteSize() > 0)
   {
-    if (sink->Write(this, buffer, add_size_hint))
+    if (sink->Write(*this, buffer, add_size_hint))
     {
       assert((cur_skip_offset_placeholder < 0));
     }
@@ -162,7 +165,7 @@ void tOutputStream::Reset(tSink& sink)
 
 void tOutputStream::Reset()
 {
-  sink->Reset(this, buffer);
+  sink->Reset(*this, buffer);
   assert((buffer.Remaining() >= 8));
   closed = false;
   buffer_copy_fraction = static_cast<size_t>((buffer.Capacity() * cBUFFER_COPY_FRACTION));
@@ -195,7 +198,7 @@ void tOutputStream::Write(const tFixedBuffer& bb, size_t off, size_t len)
     if (direct_write_support && cur_skip_offset_placeholder < 0)
     {
       CommitData(-1);
-      sink->DirectWrite(this, bb, off, len);
+      sink->DirectWrite(*this, bb, off, len);
     }
     else
     {
@@ -217,20 +220,13 @@ void tOutputStream::Write(const tFixedBuffer& bb, size_t off, size_t len)
   }
 }
 
-bool tOutputStream::Write(tOutputStream* output_stream_buffer, tBufferInfo& buffer_, int size_hint)
+void tOutputStream::WriteAllAvailable(tInputStream& input_stream)
 {
-  bool result = sink->Write(this, buffer_, size_hint);
-  this->buffer.Assign(buffer_);  // synchronize
-  return result;
-}
-
-void tOutputStream::WriteAllAvailable(tInputStream* input_stream)
-{
-  while (input_stream->MoreDataAvailable())
+  while (input_stream.MoreDataAvailable())
   {
-    input_stream->EnsureAvailable(1u);
-    Write(*input_stream->cur_buffer->buffer, input_stream->cur_buffer->position, input_stream->cur_buffer->Remaining());
-    input_stream->cur_buffer->position = input_stream->cur_buffer->end;
+    input_stream.EnsureAvailable(1u);
+    Write(*input_stream.cur_buffer->buffer, input_stream.cur_buffer->position, input_stream.cur_buffer->Remaining());
+    input_stream.cur_buffer->position = input_stream.cur_buffer->end;
   }
 }
 
@@ -254,9 +250,10 @@ void tOutputStream::WriteString(const std::string& s, bool terminate)
 {
   size_t len = terminate ? (s.size() + 1) : s.size();
   Write(tFixedBuffer((char*)s.c_str(), len));
-
 }
 
-} // namespace rrlib
-} // namespace serialization
-
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}

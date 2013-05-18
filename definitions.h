@@ -19,22 +19,18 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 //----------------------------------------------------------------------
-/*!\file    rrlib/serialization/tTypeEncoder.h
+/*!\file    rrlib/serialization/definitions.h
  *
  * \author  Max Reichardt
  *
- * \date    2013-05-18
+ * \date    2013-05-17
  *
- * \brief   Contains tTypeEncoder
- *
- * \b tTypeEncoder
- *
- * Class to encode and decode types in tInputStream and tOutputStream
+ * Definitions for rrlib_serialization
  *
  */
 //----------------------------------------------------------------------
-#ifndef __rrlib__serialization__tTypeEncoder_h__
-#define __rrlib__serialization__tTypeEncoder_h__
+#ifndef __rrlib__serialization__definitions_h__
+#define __rrlib__serialization__definitions_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -43,55 +39,43 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-#include "rrlib/serialization/definitions.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
 //----------------------------------------------------------------------
 namespace rrlib
 {
+namespace serialization
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
-namespace rtti
-{
-class tType;
-}
 
-namespace serialization
-{
-class tInputStream;
-class tOutputStream;
-
-//----------------------------------------------------------------------
-// Class declaration
-//----------------------------------------------------------------------
-//! Type encoder interface
 /*!
- * Class to encode and decode types in tInputStream and tOutputStream
+ * Enum for different types of data encoding
  */
-class tTypeEncoder
+enum class tDataEncoding
 {
-
-//----------------------------------------------------------------------
-// Public methods and typedefs
-//----------------------------------------------------------------------
-public:
-
-  /*!
-   * \param stream Input Stream
-   * \return Type decoded from input stream
-   */
-  virtual rtti::tType ReadType(tInputStream& stream) = 0;
-
-  /*!
-   * \param stream Output stream
-   * \param type Type to encode to output stream
-   */
-  virtual void WriteType(tOutputStream& stream, rtti::tType type) = 0;
-
+  BINARY,
+  STRING,
+  XML
 };
+
+/*!
+ * Type encoding for streams
+ */
+enum class tTypeEncoding
+{
+  LOCAL_UIDS,  //!< Type uids (int16_t) of current process are used. Efficient, but not suitable transferring data types to another process nor making data persistent
+  NAMES,       //!< Type names are used. Less efficient, but suitable for transferring data types to another process and making data persistent.
+  CUSTOM       //!< A custom type encoder is used.
+};
+
+
+//----------------------------------------------------------------------
+// Function declarations
+//----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
 // End of namespace declaration

@@ -23,60 +23,72 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-18
  *
- * \brief
+ * \brief   Contains tStringInputStream
+ *
+ * \b tStringInputStream
+ *
+ * String input stream.
+ * Used for completely deserializing objects from their string representation.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__tStringInputStream_h__
 #define __rrlib__serialization__tStringInputStream_h__
 
-#include "rrlib/time/time.h"
-#include "rrlib/serialization/tSerializable.h"
-#include <boost/utility.hpp>
-#include <boost/algorithm/string.hpp>
-#include <stdint.h>
-#include <string>
-#include <vector>
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 #include <sstream>
-
 #include "rrlib/logging/messages.h"
+#include "rrlib/util/tNoncopyable.h"
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
 
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! String input stream
 /*!
- * \author Max Reichardt
- *
  * String input stream.
- * Used for completely deserializing object from a string stream (UTF-8).
+ * Used for completely deserializing objects from their string representation.
  */
-class tStringInputStream : public boost::noncopyable
+class tStringInputStream : public util::tNoncopyable
 {
-private:
 
-  /*! Map with flags of all 256 UTF Characters */
-  static int8_t char_map[256];
-
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
 
-  /*! Wrapped string stream */
-  std::istringstream wrapped;
-
   /*! Constants for character flags */
-  static const int8_t cLCASE = 1, cUCASE = 2, cLETTER = 4, cDIGIT = 8, cWHITESPACE = 16;
+  static const int cLCASE = 1, cUCASE = 2, cLETTER = 4, cDIGIT = 8, cWHITESPACE = 16;
 
   tStringInputStream(const std::string& s);
 
+
   /*!
-   * Initializes char map
-   *
-   * \return dummy value
+   * \return Wrapped string stream
    */
-  static int InitCharMap();
+  inline std::istringstream& GetWrappedStringStream()
+  {
+    return wrapped;
+  }
 
   /*!
    * \return next character in stream (without advancing in stream). -1 when end of stream is reached
@@ -89,23 +101,6 @@ public:
       return -1;
     }
     return result;
-  }
-
-  std::string Trim(const std::string& s)
-  {
-    std::string result;
-    size_t len = s.size();
-    size_t st = 0;
-
-    while ((st < len) && (isspace(s[st])))
-    {
-      st++;
-    }
-    while ((st < len) && (isspace(s[len - 1])))
-    {
-      len--;
-    }
-    return ((st > 0) || (len < s.size())) ? s.substr(st, len - st) : s;
   }
 
   /*!
@@ -128,6 +123,63 @@ public:
   inline std::string ReadAll()
   {
     return ReadUntil("", 0, false);
+  }
+
+  /*!
+   * Read enum constant from string stream
+   *
+   * \return enum constant
+   */
+  template <typename ENUM>
+  ENUM ReadEnum()
+  {
+    // parse input
+    std::string enum_string(ReadWhile("", cDIGIT | cLETTER | cWHITESPACE, true));
+    enum_string = Trim(enum_string);
+    int c1 = Read();
+    std::string num_string;
+    if (c1 == '(')
+    {
+      num_string = ReadUntil(")");
+      num_string = Trim(num_string);
+      int c2 = Read();
+      if (c2 != ')')
+      {
+        throw std::invalid_argument("Did not read expected bracket");
+      }
+    }
+
+#ifdef _LIB_ENUM_STRINGS_PRESENT_
+    // deal with input
+    if (enum_string.length() > 0)
+    {
+      try
+      {
+        return make_builder::GetEnumValueFromString<ENUM>(enum_string);
+      }
+      catch (std::runtime_error &)
+      {
+        RRLIB_LOG_PRINTF(WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
+      }
+    }
+#endif
+
+    if (num_string.length() > 0)
+    {
+      int n = atoi(num_string.c_str());
+
+#ifdef _LIB_ENUM_STRINGS_PRESENT_
+      size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
+      if (n >= static_cast<int64_t>(enum_strings_dimension))
+      {
+        RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%d)", n, enum_strings_dimension);
+        throw std::invalid_argument("Number out of range");
+      }
+#endif
+
+      return static_cast<ENUM>(n);
+    }
+    throw std::invalid_argument("Could not parse enum string '" + enum_string + "'");
   }
 
   /*!
@@ -159,6 +211,25 @@ public:
   std::string ReadWhile(const char* valid_chars, int valid_flags = 0, bool trim_whitespace = true);
 
   /*!
+   * (string utility function - not particularly optimized/efficient)
+   * Compares two string ignoring case
+   *
+   * \param string1 First string to compare
+   * \param string2 Second string to compare
+   * \return True if both strings have the same characters (ignoring case)
+   */
+  static bool StringsEqualIgnoreCase(const std::string& string1, const std::string& string2);
+
+  /*!
+   * (string utility function - not particularly optimized/efficient)
+   * Trims specified string by cutting off white space at the front and at the back
+   *
+   * \param s String to trim
+   * \return Trimmed string
+   */
+  static std::string Trim(const std::string& s);
+
+  /*!
    * Put read character back to stream
    */
   inline void Unget()
@@ -166,185 +237,135 @@ public:
     wrapped.unget();
   }
 
-  /*!
-   * Read enum constant from string stream
-   *
-   * \return enum constant
-   */
-  template <typename ENUM>
-  ENUM ReadEnum()
-  {
-#ifdef _LIB_ENUM_STRINGS_PRESENT_
-    // parse input
-    std::string enum_string(ReadWhile("", cDIGIT | cLETTER | cWHITESPACE, true));
-    boost::trim(enum_string);
-    int c1 = Read();
-    std::string num_string;
-    if (c1 == '(')
-    {
-      num_string = ReadUntil(")");
-      boost::trim(num_string);
-      int c2 = Read();
-      if (c2 != ')')
-      {
-        throw std::invalid_argument("Did not read expected bracket");
-      }
-    }
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
 
-    // deal with input
-    if (enum_string.length() > 0)
-    {
-      try
-      {
-        return make_builder::GetEnumValueFromString<ENUM>(enum_string);
-      }
-      catch (std::runtime_error &)
-      {
-        RRLIB_LOG_PRINTF(WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
-      }
-      if (num_string.length() == 0)
-      {
-        throw std::invalid_argument("No Number String specified either");
-      }
-      int n = atoi(num_string.c_str());
-      return static_cast<ENUM>(n);
-    }
-    else
-    {
-      int n = atoi(num_string.c_str());
-      size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
-      if (n >= static_cast<int64_t>(enum_strings_dimension))
-      {
-        RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%d)", n, enum_strings_dimension);
-        throw std::invalid_argument("Number out of range");
-      }
-      return static_cast<ENUM>(n);
-    }
-#else
-    // How was this supposed to work? return 0;?
-#endif
-  }
+  /*! Wrapped string stream */
+  std::istringstream wrapped;
 };
 
-} // namespace rrlib
-} // namespace serialization
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
 #include "rrlib/serialization/detail/tStringInputStreamFallback.h"
+
+// stream operators for various standard types
 
 namespace rrlib
 {
 namespace serialization
 {
-inline tStringInputStream& operator>> (tStringInputStream& is, char& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, char& t)
 {
-  is.wrapped >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, int8_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, int8_t& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, int16_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, int16_t& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, int32_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, int32_t& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, long int& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, long int& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, long long int& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, long long int& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, uint8_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, uint8_t& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, uint16_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, uint16_t& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, uint32_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, uint32_t& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, unsigned long int& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, unsigned long int& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, unsigned long long int& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, unsigned long long int& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, float& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, float& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, double& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, double& t)
 {
-  is.wrapped  >> t;
-  return is;
+  stream.GetWrappedStringStream() >> t;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, bool& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, bool& t)
 {
-  std::string s = is.ReadWhile("", tStringInputStream::cLETTER | tStringInputStream::cDIGIT | tStringInputStream::cWHITESPACE, true);
-  t = boost::iequals(s, "true") || (s.length() == 1 && s[0] == '1');
-  return is;
+  std::string s = stream.ReadWhile("", tStringInputStream::cLETTER | tStringInputStream::cDIGIT | tStringInputStream::cWHITESPACE, true);
+  t = tStringInputStream::StringsEqualIgnoreCase(s, "true") || (s.length() == 1 && s[0] == '1');
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, std::vector<bool>::reference t)  // for std::vector<bool> support
+inline tStringInputStream& operator>> (tStringInputStream& stream, std::vector<bool>::reference t)  // for std::vector<bool> support
 {
   bool b;
-  is >> b;
+  stream >> b;
   t = b;
-  return is;
+  return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& is, std::string& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, std::string& t)
 {
-  t = is.ReadLine();
-  return is;
+  t = stream.ReadLine();
+  return stream;
 }
 template <typename R, typename P>
-inline tStringInputStream& operator>> (tStringInputStream& is, std::chrono::duration<R, P>& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, std::chrono::duration<R, P>& t)
 {
-  t = rrlib::time::ParseIsoDuration(is.ReadLine());
-  return is;
+  t = rrlib::time::ParseIsoDuration(stream.ReadLine());
+  return stream;
 }
 template <typename D>
-inline tStringInputStream& operator>> (tStringInputStream& is, std::chrono::time_point<std::chrono::system_clock, D>& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, std::chrono::time_point<std::chrono::system_clock, D>& t)
 {
-  t = rrlib::time::ParseIsoTimestamp(is.ReadLine());
-  return is;
-}
-inline tStringInputStream& operator>> (tStringInputStream& is, tSerializable& t)
-{
-  t.Deserialize(is);
-  return is;
+  t = rrlib::time::ParseIsoTimestamp(stream.ReadLine());
+  return stream;
 }
 
 template <typename ENUM>
-inline tStringInputStream& operator>> (typename std::enable_if<std::is_enum<ENUM>::value, tStringInputStream&>::type is, ENUM& t)
+inline tStringInputStream& operator>> (typename std::enable_if<std::is_enum<ENUM>::value, tStringInputStream&>::type stream, ENUM& t)
 {
-  tStringInputStream& is2 = is;
-  t = is2.ReadEnum<ENUM>();
-  return is;
+  tStringInputStream& stream_reference = stream;
+  t = stream_reference.ReadEnum<ENUM>();
+  return stream;
 }
 
 } // namespace rrlib
 } // namespace serialization
 
-#endif // __rrlib__serialization__tStringInputStream_h__
+
+#endif

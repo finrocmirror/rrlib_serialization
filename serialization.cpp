@@ -23,24 +23,48 @@
  *
  * \author  Max Reichardt
  *
- * \date    2012-02-05
+ * \date    2013-05-17
  *
  */
 //----------------------------------------------------------------------
 #include "rrlib/serialization/serialization.h"
-#include "rrlib/serialization/tStringOutputStream.h"
-#include "rrlib/serialization/tStringInputStream.h"
-#include <assert.h>
-#include <stdexcept>
-#include <stdint.h>
-#include <execinfo.h>
 
-#include "rrlib/logging/messages.h"
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Debugging
+//----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Const values
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
 
 static char cTO_HEX[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 static int cTO_INT[256];
@@ -76,7 +100,7 @@ static int StaticInit()
   return 0;
 }
 
-static int cINIT_HELPER = StaticInit();
+int cINIT_HELPER = StaticInit();
 
 void ConvertBinaryToHexString(tInputStream& src, tStringOutputStream& os)
 {
@@ -112,35 +136,8 @@ void ConvertHexStringToBinary(tStringInputStream& src, tOutputStream& co)
   }
 }
 
-void DeserializeFromHexString(tSerializable& cs, tStringInputStream& s)
-{
-  tStackMemoryBuffer<65536> cb;
-  tOutputStream co(cb);
-  ConvertHexStringToBinary(s, co);
-  co.Close();
-  tInputStream ci(cb);
-  cs.Deserialize(ci);
-  ci.Close();
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
 }
-
-std::string Serialize(const tSerializable& rs)
-{
-  tStringOutputStream os;
-  rs.Serialize(os);
-  return os.ToString();
 }
-
-void SerializeToHexString(const tSerializable& cs, tStringOutputStream& os)
-{
-  tStackMemoryBuffer<65536> cb;
-  tOutputStream co(cb);
-  cs.Serialize(co);
-  co.Close();
-  tInputStream ci(cb);
-  ConvertBinaryToHexString(ci, os);
-  ci.Close();
-}
-
-} // namespace rrlib
-} // namespace serialization
-

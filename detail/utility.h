@@ -23,24 +23,44 @@
  *
  * \author  Max Reichardt
  *
- * \date    2012-04-30
+ * \date    2013-05-18
  *
- * \brief
+ * Serialization helper structs.
+ * They offer serialization methods for all types and will always compile.
+ * If a type does not support a certain type of serialization, an error
+ * is printed at runtime.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__detail__utility_h__
 #define __rrlib__serialization__detail__utility_h__
 
-#include "rrlib/serialization/type_traits.h"
-#include "rrlib/logging/messages.h"
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+#include "rrlib/serialization/type_traits.h"
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
 namespace detail
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Function declarations
+//----------------------------------------------------------------------
 
 template <typename T, bool BINARY_SERIALIZABLE = tIsBinarySerializable<T>::value>
 struct tBinarySerialization
@@ -132,8 +152,12 @@ struct tXMLSerialization<T, false>
   }
 };
 
-} // namespace
-} // namespace
-} // namespace
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
+}
+
 
 #endif

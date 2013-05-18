@@ -23,54 +23,84 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
- * \brief
+ * \brief   Contains tSource
+ *
+ * \b tSource
+ *
+ * Abstract data source interface that can be used with binary input streams
+ * (tInputStream class).
+ *
+ * The data source is responsible for buffer management.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__tSource_h__
 #define __rrlib__serialization__tSource_h__
 
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
 class tInputStream;
 class tBufferInfo;
 class tFixedBuffer;
 
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! Abstract interface for data sources
 /*!
- * \author Max Reichardt
+ * Abstract data source interface that can be used with binary input streams
+ * (tInputStream class).
  *
- * Abstract Data Source that can be used with InputStreamBuffer.
- *
- * Somewhat similar to boost iostreams input devices.
- * Is responsible for buffer management.
+ * The data source is responsible for buffer management.
  */
 class tSource
 {
+
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
+
+  virtual ~tSource() {}
 
   /*!
    * Close stream/source.
    *
    * Possibly clean up buffer(s).
    *
-   * \param input_stream_buffer InputStreamBuffer that requests fetch operation.
+   * \param input_stream tInputStream that requests fetch operation.
    * \param buffer BufferInfo object that may contain buffer that needs to be deleted
    */
-  virtual void Close(tInputStream* input_stream_buffer, tBufferInfo& buffer) = 0;
+  virtual void Close(tInputStream& input_stream, tBufferInfo& buffer) = 0;
 
   /*!
    * (Optional operation)
    * Fetch next bytes for reading - and copy them directly to target buffer.
    *
-   * \param input_stream_buffer InputStreamBuffer that requests fetch operation.
+   * \param input_stream tInputStream that requests fetch operation.
    * \param buffer Buffer to copy data to (buffer provided and managed by client)
-   * \param len Exact number of bytes to read
+   * \param len Minimum number of bytes to read
    */
-  virtual void DirectRead(tInputStream* input_stream_buffer, tFixedBuffer& buffer, size_t offset, size_t len) = 0;
+  virtual void DirectRead(tInputStream& input_stream, tFixedBuffer& buffer, size_t offset, size_t len = 0) = 0;
 
   /*!
    * \return Does source support reading directly into target buffer?
@@ -81,11 +111,11 @@ public:
   /*!
    * Is any more data available?
    *
-   * \param input_stream_buffer Buffer that requests operation
+   * \param input_stream Buffer that requests operation
    * \param buffer Current buffer (managed by source)
    * \return Answer
    */
-  virtual bool MoreDataAvailable(tInputStream* input_stream_buffer, tBufferInfo& buffer) = 0;
+  virtual bool MoreDataAvailable(tInputStream& input_stream, tBufferInfo& buffer) = 0;
 
   /*!
    * Fetch next bytes for reading.
@@ -95,27 +125,31 @@ public:
    * if len is <= zero, method will not block
    * if len is greater, method may block until number of bytes in available
    *
-   * \param input_stream_buffer InputStreamBuffer that requests fetch operation.
+   * \param input_stream tInputStream that requests fetch operation.
    * \param buffer BufferInfo object that contains result of read operation (buffer managed by Source)
    * \param len Minimum number of bytes to read
    */
-  virtual void Read(tInputStream* input_stream_buffer, tBufferInfo& buffer, size_t len = 0) = 0;
+  virtual void Read(tInputStream& input_stream, tBufferInfo& buffer, size_t len = 0) = 0;
 
   /*!
    * Reset input stream buffer for reading.
-   * This is called initially when associating source with InputStreamBuffer.
+   * This is called initially when associating source with tInputStream.
    *
    * Supporting multiple reset operations is optional.
    * Streaming buffers typically won't support this (typically an assert will fail)
    *
-   * \param input_stream_buffer InputStreamBuffer that requests reset operation.
+   * \param input_stream tInputStream that requests reset operation.
    * \param buffer BufferInfo object that will contain result - about buffer to initially operate on
    */
-  virtual void Reset(tInputStream* input_stream_buffer, tBufferInfo& buffer) = 0;
+  virtual void Reset(tInputStream& input_stream, tBufferInfo& buffer) = 0;
 
 };
 
-} // namespace rrlib
-} // namespace serialization
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
-#endif // __rrlib__serialization__tSource_h__
+
+#endif

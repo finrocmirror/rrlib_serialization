@@ -23,177 +23,123 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
- * \brief
+ * \brief   Contains tOutputStream
  *
- */
-//----------------------------------------------------------------------
-#ifndef __rrlib__serialization__tOutputStream_h__
-#define __rrlib__serialization__tOutputStream_h__
-
-#include "rrlib/time/time.h"
-#include "rrlib/serialization/tSerializable.h"
-#include "rrlib/serialization/tBufferInfo.h"
-#include "rrlib/serialization/tTypeEncoder.h"
-#include "rrlib/serialization/tSink.h"
-#include "rrlib/serialization/tFixedBuffer.h"
-#include <assert.h>
-#include <boost/utility.hpp>
-#include <memory>
-#include <stdint.h>
-#include <string>
-#include <vector>
-#include <list>
-#include <deque>
-#include <endian.h>
-
-namespace rrlib
-{
-namespace serialization
-{
-class tInputStream;
-
-/*!
- * \author Max Reichardt
+ * \b tOutputStream
  *
- * Reasonably efficient, flexible, universal writing interface.
+ * Binary output stream.
  *
- * Flexible "all-in-one" output stream memory buffer interface that implements various interfaces.
- * (in Java it can be combined with Streams and ByteBuffers, in C++ with output streams and boost iostreams)
+ * Writes data to a sink.
+ * This can be a file, memory block, network stream etc.
+ * The sink manages the memory blocks the stream operates on.
  *
- * This class provides a universal data writing interface for memory buffers.
- * A manager class needs to be specified, which will customize what is actually done with the data.
+ * Implementation is reasonably efficient and flexible
+ * (no virtual function calls in C++; except of committing/fetching data chunks from sink).
  *
- * The implementation is designed to be reasonably efficient (no virtual function calls in C++; except of committing/fetching
- * data chunks from streams... however, this doesn't happen often and should not harm performance) -
- * that's why no interfaces are used for serialization, but rather the class itself. Support for further
- * read and write methods can be easily added.
+ * The output stream takes care of endianness for all writes of integral types.
  *
- * Size checking is performed for every write and read operation. For maximum performance, arrays/buffers can be used to
- * write and read data to/from this class. Buffers can be forwarded to a sink directly (they don't need to be buffered) avoiding
- * additional copying operations.
+ * Size checking is performed for every write operation.
+ * For maximum performance, arrays/buffers can be used to write data to stream
+ * (endianness, however, needs to be dealt with manually in this case).
+ * Buffers can be forwarded to a sink directly (they don't need to be buffered) -
+ * avoiding additional copying operations.
  *
- * The Class is explicitly _not_ thread-safe for writing - meaning multiple threads may not write to the same object at any given
- * moment in time.
+ * The Class is explicitly _not_ thread-safe for writing - meaning multiple threads may
+ * not write to the same object at any given point in time.
  *
  * There are two modes of operation with respect to print-methods:
  *  1) flush immediately
  *  2) flush when requested or full
  */
-class tOutputStream : public boost::noncopyable, public tSink
+//----------------------------------------------------------------------
+#ifndef __rrlib__serialization__tOutputStream_h__
+#define __rrlib__serialization__tOutputStream_h__
+
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+#include "rrlib/util/tNoncopyable.h"
+#include "rrlib/time/time.h"
+
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+#include "rrlib/serialization/definitions.h"
+#include "rrlib/serialization/tBufferInfo.h"
+#include "rrlib/serialization/tSink.h"
+#include "rrlib/serialization/tTypeEncoder.h"
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
+namespace rrlib
 {
-  // for "locking" object sink as long as this buffer exists
-  std::shared_ptr<const tSink> sink_lock;
+namespace serialization
+{
 
-  /*! Committed buffers are buffered/copied (not forwarded directly), when smaller than 1/(2^n) of buffer capacity */
-  static const double cBUFFER_COPY_FRACTION;
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
 
-  /*! Source that determines where buffers that are written to come from and how they are handled */
-  ::rrlib::serialization::tSink* sink;
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! Binary output stream
+/*!
+ * Binary output stream.
+ *
+ * Writes data to a sink.
+ * This can be a file, memory block, network stream etc.
+ * The sink manages the memory blocks the stream operates on.
+ *
+ * Implementation is reasonably efficient and flexible
+ * (no virtual function calls in C++; except of committing/fetching data chunks from sink).
+ *
+ * The output stream takes care of endianness for all writes of integral types.
+ *
+ * Size checking is performed for every write operation.
+ * For maximum performance, arrays/buffers can be used to write data to stream
+ * (endianness, however, needs to be dealt with manually in this case).
+ * Buffers can be forwarded to a sink directly (they don't need to be buffered) -
+ * avoiding additional copying operations.
+ *
+ * The Class is explicitly _not_ thread-safe for writing - meaning multiple threads may
+ * not write to the same object at any given point in time.
+ *
+ * There are two modes of operation with respect to print-methods:
+ *  1) flush immediately
+ *  2) flush when requested or full
+ */
+class tOutputStream : private util::tNoncopyable
+{
 
-  /*! Immediately flush buffer after printing? */
-  const bool immediate_flush;
-
-  /*! Has stream been closed? */
-  bool closed;
-
-  /*! Buffer that is currently written to - is managed by sink */
-  tBufferInfo buffer;
-
-  /*! -1 by default - buffer position when a skip offset placeholder has been set/written */
-  int cur_skip_offset_placeholder;
-
-  /*! if true, indicates that only 1 byte has been reserved for skip offset placeholder */
-  bool short_skip_offset;
-
-  /*! hole Buffers are only buffered/copied, when they are smaller than this */
-  size_t buffer_copy_fraction;
-
-  /*! Is direct write support available with this sink? */
-  bool direct_write_support;
-
-  /*! Data type encoding that is used */
-  tTypeEncoding encoding;
-
-  /*! Custom type encoder */
-  tTypeEncoder* custom_encoder;
-
-protected:
-
-  /*!
-   * Immediately flush buffer if appropriate option is set
-   * Used in print methods
-   */
-  inline void CheckFlush()
-  {
-    if (immediate_flush)
-    {
-      Flush();
-    }
-  }
-
-  /*!
-   * Write current buffer contents to sink and clear buffer.
-   *
-   * \param add_size_hint Hint at how many additional bytes we want to write; -1 indicates manual flush without need for size increase
-   */
-  void CommitData(int add_size_hint);
-
-  /*!
-   * \return Whole Buffers are only buffered/copied, when they are smaller than this
-   */
-  inline size_t GetCopyFraction() const
-  {
-    assert((buffer_copy_fraction > 0));
-    return buffer_copy_fraction;
-  }
-
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
 
   /*!
    * \param encoding Data type encoding that is used
+   * \param encoder Custom type encoder
+   * \param sink Sink to write to
    */
   tOutputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
   tOutputStream(tTypeEncoder& encoder);
-
-  /*!
-   * \param sink Sink to write to
-   * \param encoding Data type encoding that is used
-   */
-  tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoding encoding);
   tOutputStream(tSink& sink, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-
-  /*!
-   * \param sink Sink to write to
-   * \param encoder Custom type encoder
-   */
-  tOutputStream(std::shared_ptr<tSink> sink, tTypeEncoder& encoder);
   tOutputStream(tSink& sink, tTypeEncoder& encoder);
 
-  void Close();
-
-  // Sink implementation - for chaining OutputStreamBuffers together
-
-  virtual void Close(tOutputStream* output_stream_buffer, tBufferInfo& buffer_)
-  {
-    sink->Close(this, buffer_);
-  }
-
-  virtual ~tOutputStream()
+  ~tOutputStream()
   {
     Close();
   }
 
-  virtual void DirectWrite(tOutputStream* output_stream_buffer, const tFixedBuffer& buffer_, size_t offset, size_t len)
-  {
-    sink->DirectWrite(this, buffer_, offset, len);
-  }
-
-  virtual bool DirectWriteSupport()
-  {
-    return sink->DirectWriteSupport();
-  }
+  /*!
+   * Close output stream.
+   * Flushes all bytes written to sink.
+   */
+  void Close();
 
   /*!
    * Ensure that the specified number of bytes is available in buffer.
@@ -216,12 +162,7 @@ public:
   inline void Flush()
   {
     CommitData(-1);
-    sink->Flush(this, buffer);
-  }
-
-  virtual void Flush(tOutputStream* output_stream_buffer, const tBufferInfo& info)
-  {
-    Flush();
+    sink->Flush(*this, buffer);
   }
 
   /*!
@@ -275,11 +216,10 @@ public:
     return buffer.Remaining();
   }
 
-  void Reset(std::shared_ptr<tSink> sink)
-  {
-    sink_lock = sink;
-    Reset(*sink);
-  }
+  /*!
+   * Resets/clears buffer for writing
+   */
+  void Reset();
 
   /*!
    * Use buffer with different sink (closes old one)
@@ -289,21 +229,19 @@ public:
   void Reset(tSink& sink);
 
   /*!
-   * Resets/clears buffer for writing
-   */
-  void Reset();
-
-  virtual void Reset(tOutputStream* output_stream_buffer, tBufferInfo& buffer_)
-  {
-    sink->Reset(this, this->buffer);
-    buffer_.Assign(this->buffer);
-  }
-
-  /*!
    * Set target for last "skip offset" to this position.
    */
   void SkipTargetHere();
 
+  /*!
+   * Writes specified byte buffer contents to stream
+   * Regarding streams:
+   *   Large buffers are directly copied to output device
+   *   avoiding an unnecessary copying operation.
+   *
+   * \param address Address of data to write
+   * \param size Length (in bytes) of data to write
+   */
   inline void Write(const void* address, size_t size)
   {
     tFixedBuffer fb((char*)address, size);
@@ -336,36 +274,12 @@ public:
    */
   void Write(const tFixedBuffer& bb, size_t off, size_t len);
 
-  virtual bool Write(tOutputStream* output_stream_buffer, tBufferInfo& buffer_, int size_hint);
-
   /*!
    * Write all available data from input stream to this output stream buffer
    *
    * \param input_stream Input Stream
    */
-  void WriteAllAvailable(tInputStream* input_stream);
-
-  template <typename T>
-  void WriteNumber(T t)
-  {
-    EnsureAdditionalCapacity(sizeof(T));
-
-#if __BYTE_ORDER == __ORDER_BIG_ENDIAN
-    T tmp = t;
-    char* dest = reinterpret_cast<char*>(&t);
-    char* src = reinterpret_cast<char*>(&tmp);
-    src += sizeof(T);
-    for (size_t i = 0; i < sizeof(T); i++)
-    {
-      src--;
-      *dest = *src;
-      dest++;
-    }
-#endif
-
-    buffer.buffer->PutImpl<T>(buffer.position, t);
-    buffer.position += sizeof(T);
-  }
+  void WriteAllAvailable(tInputStream& input_stream);
 
   /*!
    * \param v (1-byte) boolean
@@ -449,6 +363,33 @@ public:
   }
 
   /*!
+   * Write integer to stream - taking care of endianness
+   *
+   * \param t Integer to write to stream
+   */
+  template <typename T>
+  void WriteNumber(T t)
+  {
+    EnsureAdditionalCapacity(sizeof(T));
+
+#if __BYTE_ORDER == __ORDER_BIG_ENDIAN
+    T tmp = t;
+    char* dest = reinterpret_cast<char*>(&t);
+    char* src = reinterpret_cast<char*>(&tmp);
+    src += sizeof(T);
+    for (size_t i = 0; i < sizeof(T); i++)
+    {
+      src--;
+      *dest = *src;
+      dest++;
+    }
+#endif
+
+    buffer.buffer->PutGeneric<T>(buffer.position, t);
+    buffer.position += sizeof(T);
+  }
+
+  /*!
    * \param v 16 bit integer
    */
   inline void WriteShort(int v)
@@ -493,120 +434,182 @@ public:
    */
   void WriteString(const std::string& s, bool terminate);
 
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  /*! Committed buffers are buffered/copied (not forwarded directly), when smaller than 1/(2^n) of buffer capacity */
+  static const double cBUFFER_COPY_FRACTION;
+
+  /*! Source that determines where buffers that are written to come from and how they are handled */
+  ::rrlib::serialization::tSink* sink;
+
+  /*! Immediately flush buffer after printing? */
+  const bool immediate_flush;
+
+  /*! Has stream been closed? */
+  bool closed;
+
+  /*! Buffer that is currently written to - is managed by sink */
+  tBufferInfo buffer;
+
+  /*! -1 by default - buffer position when a skip offset placeholder has been set/written */
+  size_t cur_skip_offset_placeholder;
+
+  /*! if true, indicates that only 1 byte has been reserved for skip offset placeholder */
+  bool short_skip_offset;
+
+  /*! hole Buffers are only buffered/copied, when they are smaller than this */
+  size_t buffer_copy_fraction;
+
+  /*! Is direct write support available with this sink? */
+  bool direct_write_support;
+
+  /*! Data type encoding that is used */
+  tTypeEncoding encoding;
+
+  /*! Custom type encoder */
+  tTypeEncoder* custom_encoder;
+
+
+  /*!
+   * Immediately flush buffer if appropriate option is set
+   * Used in print methods
+   */
+  inline void CheckFlush()
+  {
+    if (immediate_flush)
+    {
+      Flush();
+    }
+  }
+
+  /*!
+   * Write current buffer contents to sink and clear buffer.
+   *
+   * \param add_size_hint Hint at how many additional bytes we want to write; -1 indicates manual flush without need for size increase
+   */
+  void CommitData(int add_size_hint);
+
+  /*!
+   * \return Whole Buffers are only buffered/copied, when they are smaller than this
+   */
+  inline size_t GetCopyFraction() const
+  {
+    assert((buffer_copy_fraction > 0));
+    return buffer_copy_fraction;
+  }
 };
 
+// stream operators for various standard types
 
-inline tOutputStream& operator<< (tOutputStream& os, char t)
+inline tOutputStream& operator<< (tOutputStream& stream, char t)
 {
-  os.WriteNumber(t);
-  return os;
+  stream.WriteNumber(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, int8_t t)
+inline tOutputStream& operator<< (tOutputStream& stream, int8_t t)
 {
-  os.WriteNumber(t);
-  return os;
+  stream.WriteNumber(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, int16_t t)
+inline tOutputStream& operator<< (tOutputStream& stream, int16_t t)
 {
-  os.WriteNumber(t);
-  return os;
+  stream.WriteNumber(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, int t)
+inline tOutputStream& operator<< (tOutputStream& stream, int t)
 {
-  os.WriteNumber(t);
-  return os;
+  stream.WriteNumber(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, long int t)
+inline tOutputStream& operator<< (tOutputStream& stream, long int t)
 {
-  os.WriteNumber<int64_t>(t); /* for 32/64-bit safety */
-  return os;
+  stream.WriteNumber<int64_t>(t); /* for 32/64-bit safety */
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, long long int t)
+inline tOutputStream& operator<< (tOutputStream& stream, long long int t)
 {
-  os.WriteNumber<int64_t>(t);
-  return os;
+  stream.WriteNumber<int64_t>(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, uint8_t t)
+inline tOutputStream& operator<< (tOutputStream& stream, uint8_t t)
 {
-  os.WriteNumber(t);
-  return os;
+  stream.WriteNumber(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, uint16_t t)
+inline tOutputStream& operator<< (tOutputStream& stream, uint16_t t)
 {
-  os.WriteNumber(t);
-  return os;
+  stream.WriteNumber(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, uint32_t t)
+inline tOutputStream& operator<< (tOutputStream& stream, uint32_t t)
 {
-  os.WriteNumber(t);
-  return os;
+  stream.WriteNumber(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, long unsigned int t)
+inline tOutputStream& operator<< (tOutputStream& stream, long unsigned int t)
 {
-  os.WriteNumber<uint64_t>(t); /* for 32/64-bit safety */
-  return os;
+  stream.WriteNumber<uint64_t>(t); /* for 32/64-bit safety */
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, long long unsigned int t)
+inline tOutputStream& operator<< (tOutputStream& stream, long long unsigned int t)
 {
-  os.WriteNumber(t);
-  return os;
+  stream.WriteNumber(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, float t)
+inline tOutputStream& operator<< (tOutputStream& stream, float t)
 {
-  os.WriteFloat(t);
-  return os;
+  stream.WriteFloat(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, double t)
+inline tOutputStream& operator<< (tOutputStream& stream, double t)
 {
-  os.WriteDouble(t);
-  return os;
+  stream.WriteDouble(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, bool t)
+inline tOutputStream& operator<< (tOutputStream& stream, bool t)
 {
-  os.WriteBoolean(t);
-  return os;
+  stream.WriteBoolean(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, const char* t)
+inline tOutputStream& operator<< (tOutputStream& stream, const char* t)
 {
-  os.WriteString(t);
-  return os;
+  stream.WriteString(t);
+  return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& os, const std::string& t)
+inline tOutputStream& operator<< (tOutputStream& stream, const std::string& t)
 {
-  os.WriteString(t);
-  return os;
+  stream.WriteString(t);
+  return stream;
 }
 template <typename R, typename P>
-inline tOutputStream& operator<< (tOutputStream& os, const std::chrono::duration<R, P>& t)
+inline tOutputStream& operator<< (tOutputStream& stream, const std::chrono::duration<R, P>& t)
 {
   std::chrono::nanoseconds ns = t;
-  os.WriteLong(ns.count());
-  return os;
+  stream.WriteLong(ns.count());
+  return stream;
 }
 template <typename D>
-inline tOutputStream& operator<< (tOutputStream& os, const std::chrono::time_point<std::chrono::system_clock, D>& t)
+inline tOutputStream& operator<< (tOutputStream& stream, const std::chrono::time_point<std::chrono::system_clock, D>& t)
 {
-  os << t.time_since_epoch();
-  return os;
-}
-inline tOutputStream& operator<< (tOutputStream& os, const tSerializable& t)
-{
-  t.Serialize(os);
-  return os;
+  stream << t.time_since_epoch();
+  return stream;
 }
 template <typename T>
-inline tOutputStream& operator<< (typename std::enable_if<std::is_enum<T>::value, tOutputStream&>::type os, const T& t)
+inline tOutputStream& operator<< (typename std::enable_if<std::is_enum<T>::value, tOutputStream&>::type stream, const T& t)
 {
-  tOutputStream& os2 = os;
-  os2.WriteEnum<T>(t);
-  return os;
+  tOutputStream& stream_reference = stream;
+  stream_reference.WriteEnum<T>(t);
+  return stream;
 }
 
 template <typename T1, typename T2>
-inline tOutputStream& operator<< (tOutputStream& os, const std::pair<T1, T2>& pair)
+inline tOutputStream& operator<< (tOutputStream& stream, const std::pair<T1, T2>& pair)
 {
-  os << pair.first << pair.second;
-  return os;
+  stream << pair.first << pair.second;
+  return stream;
 }
 
 namespace internal
@@ -637,8 +640,11 @@ inline tOutputStream& operator<< (tOutputStream& stream, const std::tuple<TArgs.
   return stream;
 }
 
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
-} // namespace rrlib
-} // namespace serialization
 
-#endif // __rrlib__serialization__tOutputStream_h__
+#endif

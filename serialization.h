@@ -23,39 +23,50 @@
  *
  * \author  Max Reichardt
  *
- * \date    2012-02-05
+ * \date    2013-05-17
  *
- * \brief
+ * Various utility functions related to (de)serialization.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__serialization_h__
 #define __rrlib__serialization__serialization_h__
 
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 #include "rrlib/xml/tDocument.h"
 
-#include "rrlib/serialization/tSerializable.h"
-#include "rrlib/serialization/tMemoryBuffer.h"
-#include "rrlib/serialization/tOutputStream.h"
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
 #include "rrlib/serialization/tInputStream.h"
-#include "rrlib/serialization/tStringOutputStream.h"
+#include "rrlib/serialization/tOutputStream.h"
+#include "rrlib/serialization/tStackMemoryBuffer.h"
 #include "rrlib/serialization/tStringInputStream.h"
+#include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/detail/utility.h"
-#include <boost/utility.hpp>
-#include <string>
-#include <vector>
 
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
 namespace rtti
 {
-class tFactory;
 class tGenericObject;
 }
+
 namespace serialization
 {
-class tStringOutputStream;
-class tStringInputStream;
+
+//----------------------------------------------------------------------
+// Function declarations
+//----------------------------------------------------------------------
 
 /*!
  * In SerializationBasedDeepCopy and SerializationEquals memory buffers are created on the stack.
@@ -135,38 +146,16 @@ void Deserialize(tInputStream& stream, T& t, tDataEncoding enc)
   else if (enc == tDataEncoding::STRING)
   {
     tStringInputStream sis(stream.ReadString());
-    try
-    {
-      Deserialize(sis, t);
-    }
-    catch (const std::exception& e)
-    {
-      RRLIB_LOG_PRINT(ERROR, e);
-    }
+    Deserialize(sis, t);
   }
   else
   {
-    try
-    {
-      std::string s = stream.ReadString();
-      xml::tDocument d(s.c_str(), s.length(), false);
-      xml::tNode& n = d.RootNode();
-      Deserialize(n, t);
-    }
-    catch (const std::exception& e)
-    {
-      RRLIB_LOG_PRINT(ERROR, e);
-    }
+    std::string s = stream.ReadString();
+    xml::tDocument d(s.c_str(), s.length(), false);
+    xml::tNode& n = d.RootNode();
+    Deserialize(n, t);
   }
 }
-
-/*!
- * Deserializes binary CoreSerializable from hex string
- *
- * \param cs serializable
- * \param s Hex String to deserialize from
- */
-void DeserializeFromHexString(tSerializable& cs, tStringInputStream& s);
 
 /*!
  * Creates deep copy of serializable object using serialization to and from memory buffer
@@ -239,16 +228,7 @@ bool SerializationEquals(const T& o1, const T& o2)
  * \param cs Serializable
  * \return String
  */
-std::string Serialize(const tSerializable& rs);
-
-/*!
- * Serializes string stream serializable object to string
- * (convenience function)
- *
- * \param cs Serializable
- * \return String
- */
-template < typename T, bool ENABLE = (!std::is_base_of<tSerializable, T>::value) && (!std::is_base_of<rtti::tGenericObject, T>::value) >
+template < typename T, bool ENABLE = (!std::is_base_of<rtti::tGenericObject, T>::value) >
 typename std::enable_if<ENABLE, std::string>::type Serialize(const T& t)
 {
   tStringOutputStream os;
@@ -302,26 +282,11 @@ void Serialize(tOutputStream& stream, const T& t, tDataEncoding enc)
   else
   {
     xml::tDocument d;
-    try
-    {
-      xml::tNode& n = d.AddRootNode("value");
-      Serialize(n, t);
-      stream.WriteString(n.GetXMLDump(true));
-    }
-    catch (const std::exception& e)
-    {
-      RRLIB_LOG_PRINT(ERROR, "Error generating XML code: ", e);
-    }
+    xml::tNode& n = d.AddRootNode("value");
+    Serialize(n, t);
+    stream.WriteString(n.GetXMLDump(true));
   }
 }
-
-/*!
- * Serializes binary serializable to hex string
- *
- * \param cs Serializable
- * \param os String output stream
- */
-void SerializeToHexString(const tSerializable& cs, tStringOutputStream& os);
 
 } // namespace serialization
 
@@ -340,7 +305,5 @@ inline const xml::tNode& operator>> (const xml::tNode& node, std::string& s)
 }
 }
 
-#include "rrlib/serialization/tStringOutputStream.h"
-#include "rrlib/serialization/tStringInputStream.h"
 
-#endif // __rrlib__serialization__serialization_h__
+#endif

@@ -23,38 +23,60 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
- * \brief
+ * \brief   Contains tBufferInfo
+ *
+ * \b tBufferInfo
+ *
+ * Buffer information.
+ * Used in binary stream classes, sources and sinks.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__tBufferInfo_h__
 #define __rrlib__serialization__tBufferInfo_h__
 
-#include <cstddef>
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+#include "rrlib/serialization/tFixedBuffer.h"
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
-class tFixedBuffer;
 
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! Buffer information
 /*!
- * Buffer information
- * (can be passed to and modified by Manager (by reference))
+ * Buffer information.
+ * Used in binary stream classes, sources and sinks.
+ * Sources and sinks manage such buffers (and respective buffer information).
  */
 struct tBufferInfo
 {
-public:
 
-  /*! Buffer that read view currently operates on */
+  /*! Buffer that is currently operated on */
   tFixedBuffer* buffer;
 
-  /*! Start of buffer */
+  /*! Start offset of buffer */
   size_t start;
 
-  /*! End of buffer */
+  /*! End offset of buffer */
   size_t end;
 
   /*! Current read or write position */
@@ -63,17 +85,14 @@ public:
   /*! Custom data that can be filled by source/sink that manages this buffer */
   void* custom_data;
 
-  /*!
-   * \param other Other Buffer Info to copy values from
-   */
-  inline void Assign(const tBufferInfo& other)
-  {
-    buffer = other.buffer;
-    start = other.start;
-    end = other.end;
-    position = other.position;
-    custom_data = other.custom_data;
-  }
+
+  tBufferInfo() :
+    buffer(NULL),
+    start(0),
+    end(0),
+    position(0),
+    custom_data(NULL)
+  {}
 
   /*!
    * \return Total size of buffer - as described by this BufferInfo object: end - start
@@ -104,11 +123,7 @@ public:
    */
   inline void Reset()
   {
-    buffer = NULL;
-    start = 0u;
-    end = 0u;
-    position = 0u;
-    custom_data = NULL;
+    *this = tBufferInfo();
   }
 
   /*!
@@ -125,7 +140,11 @@ public:
 
 };
 
-} // namespace rrlib
-} // namespace serialization
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
-#endif // __rrlib__serialization__tBufferInfo_h__
+
+#endif

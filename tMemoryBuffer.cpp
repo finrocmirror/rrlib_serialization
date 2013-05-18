@@ -23,21 +23,52 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
  */
 //----------------------------------------------------------------------
 #include "rrlib/serialization/tMemoryBuffer.h"
-#include "rrlib/serialization/tOutputStream.h"
-#include <stdexcept>
 
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 #include "rrlib/logging/messages.h"
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+#include "rrlib/serialization/tOutputStream.h"
+#include "rrlib/serialization/tInputStream.h"
+
+//----------------------------------------------------------------------
+// Debugging
+//----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
-const size_t tMemoryBuffer::cTEMP_ARRAY_SIZE;
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Const values
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
 const size_t tMemoryBuffer::cDEFAULT_SIZE;
 const int tMemoryBuffer::cDEFAULT_RESIZE_FACTOR;
 
@@ -70,25 +101,17 @@ void tMemoryBuffer::CopyFrom(const tMemoryBuffer& source)
   cur_size = source.GetSize();
 }
 
-void tMemoryBuffer::Deserialize(tInputStream& rv, size_t size)
-{
-  cur_size = 0u;
-  Reallocate(size, false, -1u);
-  rv.ReadFully(backend, 0u, size);
-  cur_size = size;
-}
-
-void tMemoryBuffer::DirectRead(tInputStream* input_stream_buffer, tFixedBuffer& buffer, size_t offset, size_t len) const
+void tMemoryBuffer::DirectRead(tInputStream& input_stream_buffer, tFixedBuffer& buffer, size_t offset, size_t len) const
 {
   throw std::logic_error("Unsupported - shouldn't be called");
 }
 
-void tMemoryBuffer::DirectWrite(tOutputStream* output_stream_buffer, const tFixedBuffer& buffer, size_t offset, size_t len)
+void tMemoryBuffer::DirectWrite(tOutputStream& output_stream_buffer, const tFixedBuffer& buffer, size_t offset, size_t len)
 {
   throw std::logic_error("Unsupported - shouldn't be called");
 }
 
-void tMemoryBuffer::EnsureCapacity(int new_size, bool keep_contents, size_t old_size)
+void tMemoryBuffer::EnsureCapacity(size_t new_size, bool keep_contents, size_t old_size)
 {
   if (resize_reserve_factor <= 1)
   {
@@ -96,8 +119,7 @@ void tMemoryBuffer::EnsureCapacity(int new_size, bool keep_contents, size_t old_
   }
   if (resize_reserve_factor <= 1.2)
   {
-    //System.out.println("warning: small resizeReserveFactor");
-    RRLIB_LOG_PRINT(DEBUG_WARNING, "warning: small resizeReserveFactor");
+    RRLIB_LOG_PRINT(DEBUG_WARNING, "Small resize_reserve_factor");
   }
 
   Reallocate(new_size, keep_contents, old_size);
@@ -114,7 +136,7 @@ bool tMemoryBuffer::Equals(const tMemoryBuffer& other) const
 }
 
 
-void tMemoryBuffer::Read(tInputStream* input_stream_buffer, tBufferInfo& buffer, size_t len) const
+void tMemoryBuffer::Read(tInputStream& input_stream_buffer, tBufferInfo& buffer, size_t len) const
 {
   buffer.SetRange(0u, cur_size);
   if (buffer.position >= cur_size)
@@ -141,14 +163,14 @@ void tMemoryBuffer::Reallocate(size_t new_size, bool keep_contents, size_t old_s
   std::swap(backend, new_buffer);
 }
 
-void tMemoryBuffer::Reset(tInputStream* input_stream_buffer, tBufferInfo& buffer) const
+void tMemoryBuffer::Reset(tInputStream& input_stream_buffer, tBufferInfo& buffer) const
 {
   buffer.buffer = const_cast<tFixedBuffer*>(&backend);
   buffer.position = 0u;
   buffer.SetRange(0u, cur_size);
 }
 
-void tMemoryBuffer::Reset(tOutputStream* output_stream_buffer, tBufferInfo& buffer)
+void tMemoryBuffer::Reset(tOutputStream& output_stream_buffer, tBufferInfo& buffer)
 {
   EnsureCapacity(16, false, 0); // buffer should have at least space for 8+ bytes (in order to avoid assertion)
   buffer.buffer = &backend;
@@ -156,13 +178,7 @@ void tMemoryBuffer::Reset(tOutputStream* output_stream_buffer, tBufferInfo& buff
   buffer.SetRange(0u, backend.Capacity());
 }
 
-void tMemoryBuffer::Serialize(tOutputStream& sb) const
-{
-  sb.WriteInt(cur_size);
-  sb.Write(backend, 0u, cur_size);
-}
-
-bool tMemoryBuffer::Write(tOutputStream* output_stream_buffer, tBufferInfo& buffer, int hint)
+bool tMemoryBuffer::Write(tOutputStream& output_stream_buffer, tBufferInfo& buffer, int hint)
 {
   // do we need size increase?
   if (hint >= 0)
@@ -175,6 +191,25 @@ bool tMemoryBuffer::Write(tOutputStream* output_stream_buffer, tBufferInfo& buff
   return false;
 }
 
-} // namespace rrlib
-} // namespace serialization
+tOutputStream& operator << (tOutputStream& stream, const tMemoryBuffer& buffer)
+{
+  stream.WriteLong(buffer.GetSize());
+  stream.Write(buffer.GetBuffer(), 0u, buffer.GetSize());
+  return stream;
+}
 
+tInputStream& operator >> (tInputStream& stream, tMemoryBuffer& buffer)
+{
+  size_t size = stream.ReadLong();
+  buffer.cur_size = 0u;
+  buffer.Reallocate(size, false, -1u);
+  stream.ReadFully(buffer.backend, 0u, size);
+  buffer.cur_size = size;
+  return stream;
+}
+
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}

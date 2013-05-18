@@ -23,24 +23,41 @@
  *
  * \author  Max Reichardt
  *
- * \date    2012-04-30
+ * \date    2013-05-18
  *
- * \brief
+ * Type traits to determine which kinds of serialization a type supports.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__type_traits_h__
 #define __rrlib__serialization__type_traits_h__
 
-#include "rrlib/serialization/tStringOutputStream.h"
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
 
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Function declarations
+//----------------------------------------------------------------------
+
 /*!
- * This type-trait-like struct is used to determine whether a type is binary serializable
+ * This type-trait is used to determine whether a type is binary serializable
  */
 template <typename T>
 class tIsBinarySerializable
@@ -68,7 +85,7 @@ public:
 };
 
 /*!
- * This type-trait-like struct is used to determine whether a type is string serializable
+ * This type-trait is used to determine whether a type is string serializable
  */
 template <typename T>
 struct tIsStringSerializable
@@ -77,7 +94,7 @@ struct tIsStringSerializable
 };
 
 /*!
- * This type-trait-like struct is used to determine whether a type is string serializable
+ * This type-trait is used to determine whether a type is serializable to XML
  */
 template <typename T>
 class tIsXMLSerializable
@@ -102,7 +119,11 @@ public:
   enum { value = sizeof(TestOutput(MakeXMLNode())) == sizeof(int16_t) && sizeof(TestInput(MakeXMLNode())) == sizeof(int16_t) };
 };
 
-} // namespace
-} // namespace
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
-#endif // __rrlib__serialization__type_traits_h__
+
+#endif

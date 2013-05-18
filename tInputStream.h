@@ -23,36 +23,49 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-17
  *
- * \brief
+ * \brief   Contains tInputStream
+ *
+ * \b tInputStream
+ *
+ * Binary input stream.
+ *
+ * Reads data from a source.
+ * This can be a file, memory block, network stream etc.
+ * The source manages the memory blocks the stream operates on.
+ *
+ * Implementation is reasonably efficient and flexible.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__tInputStream_h__
 #define __rrlib__serialization__tInputStream_h__
 
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+#include "rrlib/util/tNoncopyable.h"
 #include "rrlib/time/time.h"
-#include "rrlib/serialization/tSerializable.h"
-#include "rrlib/serialization/tBufferInfo.h"
-#include "rrlib/serialization/tFixedBuffer.h"
-#include "rrlib/serialization/tTypeEncoder.h"
-#include "rrlib/serialization/tSource.h"
-#include "rrlib/serialization/tConstSource.h"
-#include <assert.h>
-#include <boost/utility.hpp>
-#include <memory>
-#include <stdexcept>
-#include <stdint.h>
-#include <string>
-#include <vector>
-#include <list>
-#include <deque>
-#include <endian.h>
-#include <chrono>
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+#include "rrlib/serialization/definitions.h"
+#include "rrlib/serialization/tBufferInfo.h"
+#include "rrlib/serialization/tConstSource.h"
+#include "rrlib/serialization/tSource.h"
+#include "rrlib/serialization/tTypeEncoder.h"
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
 namespace rtti
 {
 class tFactory;
@@ -61,175 +74,50 @@ namespace serialization
 {
 class tStringOutputStream;
 
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! Binary input stream
 /*!
- * \author Max Reichardt
+ * Binary input stream.
  *
- * Reasonably efficient, flexible, universal reading interface.
- * A manager class customizes its behaviour (whether it reads from file, memory block, chunked buffer, etc.)
- * It handles, where the data blocks actually come from.
+ * Reads data from a source.
+ * This can be a file, memory block, network stream etc.
+ * The source manages the memory blocks the stream operates on.
+ *
+ * Implementation is reasonably efficient and flexible.
+ *
+ * The input stream takes care of endianness for all reads of integral types.
  */
-class tInputStream : public boost::noncopyable, public tSource
+class tInputStream : private util::tNoncopyable
 {
-  friend class tOutputStream;
 
-  // for "locking" object source as long as this buffer exists
-  std::shared_ptr<const void> source_lock;
-
-  /*! Buffer that is managed by source */
-  tBufferInfo source_buffer;
-
-  /*! Small buffer to enable reading data that crosses buffer boundaries */
-  tBufferInfo boundary_buffer;
-
-  /*! Actual boundary buffer backend - symmetric layout: 7 bit old bytes - 7 bit new bytes */
-  tFixedBuffer boundary_buffer_backend;
-
-  /*! Current buffer - either sourceBuffer or boundary buffer */
-  tBufferInfo* cur_buffer;
-
-  /*! Manager that handles, where the data blocks come from etc. */
-  tSource* source;
-
-  /*! Manager that handles, where the data blocks come from etc. */
-  const tConstSource* const_source;
-
-  /*! Current absolute buffer read position of buffer start - relevant when using Source; 64bit value, because we might transfer several GB over a stream */
-  int64_t absolute_read_pos;
-
-  /*! (Absolute) skip offset target - if one has been read - otherwise -1 */
-  int64_t cur_skip_offset_target;
-
-  /*! Has stream/source been closed? */
-  bool closed;
-
-  /*! Is direct read support available with this sink? */
-  bool direct_read_support;
-
-  /*! timeout for blocking calls (<= 0 when disabled) */
-  rrlib::time::tDuration timeout;
-
-  /*! Factory to use for creating objects. */
-  rtti::tFactory* factory;
-
-  /*! Data type encoding that is used */
-  tTypeEncoding encoding;
-
-  /*! Custom type encoder */
-  tTypeEncoder* custom_encoder;
-
-private:
-
-  /*!
-   * \return Is current buffer currently set to boundaryBuffer?
-   */
-  inline bool UsingBoundaryBuffer()
-  {
-    return cur_buffer->buffer == boundary_buffer.buffer;
-  }
-
-protected:
-
-  /*!
-   * Ensures that the specified number of bytes is available for reading
-   */
-  inline void EnsureAvailable(size_t required)
-  {
-    assert((!closed));
-    size_t available = Remaining();
-    if (available < required)
-    {
-      // copy rest to beginning and get next bytes from input
-      FetchNextBytes(required - available);
-      assert((Remaining() >= required));
-      //  throw new RuntimeException("Attempt to read outside of buffer");
-    }
-  }
-
-  /*!
-   * Fills buffer with contents from input stream
-   *
-   * \param min_required2 Minimum number of bytes to read (block otherwise)
-   */
-  virtual void FetchNextBytes(size_t min_required2);
-
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
 
-  tInputStream(tTypeEncoding encoding_ = tTypeEncoding::LOCAL_UIDS);
-
+  /*!
+   * \param encoding Encoding to use for data types
+   * \param encoder Custom type encoder to use for data type encoding
+   * \param source Source to read from. If not set, Reset() with a source needs to be called, before data can be read.
+   */
+  tInputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
   tInputStream(tTypeEncoder& encoder);
+  tInputStream(tSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
+  tInputStream(tSource& source, tTypeEncoder& encoder);
+  tInputStream(const tConstSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
+  tInputStream(const tConstSource& source, tTypeEncoder& encoder);
 
-  template <typename T>
-  tInputStream(T && source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS, decltype(source.DirectReadSupport()) dummy = true) :
-    source_lock(),
-    source_buffer(),
-    boundary_buffer(),
-    boundary_buffer_backend(14u),
-    cur_buffer(NULL),
-    source(NULL),
-    const_source(NULL),
-    absolute_read_pos(0),
-    cur_skip_offset_target(-1),
-    closed(false),
-    direct_read_support(false),
-    timeout(rrlib::time::tDuration::zero()),
-    factory(NULL),
-    encoding(encoding),
-    custom_encoder(NULL)
+  ~tInputStream()
   {
-    boundary_buffer.buffer = &(boundary_buffer_backend);
-
-    Reset(source);
-  }
-
-  template <typename T>
-  tInputStream(T && source, tTypeEncoder& encoder) :
-    source_lock(),
-    source_buffer(),
-    boundary_buffer(),
-    boundary_buffer_backend(14u),
-    cur_buffer(NULL),
-    source(NULL),
-    const_source(NULL),
-    absolute_read_pos(0),
-    cur_skip_offset_target(-1),
-    closed(false),
-    direct_read_support(false),
-    timeout(rrlib::time::tDuration::zero()),
-    factory(NULL),
-    encoding(tTypeEncoding::CUSTOM),
-    custom_encoder(&encoder)
-  {
-    boundary_buffer.buffer = &(boundary_buffer_backend);
-
-    Reset(source);
+    Close();
   }
 
   /*!
    * In case of source change: Cleanup
    */
   void Close();
-
-  // Source methods for efficient chaining of buffers
-
-  virtual void Close(tInputStream* buf, tBufferInfo& buffer)
-  {
-    Close();
-  }
-
-  virtual ~tInputStream()
-  {
-    Close();
-  }
-
-  virtual void DirectRead(tInputStream* input_stream_buffer, tFixedBuffer& buffer, size_t offset, size_t len)
-  {
-    DirectRead(this, buffer, offset, len);
-  }
-
-  virtual bool DirectReadSupport() const
-  {
-    return source != NULL ? source->DirectReadSupport() : const_source->DirectReadSupport();
-  }
 
   /*!
    * \return Number of bytes ever read from this stream
@@ -271,8 +159,6 @@ public:
     return encoding;
   }
 
-  virtual bool MoreDataAvailable(tInputStream* input_stream_buffer, tBufferInfo& buffer);
-
   /*!
    * \return Is further data available?
    */
@@ -282,8 +168,6 @@ public:
    * \return Next byte - without forwarding read position though
    */
   int8_t Peek();
-
-  virtual void Read(tInputStream* buf, tBufferInfo& buffer, size_t len);
 
   /*!
    * \return boolean value (byte is read from stream and compared against zero)
@@ -335,6 +219,12 @@ public:
    */
   float ReadFloat();
 
+  /*!
+   * Fill destination buffer (complete buffer)
+   *
+   * \param address buffer address
+   * \param size buffer length
+   */
   void ReadFully(void* address, size_t size)
   {
     tFixedBuffer tmp((char*)address, size);
@@ -344,7 +234,7 @@ public:
   /*!
    * Fill destination buffer (complete buffer)
    *
-   * \param b destination buffer
+   * \param bb destination buffer
    */
   inline void ReadFully(tFixedBuffer& bb)
   {
@@ -394,7 +284,7 @@ public:
   T ReadNumber()
   {
     EnsureAvailable(sizeof(T));
-    T t = cur_buffer->buffer->GetImpl<T>(cur_buffer->position);
+    T t = cur_buffer->buffer->GetGeneric<T>(cur_buffer->position);
     cur_buffer->position += sizeof(T);
 
 #if __BYTE_ORDER == __ORDER_BIG_ENDIAN
@@ -412,13 +302,6 @@ public:
 
     return t;
   }
-
-  /*public int read(FixedBuffer buffer, int offset) {
-      ensureAvailable(1);
-      int size = Math.min(buffer.capacity() - offset, remaining());
-      readFully(buffer, offset, size);
-      return size;
-  }*/
 
   /*!
    * Read "skip offset" at current position and store it internally
@@ -456,25 +339,6 @@ public:
   void ReadString(tStringOutputStream& sb, size_t length);
 
   /*!
-   * Read null-terminated string (8 Bit Characters - Suited for ASCII)
-   *
-   * \param sb StringBuilder object to write result to
-   */
-  template <typename T>
-  inline void ReadStringImpl(T& sb)
-  {
-    while (true)
-    {
-      int8_t b = ReadByte();
-      if (b == 0)
-      {
-        break;
-      }
-      sb.Append(static_cast<char>(b));
-    }
-  }
-
-  /*!
    * \return unsigned 1 byte integer
    */
   inline int ReadUnsignedByte()
@@ -505,13 +369,6 @@ public:
    */
   void Reset();
 
-  template <typename T>
-  void Reset(std::shared_ptr<T> source)
-  {
-    source_lock = source;
-    Reset(source.get());
-  }
-
   /*!
    * Use this object with different source.
    * Current source will be closed.
@@ -527,12 +384,6 @@ public:
    * \param source New Source
    */
   void Reset(tSource& source);
-
-  virtual void Reset(tInputStream* buf, tBufferInfo& buffer)
-  {
-    Reset();
-    buffer.Assign(*cur_buffer);
-  }
 
   /*!
    * When deserializing pointer list, for example, buffers are needed.
@@ -570,122 +421,212 @@ public:
    */
   void ToSkipTarget();
 
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  friend class tOutputStream;
+
+
+  /*! Buffer that is managed by source */
+  tBufferInfo source_buffer;
+
+  /*! Small buffer to enable reading data that crosses buffer boundaries */
+  tBufferInfo boundary_buffer;
+
+  /*! Memory for boundary buffer */
+  char boundary_buffer_memory[14];
+
+  /*! Actual boundary buffer backend - symmetric layout: 7 bit old bytes - 7 bit new bytes */
+  tFixedBuffer boundary_buffer_backend;
+
+  /*! Current buffer - either sourceBuffer or boundary buffer */
+  tBufferInfo* cur_buffer;
+
+  /*! Manager that handles, where the data blocks come from etc. */
+  tSource* source;
+
+  /*! Manager that handles, where the data blocks come from etc. */
+  const tConstSource* const_source;
+
+  /*!
+   * Current absolute buffer read position of buffer start
+   * Relevant when using Source; 64bit value, because we might transfer several GB over a stream
+   */
+  int64_t absolute_read_pos;
+
+  /*! (Absolute) skip offset target - if one has been read - otherwise -1 */
+  int64_t cur_skip_offset_target;
+
+  /*! Has stream/source been closed? */
+  bool closed;
+
+  /*! Is direct read support available with this sink? */
+  bool direct_read_support;
+
+  /*! timeout for blocking calls (<= 0 when disabled) */
+  rrlib::time::tDuration timeout;
+
+  /*! Factory to use for creating objects. */
+  rtti::tFactory* factory;
+
+  /*! Data type encoding that is used */
+  tTypeEncoding encoding;
+
+  /*! Custom type encoder */
+  tTypeEncoder* custom_encoder;
+
+
+  /*!
+   * Ensures that the specified number of bytes is available for reading
+   */
+  inline void EnsureAvailable(size_t required)
+  {
+    assert((!closed));
+    size_t available = Remaining();
+    if (available < required)
+    {
+      // copy rest to beginning and get next bytes from input
+      FetchNextBytes(required - available);
+      assert((Remaining() >= required));
+      //  throw new RuntimeException("Attempt to read outside of buffer");
+    }
+  }
+
+  /*!
+   * Fills buffer with contents from input stream
+   *
+   * \param min_required Minimum number of bytes to read (depending on source, might block until enough data is available)
+   */
+  void FetchNextBytes(size_t min_required);
+
+  /*!
+   * Read null-terminated string (8 Bit Characters - Suited for ASCII)
+   *
+   * \param sb StringBuilder object to write result to
+   */
+  void ReadStringImplementation(rrlib::serialization::tStringOutputStream& sb);
+
+  /*!
+   * \return Is current buffer currently set to boundaryBuffer?
+   */
+  inline bool UsingBoundaryBuffer()
+  {
+    return cur_buffer->buffer == boundary_buffer.buffer;
+  }
 };
 
+// stream operators for various standard types
 
-inline tInputStream& operator>> (tInputStream& is, char& t)
+inline tInputStream& operator>> (tInputStream& stream, char& t)
 {
-  t = is.ReadNumber<char>();
-  return is;
+  t = stream.ReadNumber<char>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, int8_t& t)
+inline tInputStream& operator>> (tInputStream& stream, int8_t& t)
 {
-  t = is.ReadNumber<int8_t>();
-  return is;
+  t = stream.ReadNumber<int8_t>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, int16_t& t)
+inline tInputStream& operator>> (tInputStream& stream, int16_t& t)
 {
-  t = is.ReadNumber<int16_t>();
-  return is;
+  t = stream.ReadNumber<int16_t>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, int32_t& t)
+inline tInputStream& operator>> (tInputStream& stream, int32_t& t)
 {
-  t = is.ReadNumber<int32_t>();
-  return is;
+  t = stream.ReadNumber<int32_t>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, long int& t)
+inline tInputStream& operator>> (tInputStream& stream, long int& t)
 {
-  t = static_cast<long int>(is.ReadNumber<int64_t>()); /* for 32/64-bit safety */
-  return is;
+  t = static_cast<long int>(stream.ReadNumber<int64_t>()); /* for 32/64-bit safety */
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, long long int& t)
+inline tInputStream& operator>> (tInputStream& stream, long long int& t)
 {
-  t = is.ReadNumber<long long int>();
-  return is;
+  t = stream.ReadNumber<long long int>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, uint8_t& t)
+inline tInputStream& operator>> (tInputStream& stream, uint8_t& t)
 {
-  t = is.ReadNumber<uint8_t>();
-  return is;
+  t = stream.ReadNumber<uint8_t>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, uint16_t& t)
+inline tInputStream& operator>> (tInputStream& stream, uint16_t& t)
 {
-  t = is.ReadNumber<uint16_t>();
-  return is;
+  t = stream.ReadNumber<uint16_t>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, uint32_t& t)
+inline tInputStream& operator>> (tInputStream& stream, uint32_t& t)
 {
-  t = is.ReadNumber<uint32_t>();
-  return is;
+  t = stream.ReadNumber<uint32_t>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, long unsigned int& t)
+inline tInputStream& operator>> (tInputStream& stream, long unsigned int& t)
 {
-  t = static_cast<long unsigned int>(is.ReadNumber<uint64_t>()); /* for 32/64-bit safety */
-  return is;
+  t = static_cast<long unsigned int>(stream.ReadNumber<uint64_t>()); /* for 32/64-bit safety */
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, long long unsigned int& t)
+inline tInputStream& operator>> (tInputStream& stream, long long unsigned int& t)
 {
-  t = is.ReadNumber<long long unsigned int>();
-  return is;
+  t = stream.ReadNumber<long long unsigned int>();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, float& t)
+inline tInputStream& operator>> (tInputStream& stream, float& t)
 {
-  t = is.ReadFloat();
-  return is;
+  t = stream.ReadFloat();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, double& t)
+inline tInputStream& operator>> (tInputStream& stream, double& t)
 {
-  t = is.ReadDouble();
-  return is;
+  t = stream.ReadDouble();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, bool& t)
+inline tInputStream& operator>> (tInputStream& stream, bool& t)
 {
-  t = is.ReadBoolean();
-  return is;
+  t = stream.ReadBoolean();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, std::vector<bool>::reference t)  // for std::vector<bool> support
+inline tInputStream& operator>> (tInputStream& stream, std::vector<bool>::reference t)  // for std::vector<bool> support
 {
-  t = is.ReadBoolean();
-  return is;
+  t = stream.ReadBoolean();
+  return stream;
 }
-inline tInputStream& operator>> (tInputStream& is, std::string& t)
+inline tInputStream& operator>> (tInputStream& stream, std::string& t)
 {
-  t = is.ReadString();
-  return is;
+  t = stream.ReadString();
+  return stream;
 }
 template <typename R, typename P>
-inline tInputStream& operator>> (tInputStream& is, std::chrono::duration<R, P>& t)
+inline tInputStream& operator>> (tInputStream& stream, std::chrono::duration<R, P>& t)
 {
-  t = std::chrono::duration_cast<std::chrono::duration<R, P>>(std::chrono::nanoseconds(is.ReadLong()));
-  return is;
+  t = std::chrono::duration_cast<std::chrono::duration<R, P>>(std::chrono::nanoseconds(stream.ReadLong()));
+  return stream;
 }
 template <typename D>
-inline tInputStream& operator>> (tInputStream& is, std::chrono::time_point<std::chrono::system_clock, D>& t)
+inline tInputStream& operator>> (tInputStream& stream, std::chrono::time_point<std::chrono::system_clock, D>& t)
 {
   D d;
-  is >> d;
+  stream >> d;
   t = std::chrono::time_point<std::chrono::system_clock, D>(d);
-  return is;
-}
-inline tInputStream& operator>> (tInputStream& is, tSerializable& t)
-{
-  t.Deserialize(is);
-  return is;
+  return stream;
 }
 
 template <typename T>
-inline tInputStream& operator>> (typename std::enable_if<std::is_enum<T>::value, tInputStream>::type& is, T& t)
+inline tInputStream& operator>> (typename std::enable_if<std::is_enum<T>::value, tInputStream>::type& stream, T& t)
 {
-  tInputStream& is2 = is;
-  t = is2.ReadEnum<T>();
-  return is;
+  tInputStream& stream_reference = stream;
+  t = stream_reference.ReadEnum<T>();
+  return stream;
 }
 
 template <typename T1, typename T2>
-inline tInputStream& operator>> (tInputStream& is, std::pair<T1, T2>& pair)
+inline tInputStream& operator>> (tInputStream& stream, std::pair<T1, T2>& pair)
 {
-  is >> pair.first >> pair.second;
-  return is;
+  stream >> pair.first >> pair.second;
+  return stream;
 }
 
 namespace internal
@@ -716,7 +657,11 @@ inline tInputStream& operator>> (tInputStream& stream, std::tuple<TArgs...>& tup
   return stream;
 }
 
-} // namespace rrlib
-} // namespace serialization
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
-#endif // __rrlib__serialization__tInputStream_h__
+
+#endif

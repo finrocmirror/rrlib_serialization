@@ -23,37 +23,62 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-18
  *
- * \brief
+ * \brief   Contains tStringOutputStream
+ *
+ * \b tStringOutputStream
+ *
+ * String output stream.
+ * Used for completely serializing objects to a (this) character stream.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__tStringOutputStream_h__
 #define __rrlib__serialization__tStringOutputStream_h__
 
-#include "rrlib/time/time.h"
-#include "rrlib/serialization/tSerializable.h"
-#include <boost/utility.hpp>
-#include <string>
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
 #include <sstream>
+#include "rrlib/time/time.h"
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! String output stream
 /*!
- * \author Max Reichardt
- *
  * String output stream.
- * Used for completely serializing object to a string stream (UTF-8).
+ * Used for completely serializing objects to a (this) character stream.
  */
-class tStringOutputStream : public boost::noncopyable
+class tStringOutputStream : public util::tNoncopyable
 {
+
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
 
-  /*! Wrapped string stream */
-  std::ostringstream wrapped;
+  /*!
+   * \param preallocate Number of bytes to preallocate for stream (has no effect in current implementation)
+   */
+  tStringOutputStream(size_t preallocate = 0) : wrapped() {}
 
   template <typename T>
   tStringOutputStream& Append(const T& t)
@@ -61,18 +86,6 @@ public:
     *this << t;
     return *this;
   }
-
-  tStringOutputStream() :
-    wrapped()
-  {
-  }
-
-  /*!
-   * \param length Initial length of buffer (TODO: in C++ this currently has now effect)
-   */
-  tStringOutputStream(int length) :
-    wrapped()
-  {}
 
   /*!
    * Clear contents and reset
@@ -82,15 +95,37 @@ public:
     wrapped.str(std::string());
   }
 
+  /*!
+   * \return Wrapped string stream
+   */
+  inline std::ostringstream& GetWrappedStringStream()
+  {
+    return wrapped;
+  }
+
+  /*!
+   * \return Text content that has been written to this stream
+   */
   inline std::string ToString()
   {
     return wrapped.str();
   }
 
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
+  /*! Wrapped string stream */
+  std::ostringstream wrapped;
+
 };
 
-} // namespace rrlib
-} // namespace serialization
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
 
 #include "rrlib/serialization/detail/tStringOutputStreamFallback.h"
 
@@ -98,121 +133,116 @@ namespace rrlib
 {
 namespace serialization
 {
-inline tStringOutputStream& operator<< (tStringOutputStream& os, char t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, char t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, int8_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, int8_t t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, int16_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, int16_t t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, int32_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, int32_t t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, long int t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, long int t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, long long int t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, long long int t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, uint8_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, uint8_t t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, uint16_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, uint16_t t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, uint32_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, uint32_t t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, unsigned long int t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, unsigned long int t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, unsigned long long int t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, unsigned long long int t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, float t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, float t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, double t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, double t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, const char* t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, const char* t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, bool t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, bool t)
 {
-  os << (t ? "true" : "false");
-  return os;
+  stream << (t ? "true" : "false");
+  return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& os, const std::string& t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, const std::string& t)
 {
-  os.wrapped << t;
-  return os;
+  stream.GetWrappedStringStream() << t;
+  return stream;
 }
 
-inline tStringOutputStream& operator<< (tStringOutputStream& os, const tSerializable& t)
-{
-  t.Serialize(os);
-  return os;
-}
 template <typename R, typename P>
-inline tStringOutputStream& operator<< (tStringOutputStream& os, const std::chrono::duration<R, P>& t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, const std::chrono::duration<R, P>& t)
 {
-  os << rrlib::time::ToIsoString(std::chrono::duration_cast<rrlib::time::tDuration>(t));
-  return os;
+  stream << rrlib::time::ToIsoString(std::chrono::duration_cast<rrlib::time::tDuration>(t));
+  return stream;
 }
 template <typename D>
-inline tStringOutputStream& operator<< (tStringOutputStream& os, const std::chrono::time_point<std::chrono::system_clock, D>& t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, const std::chrono::time_point<std::chrono::system_clock, D>& t)
 {
-  os << rrlib::time::ToIsoString(t);
-  return os;
+  stream << rrlib::time::ToIsoString(t);
+  return stream;
 }
 template <typename ENUM>
-inline tStringOutputStream& operator<< (typename std::enable_if<std::is_enum<ENUM>::value, tStringOutputStream&>::type os, const ENUM& t)
+inline tStringOutputStream& operator<< (typename std::enable_if<std::is_enum<ENUM>::value, tStringOutputStream&>::type stream, const ENUM& t)
 {
 #ifdef _LIB_ENUM_STRINGS_PRESENT_
   const char* s = make_builder::GetEnumString(t);
   if (s != NULL)
   {
-    os.wrapped << s << " ";
+    stream.GetWrappedStringStream() << s << " ";
   }
 #endif
 
-  os.wrapped << "(" << static_cast<int>(t) << ")";
-  return os;
+  stream.GetWrappedStringStream() << "(" << static_cast<int>(t) << ")";
+  return stream;
 }
-
 
 } // namespace rrlib
 } // namespace serialization
 
-#endif // __rrlib__serialization__tStringOutputStream_h__
+
+#endif

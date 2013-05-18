@@ -23,32 +23,63 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-18
  *
- * \brief
+ * \brief   Contains tStringInputStreamFallback
+ *
+ * \b tStringInputStreamFallback
+ *
+ * Wrapper tStringInputStream to implement fallback mechanism
+ * when operators are not overloaded for XML nodes.
+ *
+ * This way, string serializable types can seamlessly be deserialized from XML nodes.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__detail__tStringInputStreamFallback_h__
 #define __rrlib__serialization__detail__tStringInputStreamFallback_h__
 
-#include <string>
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+#include "rrlib/xml/tNode.h"
 
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
 namespace detail
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! String input stream fallback for deserialization from XML
 /*!
- * \author Max Reichardt
- *
  * Wrapper tStringInputStream to implement fallback mechanism
  * when operators are not overloaded for XML nodes.
+ *
+ * This way, string serializable types can seamlessly be deserialized from XML nodes.
  */
 class tStringInputStreamFallback : public tStringInputStream
 {
+
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
+
   const xml::tNode& node;
 
   tStringInputStreamFallback(const xml::tNode& node_) :
@@ -75,15 +106,18 @@ struct tIsStringInputSerializable
   enum { value = sizeof(Test(*(tStringInputStream*)(NULL))) == sizeof(int16_t) };
 };
 
-} // namespace
-} // namespace
-} // namespace
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
+}
 
-template < typename T, bool ENABLE = (!std::is_base_of<rrlib::serialization::tSerializable, T>::value) && rrlib::serialization::detail::tIsStringInputSerializable<T>::value >
+template < typename T, bool ENABLE = rrlib::serialization::detail::tIsStringInputSerializable<T>::value >
 inline const typename std::enable_if<ENABLE, rrlib::xml::tNode>::type & operator>> (rrlib::serialization::detail::tStringInputStreamFallback && is, T & t)
 {
   static_cast<rrlib::serialization::tStringInputStream&>(is) >> t;
   return is.node;
 }
 
-#endif // __rrlib__serialization__detail__tStringInputStreamFallback_h__
+#endif

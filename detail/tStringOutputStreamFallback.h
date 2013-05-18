@@ -23,41 +23,81 @@
  *
  * \author  Max Reichardt
  *
- * \date    2011-02-01
+ * \date    2013-05-18
  *
- * \brief
+ * \brief   Contains tStringOutputStreamFallback
+ *
+ * \b tStringOutputStreamFallback
+ *
+ * Wrapper tStringOutputStream to implement fallback mechanism
+ * when operators are not overloaded for XML nodes.
+ *
+ * This way, string serializable types can seamlessly be serialized to XML nodes.
  *
  */
 //----------------------------------------------------------------------
 #ifndef __rrlib__serialization__detail__tStringOutputStreamFallback_h__
 #define __rrlib__serialization__detail__tStringOutputStreamFallback_h__
 
+//----------------------------------------------------------------------
+// External includes (system with <>, local with "")
+//----------------------------------------------------------------------
+#include "rrlib/xml/tNode.h"
+
+//----------------------------------------------------------------------
+// Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
 namespace rrlib
 {
 namespace serialization
 {
 namespace detail
 {
+
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Class declaration
+//----------------------------------------------------------------------
+//! String output stream fallback for serialization to XML
 /*!
- * \author Max Reichardt
- *
  * Wrapper tStringOutputStream to implement fallback mechanism
  * when operators are not overloaded for XML nodes.
+ *
+ * This way, string serializable types can seamlessly be serialized to XML nodes.
  */
 class tStringOutputStreamFallback : public tStringOutputStream
 {
+
+//----------------------------------------------------------------------
+// Public methods and typedefs
+//----------------------------------------------------------------------
 public:
+
   xml::tNode& wrapped;
 
   tStringOutputStreamFallback(xml::tNode& node) :
     wrapped(node)
   {}
 
-  virtual ~tStringOutputStreamFallback()
+  ~tStringOutputStreamFallback()
   {
     wrapped.SetContent(ToString());
   }
+
+//----------------------------------------------------------------------
+// Private fields and methods
+//----------------------------------------------------------------------
+private:
+
 };
+
 
 template <typename T>
 struct tIsStringOutputSerializable
@@ -76,15 +116,18 @@ struct tIsStringOutputSerializable
   enum { value = sizeof(Test(*(tStringOutputStream*)(NULL))) == sizeof(int16_t) };
 };
 
-} // namespace
-} // namespace
-} // namespace
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
+}
 
-template < typename T, bool ENABLE = (!std::is_base_of<rrlib::serialization::tSerializable, T>::value) && rrlib::serialization::detail::tIsStringOutputSerializable<T>::value >
+template < typename T, bool ENABLE = rrlib::serialization::detail::tIsStringOutputSerializable<T>::value >
 inline typename std::enable_if<ENABLE, rrlib::xml::tNode>::type & operator<< (rrlib::serialization::detail::tStringOutputStreamFallback && os, const T & t)
 {
   os << t;
   return os.wrapped;
 }
 
-#endif // __rrlib__serialization__detail__tStringOutputStreamFallback_h__
+#endif
