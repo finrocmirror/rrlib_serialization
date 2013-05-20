@@ -269,6 +269,7 @@ void Serialize(xml::tNode& node, const T& t)
 template <typename T>
 void Serialize(tOutputStream& stream, const T& t, tDataEncoding enc)
 {
+  static_assert(!std::is_same<T, rrlib::rtti::tGenericObject>::value, "Use Serialize method from tGenericObject.");
   if (enc == tDataEncoding::BINARY)
   {
     Serialize(stream, t);
