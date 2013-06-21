@@ -59,7 +59,7 @@ namespace serialization
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 class tOutputStream;
-class tBufferInfo;
+struct tBufferInfo;
 
 //----------------------------------------------------------------------
 // Class declaration
