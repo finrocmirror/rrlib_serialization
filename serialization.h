@@ -300,6 +300,71 @@ inline const xml::tNode& operator>> (const xml::tNode& node, std::string& s)
   return node;
 }
 
+
+namespace internal
+{
+template <int ELEMENT, typename ... TArgs>
+struct tTupleSerializer
+{
+  static void SerializeTuple(xml::tNode &node, const std::tuple<TArgs...>& tuple)
+  {
+    tTupleSerializer < ELEMENT - 1, TArgs... >::SerializeTuple(node, tuple);
+    rrlib::xml::tNode &child = node.AddChildNode("tuple_element");
+    child << std::get<ELEMENT>(tuple);
+  }
+};
+
+template <typename ... TArgs>
+struct tTupleSerializer < -1, TArgs... >
+{
+  static void SerializeTuple(const xml::tNode &node, const std::tuple<TArgs...>& tuple)
+  {
+  }
+};
+
+template <int ELEMENT, typename ... TArgs>
+struct tTupleDeserializer
+{
+  static void DeserializeTuple(const xml::tNode &node, std::tuple<TArgs...>& tuple)
+  {
+    node >> std::get < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - ELEMENT - 1 > (tuple);
+    if (!node.HasNextSibling())
+    {
+      RRLIB_LOG_PRINTF(ERROR, "Not enough XML siblings to de-serialize std::tuple of size %d completely! There are %d elements left to be de-serialized.\n",
+                       static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value), ELEMENT);
+      throw std::exception();
+    }
+    tTupleDeserializer < ELEMENT - 1, TArgs... >::DeserializeTuple(node.NextSibling(), tuple);
+  }
+};
+
+template <typename ... TArgs>
+struct tTupleDeserializer < 0, TArgs... >
+{
+  static void DeserializeTuple(const xml::tNode &node, std::tuple<TArgs...>& tuple)
+  {
+    node >> std::get < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1 > (tuple);
+  }
+};
+
+} // namespace internal
+
+
+template <typename ... TArgs>
+inline xml::tNode& operator<< (xml::tNode &node, const std::tuple<TArgs...> &tuple)
+{
+  internal::tTupleSerializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::SerializeTuple(node, tuple);
+  return node;
+}
+
+template <typename ... TArgs>
+inline const xml::tNode& operator>> (const xml::tNode &node, std::tuple<TArgs...> &tuple)
+{
+  internal::tTupleDeserializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::DeserializeTuple(node.FirstChild(), tuple);
+  return node;
+}
+
+
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
