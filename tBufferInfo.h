@@ -76,7 +76,7 @@ struct tBufferInfo
   /*! Start offset of buffer */
   size_t start;
 
-  /*! End offset of buffer */
+  /*! End offset of buffer (this offset is not part of the buffer anymore) */
   size_t end;
 
   /*! Current read or write position */

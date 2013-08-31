@@ -138,7 +138,7 @@ void tOutputStream::Close()
 
 void tOutputStream::CommitData(int add_size_hint)
 {
-  if (GetWriteSize() > 0)
+  if (GetPosition() > 0)
   {
     if (sink->Write(*this, buffer, add_size_hint))
     {
@@ -170,6 +170,16 @@ void tOutputStream::Reset()
   closed = false;
   buffer_copy_fraction = static_cast<size_t>((buffer.Capacity() * cBUFFER_COPY_FRACTION));
   direct_write_support = sink->DirectWriteSupport();
+}
+
+void tOutputStream::Seek(size_t position)
+{
+  size_t desired_position = buffer.start + position;
+  if (desired_position > buffer.end)
+  {
+    throw std::invalid_argument("Position is out of bounds");
+  }
+  buffer.position = desired_position;
 }
 
 void tOutputStream::SkipTargetHere()
