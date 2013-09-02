@@ -174,20 +174,22 @@ public:
   }
 
   /*!
+   * \return Position in current internal buffer provided by the Sink.
+   * With a tMemoryBuffer sink, this is the actual position in the tMemoryBuffer
+   * (and also the size of the data that was written to it).
+   * For most other sink types this method is not useful.
+   */
+  inline size_t GetPosition() const
+  {
+    return buffer.position - buffer.start;
+  }
+
+  /*!
    * \return Data type encoding that is used
    */
   tTypeEncoding GetTypeEncoding() const
   {
     return encoding;
-  }
-
-  /*!
-   * \return Size of data that was written to buffer
-   * (typically useless - because of flushing etc. - only used by some internal stuff)
-   */
-  inline size_t GetWriteSize() const
-  {
-    return buffer.position - buffer.start;
   }
 
   /*!
@@ -209,14 +211,6 @@ public:
   void Println(const std::string& s);
 
   /*!
-   * \return Bytes remaining (for writing) in this buffer
-   */
-  inline size_t Remaining() const
-  {
-    return buffer.Remaining();
-  }
-
-  /*!
    * Resets/clears buffer for writing
    */
   void Reset();
@@ -227,6 +221,25 @@ public:
    * \param sink New Sink to use
    */
   void Reset(tSink& sink);
+
+  /*!
+   * Seeks the specified position in the current internal buffer provided by the Sink.
+   * With a tMemoryBuffer sink, this is the actual position in the tMemoryBuffer.
+   * For most other sink types this method is not useful because flushing etc.
+   * causes switching to other internal buffers from time to time.
+   *
+   * Note: If the stream is closed or flushed, the current position is considered as
+   * the end of the data written. Thus after seeking backwards, you might want to set
+   * the position back to the furthest position before flushing or closing the stream.
+   *
+   * Note 2: Seeking beyond the internal buffers bounds is not possible. In particular,
+   * the size of an underlying tMemoryBuffer will not be automatically increased.
+   * Instead, an exception is thrown.
+   *
+   * \param position Position to seek
+   * \exception std::invalid_argument is thrown if an invalid position is specified
+   */
+  void Seek(size_t position);
 
   /*!
    * Set target for last "skip offset" to this position.
@@ -443,7 +456,7 @@ private:
   static const double cBUFFER_COPY_FRACTION;
 
   /*! Source that determines where buffers that are written to come from and how they are handled */
-  ::rrlib::serialization::tSink* sink;
+  rrlib::serialization::tSink* sink;
 
   /*! Immediately flush buffer after printing? */
   const bool immediate_flush;
@@ -499,6 +512,14 @@ private:
   {
     assert((buffer_copy_fraction > 0));
     return buffer_copy_fraction;
+  }
+
+  /*!
+   * \return Bytes remaining (for writing) in current internal buffer provided by the Sink
+   */
+  inline size_t Remaining() const
+  {
+    return buffer.Remaining();
   }
 };
 
