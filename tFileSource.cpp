@@ -73,7 +73,9 @@ namespace serialization
 //----------------------------------------------------------------------
 tFileSource::tFileSource(const std::string &file_path) : tSource(), file_path(file_path),
   backend(1024)
-{}
+{
+  ifstream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+}
 
 void tFileSource::Close(tInputStream& input_stream, tBufferInfo& buffer)
 {

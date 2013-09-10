@@ -73,6 +73,7 @@ namespace serialization
 tFileSink::tFileSink(const std::string &file_path) : tSink(), file_path(file_path),
   backend(1024)
 {
+  ofstream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 }
 
 void tFileSink::Close(tOutputStream& output_stream, tBufferInfo& buffer)
