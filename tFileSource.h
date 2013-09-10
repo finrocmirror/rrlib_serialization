@@ -91,6 +91,8 @@ public:
    */
   tFileSource(const std::string &file_path);
 
+private:
+
   /*!
    * Close stream/source.
    *

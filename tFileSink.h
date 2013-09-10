@@ -91,12 +91,14 @@ public:
    */
   tFileSink(const std::string &file_path);
 
+private:
+
   /*!
-     * Close stream/sink
-     *
-     * \param output_stream Buffer that requests operation
-     * \param buffer Buffer that is managed - and was possibly allocated by - sink
-     */
+   * Close stream/sink
+   *
+   * \param output_stream Buffer that requests operation
+   * \param buffer Buffer that is managed - and was possibly allocated by - sink
+   */
   virtual void Close(tOutputStream& output_stream, tBufferInfo& buffer);
 
   /*!
