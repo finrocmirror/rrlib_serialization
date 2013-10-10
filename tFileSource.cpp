@@ -104,8 +104,10 @@ bool tFileSource::DirectReadSupport() const
  */
 bool tFileSource::MoreDataAvailable(tInputStream& input_stream, tBufferInfo& buffer)
 {
-  RRLIB_LOG_PRINT(DEBUG_VERBOSE_1, "More data available: ", ifstream.good());
-  return ifstream.good();
+  ifstream.peek(); // we somehow need to peek before checking for EOF
+  bool avail = ifstream.good() && !ifstream.eof();
+  RRLIB_LOG_PRINT(DEBUG_VERBOSE_1, "More data available: ", avail);
+  return avail;
 }
 
 /*!
