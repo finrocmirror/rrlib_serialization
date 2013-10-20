@@ -134,7 +134,7 @@ private:
    * Source is responsible for managing buffers that is writes/creates in buffer object
    *
    * if len is <= zero, method will not block
-   * if len is greater, method may block until number of bytes in available
+   * if len is greater, method may block until number of bytes is available
    *
    * \param input_stream tInputStream that requests fetch operation.
    * \param buffer BufferInfo object that contains result of read operation (buffer managed by Source)
