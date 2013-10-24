@@ -102,7 +102,7 @@ private:
 template <typename T>
 struct tIsStringOutputSerializable
 {
-  template < typename U = T >
+  template <typename U = T>
   static int16_t Test(decltype((*(tStringOutputStream*)(NULL)) << (*(U*)(NULL))))
   {
     return 0;
@@ -123,7 +123,7 @@ struct tIsStringOutputSerializable
 }
 }
 
-template < typename T, bool ENABLE = rrlib::serialization::detail::tIsStringOutputSerializable<T>::value >
+template <typename T, bool ENABLE = rrlib::serialization::detail::tIsStringOutputSerializable<T>::value>
 inline typename std::enable_if<ENABLE, rrlib::xml::tNode>::type & operator<< (rrlib::serialization::detail::tStringOutputStreamFallback && os, const T & t)
 {
   os << t;

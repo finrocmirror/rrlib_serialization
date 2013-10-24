@@ -328,7 +328,7 @@ struct tTupleXmlDeserializer
 };
 
 template <typename ... TArgs>
-struct tTupleXmlDeserializer < 0, TArgs... >
+struct tTupleXmlDeserializer <0, TArgs...>
 {
   static void DeserializeTuple(const xml::tNode &node, std::tuple<TArgs...>& tuple)
   {
