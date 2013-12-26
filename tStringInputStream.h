@@ -172,7 +172,7 @@ public:
       size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
       if (n >= static_cast<int64_t>(enum_strings_dimension))
       {
-        RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%d)", n, enum_strings_dimension);
+        RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%zu)", n, enum_strings_dimension);
         throw std::invalid_argument("Number out of range");
       }
 #endif
