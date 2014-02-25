@@ -81,11 +81,11 @@ class tTestFileSinkSource : public rrlib::util::tUnitTestSuite
 
 private:
 
-  virtual void InitializeTests()
+  virtual void InitializeTests() override
   {
 
   }
-  virtual void CleanUp() {}
+  virtual void CleanUp() override {}
 
   void TestSinkUnwritable()
   {

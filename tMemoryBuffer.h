@@ -235,28 +235,28 @@ private:
   size_t cur_size;
 
 
-  virtual void Close(tInputStream& input_stream_buffer, tBufferInfo& buffer) const
+  virtual void Close(tInputStream& input_stream_buffer, tBufferInfo& buffer) const override
   {
     // do nothing, really
     buffer.Reset();
   }
 
-  virtual void Close(tOutputStream& output_stream_buffer, tBufferInfo& buffer)
+  virtual void Close(tOutputStream& output_stream_buffer, tBufferInfo& buffer) override
   {
     // do nothing, really
     buffer.Reset();
   }
 
-  virtual void DirectRead(tInputStream& input_stream_buffer, tFixedBuffer& buffer, size_t offset, size_t len) const;
+  virtual void DirectRead(tInputStream& input_stream_buffer, tFixedBuffer& buffer, size_t offset, size_t len) const override;
 
-  virtual bool DirectReadSupport() const
+  virtual bool DirectReadSupport() const override
   {
     return false;
   }
 
-  virtual void DirectWrite(tOutputStream& output_stream_buffer, const tFixedBuffer& buffer, size_t offset, size_t len);
+  virtual void DirectWrite(tOutputStream& output_stream_buffer, const tFixedBuffer& buffer, size_t offset, size_t len) override;
 
-  virtual bool DirectWriteSupport()
+  virtual bool DirectWriteSupport() override
   {
     return false;
   }
@@ -271,7 +271,7 @@ private:
    */
   void EnsureCapacity(size_t new_size, bool keep_contents, size_t old_size);
 
-  virtual void Flush(tOutputStream& output_stream_buffer, const tBufferInfo& buffer)
+  virtual void Flush(tOutputStream& output_stream_buffer, const tBufferInfo& buffer) override
   {
     cur_size = buffer.position;  // update buffer size
   }
@@ -293,18 +293,18 @@ private:
    */
   void Reallocate(size_t new_size, bool keep_contents, size_t old_size);
 
-  virtual bool MoreDataAvailable(tInputStream& input_stream_buffer, tBufferInfo& buffer) const
+  virtual bool MoreDataAvailable(tInputStream& input_stream_buffer, tBufferInfo& buffer) const override
   {
     return buffer.end < cur_size;
   }
 
-  virtual void Read(tInputStream& input_stream_buffer, tBufferInfo& buffer, size_t len) const;
+  virtual void Read(tInputStream& input_stream_buffer, tBufferInfo& buffer, size_t len) const override;
 
-  virtual void Reset(tInputStream& input_stream_buffer, tBufferInfo& buffer) const;
+  virtual void Reset(tInputStream& input_stream_buffer, tBufferInfo& buffer) const override;
 
-  virtual void Reset(tOutputStream& output_stream_buffer, tBufferInfo& buffer);
+  virtual void Reset(tOutputStream& output_stream_buffer, tBufferInfo& buffer) override;
 
-  virtual bool Write(tOutputStream& output_stream_buffer, tBufferInfo& buffer, int hint);
+  virtual bool Write(tOutputStream& output_stream_buffer, tBufferInfo& buffer, int hint) override;
 };
 
 tOutputStream& operator << (tOutputStream& stream, const tMemoryBuffer& buffer);

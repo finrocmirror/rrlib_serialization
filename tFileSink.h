@@ -99,7 +99,7 @@ private:
    * \param output_stream Buffer that requests operation
    * \param buffer Buffer that is managed - and was possibly allocated by - sink
    */
-  virtual void Close(tOutputStream& output_stream, tBufferInfo& buffer);
+  virtual void Close(tOutputStream& output_stream, tBufferInfo& buffer) override;
 
   /*!
    * Directly write buffer to sink
@@ -111,13 +111,13 @@ private:
    * \param offset Offset to start reading in buffer
    * \param len Number of bytes to write
    */
-  virtual void DirectWrite(tOutputStream& output_stream, const tFixedBuffer& buffer, size_t offset, size_t len);
+  virtual void DirectWrite(tOutputStream& output_stream, const tFixedBuffer& buffer, size_t offset, size_t len) override;
 
   /*!
    * \return Does Sink support direct writing?
    * (optional optimization for reduction of copying overhead)
    */
-  virtual bool DirectWriteSupport();
+  virtual bool DirectWriteSupport() override;
 
   /*!
    * Flush/Commit data written to sink
@@ -125,7 +125,7 @@ private:
    * \param output_stream Stream that requests operation
    * \param buffer Buffer that contains data to write - managed by client
    */
-  virtual void Flush(tOutputStream& output_stream, const tBufferInfo& buffer);
+  virtual void Flush(tOutputStream& output_stream, const tBufferInfo& buffer) override;
 
   /*!
    * Reset sink for writing content (again)
@@ -134,7 +134,7 @@ private:
    * \param output_stream Stream that requests operation
    * \param buffer Buffer that is managed - and was possibly allocated by - sink
    */
-  virtual void Reset(tOutputStream& output_stream, tBufferInfo& buffer);
+  virtual void Reset(tOutputStream& output_stream, tBufferInfo& buffer) override;
 
   /*!
    * Write/flush data to sink/"device".
@@ -145,7 +145,7 @@ private:
    * \param write_size_hint Hint about how much data we plan to write additionally (mostly makes sense, when there's no direct read support); -1 indicates manual flush without need for size increase
    * \return Invalidate any Placeholder? (usually true, when buffer changes)
    */
-  virtual bool Write(tOutputStream& output_stream, tBufferInfo& buffer, int write_size_hint);
+  virtual bool Write(tOutputStream& output_stream, tBufferInfo& buffer, int write_size_hint) override;
 
 
 //----------------------------------------------------------------------

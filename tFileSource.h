@@ -101,7 +101,7 @@ private:
    * \param input_stream tInputStream that requests fetch operation.
    * \param buffer BufferInfo object that may contain buffer that needs to be deleted
    */
-  virtual void Close(tInputStream& input_stream, tBufferInfo& buffer);
+  virtual void Close(tInputStream& input_stream, tBufferInfo& buffer) override;
 
   /*!
    * (Optional operation)
@@ -111,13 +111,13 @@ private:
    * \param buffer Buffer to copy data to (buffer provided and managed by client)
    * \param len Minimum number of bytes to read
    */
-  virtual void DirectRead(tInputStream& input_stream, tFixedBuffer& buffer, size_t offset, size_t len = 0);
+  virtual void DirectRead(tInputStream& input_stream, tFixedBuffer& buffer, size_t offset, size_t len = 0) override;
 
   /*!
    * \return Does source support reading directly into target buffer?
    * (optional optimization - does not have to make sense, depending on source)
    */
-  virtual bool DirectReadSupport() const;
+  virtual bool DirectReadSupport() const override;
 
   /*!
    * Is any more data available?
@@ -126,7 +126,7 @@ private:
    * \param buffer Current buffer (managed by source)
    * \return Answer
    */
-  virtual bool MoreDataAvailable(tInputStream& input_stream, tBufferInfo& buffer);
+  virtual bool MoreDataAvailable(tInputStream& input_stream, tBufferInfo& buffer) override;
 
   /*!
    * Fetch next bytes for reading.
@@ -140,7 +140,7 @@ private:
    * \param buffer BufferInfo object that contains result of read operation (buffer managed by Source)
    * \param len Minimum number of bytes to read
    */
-  virtual void Read(tInputStream& input_stream, tBufferInfo& buffer, size_t len = 0);
+  virtual void Read(tInputStream& input_stream, tBufferInfo& buffer, size_t len = 0) override;
 
   /*!
    * Reset input stream buffer for reading.
@@ -152,7 +152,7 @@ private:
    * \param input_stream tInputStream that requests reset operation.
    * \param buffer BufferInfo object that will contain result - about buffer to initially operate on
    */
-  virtual void Reset(tInputStream& input_stream, tBufferInfo& buffer);
+  virtual void Reset(tInputStream& input_stream, tBufferInfo& buffer) override;
 
 
 //----------------------------------------------------------------------
