@@ -104,6 +104,10 @@ bool tFileSource::DirectReadSupport() const
  */
 bool tFileSource::MoreDataAvailable(tInputStream& input_stream, tBufferInfo& buffer)
 {
+  // in this case we can be sure that there is nothing more to read ...
+  if (!ifstream.good() || ifstream.eof())
+    return false;
+
   ifstream.peek(); // we somehow need to peek before checking for EOF
   bool avail = ifstream.good() && !ifstream.eof();
   RRLIB_LOG_PRINT(DEBUG_VERBOSE_1, "More data available: ", avail);
