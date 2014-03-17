@@ -37,6 +37,8 @@
 #include "rrlib/util/tUnitTestSuite.h"
 
 #include "rrlib/serialization/serialization.h"
+#include "rrlib/serialization/tInputStream.h"
+#include "rrlib/serialization/tOutputStream.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -68,6 +70,7 @@ class tTestSerialization : public rrlib::util::tUnitTestSuite
 {
   RRLIB_UNIT_TESTS_BEGIN_SUITE(tTestSerialization);
   RRLIB_UNIT_TESTS_ADD_TEST(TestXMLMap);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestBinaryMap);
   RRLIB_UNIT_TESTS_END_SUITE;
 
 private:
@@ -98,6 +101,34 @@ private:
 
   }
 
+  void TestBinaryMap()
+  {
+    std::map<size_t, std::string> map;
+    map[0] = "Zero";
+    map[1] = "One";
+    map[2] = "Two";
+
+    // serialize to memory
+    rrlib::serialization::tMemoryBuffer mb;
+    rrlib::serialization::tOutputStream os(mb);
+
+    os << map;
+    os.Flush();
+
+    // de-serialize
+    rrlib::serialization::tInputStream is(mb);
+
+    std::map<size_t, std::string> other_map;
+    is >> other_map;
+
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("There must be the correct number of elements in the map", (size_t) 3, other_map.size());
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Zero"), other_map[0]);
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("One"), other_map[1]);
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Two"), other_map[2]);
+
+  }
+
 };
 
 RRLIB_UNIT_TESTS_REGISTER_SUITE(tTestSerialization);
+

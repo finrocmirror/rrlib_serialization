@@ -48,6 +48,8 @@
 #include "rrlib/util/tNoncopyable.h"
 #include "rrlib/time/time.h"
 
+#include <map>
+
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
@@ -654,6 +656,23 @@ template <typename ... TArgs>
 inline tInputStream& operator>> (tInputStream& stream, std::tuple<TArgs...>& tuple)
 {
   internal::tTupleDeserializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::DeserializeTuple(stream, tuple);
+  return stream;
+}
+
+template <typename TKey, typename TValue>
+inline tInputStream& operator>> (tInputStream &stream, std::map<TKey, TValue> &map)
+{
+  map.clear();
+  typename std::map<TKey, TValue>::size_type size;
+  stream >> size;
+  for (typename std::map<TKey, TValue>::size_type i = 0; i < size; ++i)
+  {
+    TKey key;
+    stream >> key;
+    TValue value;
+    stream >> value;
+    map.emplace(key, value);
+  }
   return stream;
 }
 
