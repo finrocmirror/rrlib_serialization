@@ -6,4 +6,9 @@
     </sources>
   </unittest>
 
+  <unittest name="serialization">
+    <sources>
+      unit_test_serialization.cpp
+    </sources>
+  </unittest>
 </targets>

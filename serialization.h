@@ -363,6 +363,62 @@ inline const xml::tNode& operator>> (const xml::tNode &node, std::tuple<TArgs...
   return node;
 }
 
+template <typename TKey, typename TValue>
+inline xml::tNode& operator<< (xml::tNode &node, const std::map<TKey, TValue> &map)
+{
+  for (auto const & it : map)
+  {
+    rrlib::xml::tNode &element_node = node.AddChildNode("element");
+    rrlib::xml::tNode &key_node = element_node.AddChildNode("key");
+    key_node << it.first;
+    rrlib::xml::tNode &value_node = element_node.AddChildNode("value");
+    value_node << it.second;
+  }
+  return node;
+}
+
+template <typename TKey, typename TValue>
+inline const xml::tNode& operator>> (const xml::tNode &node, std::map<TKey, TValue> &map)
+{
+  map.clear();
+  for (tNode::const_iterator it = node.ChildrenBegin(); it != node.ChildrenEnd(); ++it)
+  {
+    if (it->Name().compare("element") == 0)
+    {
+      const rrlib::xml::tNode *key_node = nullptr;
+      const rrlib::xml::tNode *value_node = nullptr;
+
+      for (tNode::const_iterator element_it = it->ChildrenBegin(); element_it != it->ChildrenEnd(); ++element_it)
+      {
+        if (element_it->Name().compare("key") == 0)
+        {
+          key_node = &*element_it;
+        }
+        if (element_it->Name().compare("value") == 0)
+        {
+          value_node = &*element_it;
+        }
+      }
+
+      if (key_node == nullptr)
+      {
+        throw std::runtime_error("No key node found");
+      }
+      if (value_node == nullptr)
+      {
+        throw std::runtime_error("No value node found");
+      }
+
+      TKey key;
+      *key_node >> key;
+      TValue value;
+      *value_node >> value;
+      map.emplace(key, value);
+    }
+  }
+
+  return node;
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration
