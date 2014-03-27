@@ -75,28 +75,28 @@ static int StaticInit()
   {
     cTO_INT[i] = -1;
   }
-  cTO_INT['0'] = 0;
-  cTO_INT['1'] = 1;
-  cTO_INT['2'] = 2;
-  cTO_INT['3'] = 3;
-  cTO_INT['4'] = 4;
-  cTO_INT['5'] = 5;
-  cTO_INT['6'] = 6;
-  cTO_INT['7'] = 7;
-  cTO_INT['8'] = 8;
-  cTO_INT['9'] = 9;
-  cTO_INT['A'] = 0xA;
-  cTO_INT['B'] = 0xB;
-  cTO_INT['C'] = 0xC;
-  cTO_INT['D'] = 0xD;
-  cTO_INT['E'] = 0xE;
-  cTO_INT['F'] = 0xF;
-  cTO_INT['a'] = 0xA;
-  cTO_INT['b'] = 0xB;
-  cTO_INT['c'] = 0xC;
-  cTO_INT['d'] = 0xD;
-  cTO_INT['e'] = 0xE;
-  cTO_INT['f'] = 0xF;
+  cTO_INT[(size_t)'0'] = 0;
+  cTO_INT[(size_t)'1'] = 1;
+  cTO_INT[(size_t)'2'] = 2;
+  cTO_INT[(size_t)'3'] = 3;
+  cTO_INT[(size_t)'4'] = 4;
+  cTO_INT[(size_t)'5'] = 5;
+  cTO_INT[(size_t)'6'] = 6;
+  cTO_INT[(size_t)'7'] = 7;
+  cTO_INT[(size_t)'8'] = 8;
+  cTO_INT[(size_t)'9'] = 9;
+  cTO_INT[(size_t)'A'] = 0xA;
+  cTO_INT[(size_t)'B'] = 0xB;
+  cTO_INT[(size_t)'C'] = 0xC;
+  cTO_INT[(size_t)'D'] = 0xD;
+  cTO_INT[(size_t)'E'] = 0xE;
+  cTO_INT[(size_t)'F'] = 0xF;
+  cTO_INT[(size_t)'a'] = 0xA;
+  cTO_INT[(size_t)'b'] = 0xB;
+  cTO_INT[(size_t)'c'] = 0xC;
+  cTO_INT[(size_t)'d'] = 0xD;
+  cTO_INT[(size_t)'e'] = 0xE;
+  cTO_INT[(size_t)'f'] = 0xF;
   return 0;
 }
 

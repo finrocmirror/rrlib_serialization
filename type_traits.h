@@ -60,7 +60,7 @@ namespace serialization
  * This type-trait is used to determine whether a type is binary serializable
  */
 template <typename T>
-class tIsBinarySerializable
+class IsBinarySerializable
 {
   static tOutputStream &MakeOutputStream();
 
@@ -88,16 +88,16 @@ public:
  * This type-trait is used to determine whether a type is string serializable
  */
 template <typename T>
-struct tIsStringSerializable
+struct IsStringSerializable
 {
-  enum { value = detail::tIsStringOutputSerializable<T>::value && detail::tIsStringInputSerializable<T>::value };
+  enum { value = detail::IsStringOutputSerializable<T>::value && detail::IsStringInputSerializable<T>::value };
 };
 
 /*!
  * This type-trait is used to determine whether a type is serializable to XML
  */
 template <typename T>
-class tIsXMLSerializable
+class IsXMLSerializable
 {
   static xml::tNode &MakeXMLNode();
 
@@ -117,6 +117,29 @@ class tIsXMLSerializable
 public:
 
   enum { value = sizeof(TestOutput(MakeXMLNode())) == sizeof(int16_t) && sizeof(TestInput(MakeXMLNode())) == sizeof(int16_t) };
+};
+
+/*! Struct to tag default implementations; used as base class */
+struct DefaultImplementation
+{};
+
+/*!
+ * Type trait that defines how an object of type T can be instantiated
+ * This type trait can be specialized for classes that do not have a default constructor
+ * so that e.g. STL containers can be resized during deserialization or
+ * rrlib_rtti can perform generic instantation.
+ */
+template <typename T>
+struct DefaultInstantiation : public DefaultImplementation
+{
+  /*!
+   * Creates a new object of type T.
+   * (More precisely: Returns first constructor argument for creating an object of type T)
+   */
+  static T Create()
+  {
+    return T();
+  }
 };
 
 //----------------------------------------------------------------------

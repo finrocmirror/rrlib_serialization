@@ -62,7 +62,7 @@ namespace detail
 // Function declarations
 //----------------------------------------------------------------------
 
-template <typename T, bool BINARY_SERIALIZABLE = tIsBinarySerializable<T>::value>
+template <typename T, bool BINARY_SERIALIZABLE = IsBinarySerializable<T>::value>
 struct tBinarySerialization
 {
   static void Deserialize(T& t, serialization::tInputStream& sis)
@@ -90,7 +90,7 @@ struct tBinarySerialization<T, false>
   }
 };
 
-template <typename T, bool STRING_SERIALIZABLE = tIsStringSerializable<T>::value>
+template <typename T, bool STRING_SERIALIZABLE = IsStringSerializable<T>::value>
 struct tStringSerialization
 {
   static void Deserialize(T& t, serialization::tStringInputStream& sis)
@@ -122,7 +122,7 @@ struct tStringSerialization<T, false>
   }
 };
 
-template <typename T, bool XML_SERIALIZABLE = tIsXMLSerializable<T>::value>
+template <typename T, bool XML_SERIALIZABLE = IsXMLSerializable<T>::value>
 struct tXMLSerialization
 {
   static void Deserialize(T& t, const xml::tNode& x)

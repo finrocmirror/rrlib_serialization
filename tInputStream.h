@@ -48,6 +48,9 @@
 #include "rrlib/util/tNoncopyable.h"
 #include "rrlib/time/time.h"
 
+#include <vector>
+#include <list>
+#include <deque>
 #include <map>
 
 //----------------------------------------------------------------------
@@ -64,17 +67,17 @@
 //----------------------------------------------------------------------
 namespace rrlib
 {
+namespace serialization
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
-namespace rtti
-{
-class tFactory;
-}
-namespace serialization
-{
 class tStringOutputStream;
+template <typename T>
+struct ContainerSerialization;
+template <typename T>
+class IsBinarySerializable;
 
 //----------------------------------------------------------------------
 // Class declaration
@@ -135,14 +138,6 @@ public:
   tTypeEncoder* GetCustomTypeEncoder() const
   {
     return custom_encoder;
-  }
-
-  /*!
-   * \return Factory to use for creating objects.
-   */
-  inline rtti::tFactory* GetFactory()
-  {
-    return factory;
   }
 
   /*!
@@ -388,19 +383,6 @@ public:
   void Reset(tSource& source);
 
   /*!
-   * When deserializing pointer list, for example, buffers are needed.
-   * This factory provides them.
-   *
-   * It may be reset for more efficient buffer management.
-   *
-   * \param factory Factory to use for creating objects. (will not be deleted by this class)
-   */
-  inline void SetFactory(rtti::tFactory* factory)
-  {
-    this->factory = factory;
-  }
-
-  /*!
    * \param timeout for blocking calls (<= 0 when disabled)
    */
   inline void SetTimeout(const rrlib::time::tDuration& timeout)
@@ -469,9 +451,6 @@ private:
 
   /*! timeout for blocking calls (<= 0 when disabled) */
   rrlib::time::tDuration timeout;
-
-  /*! Factory to use for creating objects. */
-  rtti::tFactory* factory;
 
   /*! Data type encoding that is used */
   tTypeEncoding encoding;
@@ -659,20 +638,29 @@ inline tInputStream& operator>> (tInputStream& stream, std::tuple<TArgs...>& tup
   return stream;
 }
 
-template <typename TKey, typename TValue>
-inline tInputStream& operator>> (tInputStream &stream, std::map<TKey, TValue> &map)
+template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tInputStream>::type& operator>> (tInputStream& stream, std::vector<T>& t)
 {
-  map.clear();
-  typename std::map<TKey, TValue>::size_type size;
-  stream >> size;
-  for (typename std::map<TKey, TValue>::size_type i = 0; i < size; ++i)
-  {
-    TKey key;
-    stream >> key;
-    TValue value;
-    stream >> value;
-    map.emplace(key, value);
-  }
+  ContainerSerialization<T>::Deserialize(stream, t);
+  return stream;
+}
+template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tInputStream>::type& operator>> (tInputStream& stream, std::list<T>& t)
+{
+  ContainerSerialization<T>::Deserialize(stream, t);
+  return stream;
+}
+template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tInputStream>::type& operator>> (tInputStream& stream, std::deque<T>& t)
+{
+  ContainerSerialization<T>::Deserialize(stream, t);
+  return stream;
+}
+
+template < typename TKey, typename TValue, bool ENABLE = IsBinarySerializable<TKey>::value && ContainerSerialization<TValue>::cMAP_BINARY_SERIALIZABLE >
+inline typename std::enable_if<ENABLE, tInputStream>::type& operator>> (tInputStream &stream, std::map<TKey, TValue> &map)
+{
+  ContainerSerialization<TValue>::DeserializeMap(stream, map);
   return stream;
 }
 
@@ -681,6 +669,5 @@ inline tInputStream& operator>> (tInputStream &stream, std::map<TKey, TValue> &m
 //----------------------------------------------------------------------
 }
 }
-
 
 #endif

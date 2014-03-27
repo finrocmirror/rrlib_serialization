@@ -46,6 +46,7 @@
 #include "rrlib/serialization/tStringInputStream.h"
 #include "rrlib/serialization/tStringOutputStream.h"
 #include "rrlib/serialization/detail/utility.h"
+#include "rrlib/serialization/ContainerSerialization.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -162,13 +163,12 @@ void Deserialize(tInputStream& stream, T& t, tDataEncoding enc)
  *
  * \param src Object to be copied
  * \param dest Object to copy to
- * \param f Factory for creation of new objects (e.g. in pointer vectors)
  */
 template <typename T>
-void SerializationBasedDeepCopy(const T& src, T& dest, rtti::tFactory* f = NULL)
+void SerializationBasedDeepCopy(const T& src, T& dest)
 {
   tStackMemoryBuffer<cSTACK_BUFFERS_SIZE> buf;
-  SerializationBasedDeepCopy(src, dest, buf, f);
+  SerializationBasedDeepCopy(src, dest, buf);
 }
 
 /*!
@@ -176,11 +176,10 @@ void SerializationBasedDeepCopy(const T& src, T& dest, rtti::tFactory* f = NULL)
  *
  * \param src Object to be copied
  * \param dest Object to copy to
- * \param f Factory for creation of new objects (e.g. in pointer vectors)
  * \param buf Memory buffer to use
  */
 template <typename T>
-void SerializationBasedDeepCopy(const T& src, T& dest, tMemoryBuffer& buf, rtti::tFactory* f = NULL)
+void SerializationBasedDeepCopy(const T& src, T& dest, tMemoryBuffer& buf)
 {
   buf.Clear();
   tOutputStream os(buf);
@@ -189,7 +188,6 @@ void SerializationBasedDeepCopy(const T& src, T& dest, tMemoryBuffer& buf, rtti:
 
   os.Close();
   tInputStream ci(buf);
-  ci.SetFactory(f);
 
   ci >> dest;
 
@@ -363,60 +361,59 @@ inline const xml::tNode& operator>> (const xml::tNode &node, std::tuple<TArgs...
   return node;
 }
 
-template <typename TKey, typename TValue>
-inline xml::tNode& operator<< (xml::tNode &node, const std::map<TKey, TValue> &map)
+template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tNode>::type& operator<< (tNode& node, const std::vector<T>& t)
 {
-  for (auto const & it : map)
-  {
-    rrlib::xml::tNode &element_node = node.AddChildNode("element");
-    rrlib::xml::tNode &key_node = element_node.AddChildNode("key");
-    key_node << it.first;
-    rrlib::xml::tNode &value_node = element_node.AddChildNode("value");
-    value_node << it.second;
-  }
+  serialization::ContainerSerialization<T>::Serialize(node, t);
   return node;
 }
 
-template <typename TKey, typename TValue>
-inline const xml::tNode& operator>> (const xml::tNode &node, std::map<TKey, TValue> &map)
+template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
+inline const typename std::enable_if<ENABLE, tNode>::type& operator>> (const tNode& node, std::vector<T>& t)
 {
-  map.clear();
-  for (tNode::const_iterator it = node.ChildrenBegin(); it != node.ChildrenEnd(); ++it)
-  {
-    if (it->Name().compare("element") == 0)
-    {
-      const rrlib::xml::tNode *key_node = nullptr;
-      const rrlib::xml::tNode *value_node = nullptr;
+  serialization::ContainerSerialization<T>::Deserialize(node, t);
+  return node;
+}
 
-      for (tNode::const_iterator element_it = it->ChildrenBegin(); element_it != it->ChildrenEnd(); ++element_it)
-      {
-        if (element_it->Name().compare("key") == 0)
-        {
-          key_node = &*element_it;
-        }
-        if (element_it->Name().compare("value") == 0)
-        {
-          value_node = &*element_it;
-        }
-      }
+template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tNode>::type& operator<< (tNode& node, const std::list<T>& t)
+{
+  serialization::ContainerSerialization<T>::Serialize(node, t);
+  return node;
+}
 
-      if (key_node == nullptr)
-      {
-        throw std::runtime_error("No key node found");
-      }
-      if (value_node == nullptr)
-      {
-        throw std::runtime_error("No value node found");
-      }
+template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
+inline const typename std::enable_if<ENABLE, tNode>::type& operator>> (const tNode& node, std::list<T>& t)
+{
+  serialization::ContainerSerialization<T>::Deserialize(node, t);
+  return node;
+}
 
-      TKey key;
-      *key_node >> key;
-      TValue value;
-      *value_node >> value;
-      map.emplace(key, value);
-    }
-  }
+template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tNode>::type& operator<< (tNode& node, const std::deque<T>& t)
+{
+  serialization::ContainerSerialization<T>::Serialize(node, t);
+  return node;
+}
 
+template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
+inline const typename std::enable_if<ENABLE, tNode>::type& operator>> (const tNode& node, std::deque<T>& t)
+{
+  serialization::ContainerSerialization<T>::Deserialize(node, t);
+  return node;
+}
+
+template < typename TKey, typename TValue, bool ENABLE = serialization::IsXMLSerializable<TKey>::value && serialization::ContainerSerialization<TValue>::cMAP_XML_SERIALIZABLE >
+inline const typename std::enable_if<ENABLE, tNode>::type& operator<< (tNode &node, const std::map<TKey, TValue> &map)
+{
+  serialization::ContainerSerialization<TValue>::SerializeMap(node, map);
+  return node;
+}
+
+template < typename TKey, typename TValue, bool ENABLE = serialization::IsXMLSerializable<TKey>::value && serialization::ContainerSerialization<TValue>::cMAP_XML_SERIALIZABLE >
+inline const typename std::enable_if<ENABLE, tNode>::type& operator>> (const tNode &node, std::map<TKey, TValue> &map)
+{
+  serialization::ContainerSerialization<TValue>::DeserializeMap(node, map);
   return node;
 }
 

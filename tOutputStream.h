@@ -63,6 +63,9 @@
 #include "rrlib/util/tNoncopyable.h"
 #include "rrlib/time/time.h"
 
+#include <vector>
+#include <list>
+#include <deque>
 #include <map>
 
 //----------------------------------------------------------------------
@@ -84,6 +87,10 @@ namespace serialization
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
+template <typename T>
+struct ContainerSerialization;
+template <typename T>
+class IsBinarySerializable;
 
 //----------------------------------------------------------------------
 // Class declaration
@@ -663,16 +670,29 @@ inline tOutputStream& operator<< (tOutputStream& stream, const std::tuple<TArgs.
   return stream;
 }
 
-
-template <typename TKey, typename TValue>
-inline tOutputStream& operator<< (tOutputStream& stream, const std::map<TKey, TValue> &map)
+template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tOutputStream>::type& operator<< (tOutputStream& stream, const std::vector<T>& t)
 {
-  stream << map.size();
-  for (auto const & it : map)
-  {
-    stream << it.first;
-    stream << it.second;
-  }
+  ContainerSerialization<T>::Serialize(stream, t);
+  return stream;
+}
+template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tOutputStream>::type& operator<< (tOutputStream& stream, const std::list<T>& t)
+{
+  ContainerSerialization<T>::Serialize(stream, t);
+  return stream;
+}
+template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
+inline typename std::enable_if<ENABLE, tOutputStream>::type& operator<< (tOutputStream& stream, const std::deque<T>& t)
+{
+  ContainerSerialization<T>::Serialize(stream, t);
+  return stream;
+}
+
+template < typename TKey, typename TValue, bool ENABLE = IsBinarySerializable<TKey>::value && ContainerSerialization<TValue>::cMAP_BINARY_SERIALIZABLE >
+inline typename std::enable_if<ENABLE, tOutputStream>::type& operator<< (tOutputStream& stream, const std::map<TKey, TValue> &map)
+{
+  ContainerSerialization<TValue>::SerializeMap(stream, map);
   return stream;
 }
 
@@ -681,6 +701,5 @@ inline tOutputStream& operator<< (tOutputStream& stream, const std::map<TKey, TV
 //----------------------------------------------------------------------
 }
 }
-
 
 #endif

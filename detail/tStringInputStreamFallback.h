@@ -90,7 +90,7 @@ public:
 };
 
 template <typename T>
-struct tIsStringInputSerializable
+struct IsStringInputSerializable
 {
   template <typename U = T>
   static int16_t Test(decltype((*(tStringInputStream*)(NULL)) >> (*(U*)(NULL))))
@@ -113,7 +113,7 @@ struct tIsStringInputSerializable
 }
 }
 
-template <typename T, bool ENABLE = rrlib::serialization::detail::tIsStringInputSerializable<T>::value>
+template <typename T, bool ENABLE = rrlib::serialization::detail::IsStringInputSerializable<T>::value>
 inline const typename std::enable_if<ENABLE, rrlib::xml::tNode>::type & operator>> (rrlib::serialization::detail::tStringInputStreamFallback && is, T & t)
 {
   static_cast<rrlib::serialization::tStringInputStream&>(is) >> t;

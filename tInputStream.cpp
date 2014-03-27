@@ -81,7 +81,6 @@ tInputStream::tInputStream(tTypeEncoding encoding) :
   closed(false),
   direct_read_support(false),
   timeout(rrlib::time::tDuration::zero()),
-  factory(NULL),
   encoding(encoding),
   custom_encoder(NULL)
 {
@@ -101,7 +100,6 @@ tInputStream::tInputStream(tTypeEncoder& encoder) :
   closed(false),
   direct_read_support(false),
   timeout(rrlib::time::tDuration::zero()),
-  factory(NULL),
   encoding(tTypeEncoding::CUSTOM),
   custom_encoder(&encoder)
 {
@@ -121,7 +119,6 @@ tInputStream::tInputStream(tSource& source, tTypeEncoding encoding) :
   closed(false),
   direct_read_support(false),
   timeout(rrlib::time::tDuration::zero()),
-  factory(NULL),
   encoding(encoding),
   custom_encoder(NULL)
 {
@@ -142,7 +139,6 @@ tInputStream::tInputStream(tSource& source, tTypeEncoder& encoder) :
   closed(false),
   direct_read_support(false),
   timeout(rrlib::time::tDuration::zero()),
-  factory(NULL),
   encoding(tTypeEncoding::CUSTOM),
   custom_encoder(&encoder)
 {
@@ -163,7 +159,6 @@ tInputStream::tInputStream(const tConstSource& source, tTypeEncoding encoding) :
   closed(false),
   direct_read_support(false),
   timeout(rrlib::time::tDuration::zero()),
-  factory(NULL),
   encoding(encoding),
   custom_encoder(NULL)
 {
@@ -184,7 +179,6 @@ tInputStream::tInputStream(const tConstSource& source, tTypeEncoder& encoder) :
   closed(false),
   direct_read_support(false),
   timeout(rrlib::time::tDuration::zero()),
-  factory(NULL),
   encoding(tTypeEncoding::CUSTOM),
   custom_encoder(&encoder)
 {
