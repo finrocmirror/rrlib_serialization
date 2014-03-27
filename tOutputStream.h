@@ -135,9 +135,18 @@ public:
    * \param sink Sink to write to
    */
   tOutputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-  tOutputStream(tTypeEncoder& encoder);
-  tOutputStream(tSink& sink, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-  tOutputStream(tSink& sink, tTypeEncoder& encoder);
+  tOutputStream(tTypeEncoder& encoder) : tOutputStream(tTypeEncoding::CUSTOM)
+  {
+    custom_encoder = &encoder;
+  }
+  tOutputStream(tSink& sink, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tOutputStream(encoding)
+  {
+    Reset(sink);
+  }
+  tOutputStream(tSink& sink, tTypeEncoder& encoder) : tOutputStream(encoder)
+  {
+    Reset(sink);
+  }
 
   ~tOutputStream()
   {

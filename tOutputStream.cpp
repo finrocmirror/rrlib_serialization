@@ -83,49 +83,6 @@ tOutputStream::tOutputStream(tTypeEncoding encoding) :
 {
 }
 
-tOutputStream::tOutputStream(tTypeEncoder& encoder) :
-  sink(NULL),
-  immediate_flush(false),
-  closed(true),
-  buffer(),
-  cur_skip_offset_placeholder(-1),
-  short_skip_offset(false),
-  buffer_copy_fraction(0),
-  direct_write_support(false),
-  encoding(tTypeEncoding::CUSTOM),
-  custom_encoder(&encoder)
-{
-}
-
-tOutputStream::tOutputStream(tSink& sink, tTypeEncoding encoding) :
-  sink(NULL),
-  immediate_flush(false),
-  closed(true),
-  buffer(),
-  cur_skip_offset_placeholder(-1),
-  short_skip_offset(false),
-  buffer_copy_fraction(0),
-  direct_write_support(false),
-  encoding(encoding),
-  custom_encoder(NULL)
-{
-  Reset(sink);
-}
-
-tOutputStream::tOutputStream(tSink& sink, tTypeEncoder& encoder) :
-  sink(NULL),
-  immediate_flush(false),
-  closed(true),
-  buffer(),
-  cur_skip_offset_placeholder(-1),
-  buffer_copy_fraction(0),
-  direct_write_support(false),
-  encoding(tTypeEncoding::CUSTOM),
-  custom_encoder(&encoder)
-{
-  Reset(sink);
-}
-
 void tOutputStream::Close()
 {
   if (!closed)

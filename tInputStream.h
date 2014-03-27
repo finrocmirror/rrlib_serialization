@@ -108,11 +108,26 @@ public:
    * \param source Source to read from. If not set, Reset() with a source needs to be called, before data can be read.
    */
   tInputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-  tInputStream(tTypeEncoder& encoder);
-  tInputStream(tSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-  tInputStream(tSource& source, tTypeEncoder& encoder);
-  tInputStream(const tConstSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-  tInputStream(const tConstSource& source, tTypeEncoder& encoder);
+  tInputStream(tTypeEncoder& encoder) : tInputStream(tTypeEncoding::CUSTOM)
+  {
+    custom_encoder = &encoder;
+  }
+  tInputStream(tSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tInputStream(encoding)
+  {
+    Reset(source);
+  }
+  tInputStream(tSource& source, tTypeEncoder& encoder) : tInputStream(encoder)
+  {
+    Reset(source);
+  }
+  tInputStream(const tConstSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tInputStream(encoding)
+  {
+    Reset(source);
+  }
+  tInputStream(const tConstSource& source, tTypeEncoder& encoder) : tInputStream(encoder)
+  {
+    Reset(source);
+  }
 
   ~tInputStream()
   {
