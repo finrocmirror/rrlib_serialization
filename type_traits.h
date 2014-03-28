@@ -142,6 +142,77 @@ struct DefaultInstantiation : public DefaultImplementation
   }
 };
 
+/*
+// only for debug output of types during compile process
+template <typename T>
+struct TError
+{
+  static_assert(std::is_same<T, void>::value, "");
+};*/
+
+/*!
+ * Type trait that defines whether type T is a serializable container type.
+ *
+ * Therefore, it needs begin() and end(), which dereferences have 'value_type'.
+ * Furthermore, ContainerResize<T>::Resize(container, size_t) must be valid.
+ */
+template <typename T>
+class IsSerializableContainer
+{
+  template <typename U>
+  static U &Make();
+
+  template <typename U = T>
+  static typename std::remove_reference<decltype(*Make<U>().begin())>::type TestBegin(void*);
+  static void TestBegin(...);
+
+  template <typename U = T>
+  static typename std::remove_reference<decltype(*Make<U>().end())>::type TestEnd(void*);
+  static void TestEnd(...);
+
+  template <typename U = T>
+  static typename U::value_type TestValueType(void*);
+  static void TestValueType(...);
+
+  typedef decltype(TestBegin(nullptr)) tBegin;
+  typedef decltype(TestEnd(nullptr)) tEnd;
+
+public:
+
+  /*! Value type of container if T is a container; void otherwise */
+  typedef decltype(TestValueType(nullptr)) tValue;
+
+  enum { value = std::is_same<tBegin, tEnd>::value &&
+         std::is_same<tBegin, tValue>::value &&
+         (!std::is_same<tBegin, void>::value)
+       };
+
+};
+
+/*!
+ * Type trait that defines whether type T is a serializable map container type.
+ */
+template <typename T>
+class IsSerializableMap
+{
+  template <typename U = T>
+  static typename U::mapped_type TestMappedType(void*);
+  static void TestMappedType(...);
+
+public:
+
+  /*! Mapped type of map if T is a map; void otherwise */
+  typedef decltype(TestMappedType(nullptr)) tMapped;
+
+  enum { value = (!std::is_same<tMapped, void>::value) && IsSerializableContainer<T>::value };
+};
+
+static_assert(IsSerializableContainer<int>::value == false, "Incorrect trait implementation");
+static_assert(IsSerializableContainer<std::vector<int>>::value == true, "Incorrect trait implementation");
+static_assert(IsSerializableContainer<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
+static_assert(IsSerializableMap<std::vector<int>>::value == false, "Incorrect trait implementation");
+static_assert(IsSerializableMap<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
+
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------

@@ -361,59 +361,43 @@ inline const xml::tNode& operator>> (const xml::tNode &node, std::tuple<TArgs...
   return node;
 }
 
-template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
-inline typename std::enable_if<ENABLE, tNode>::type& operator<< (tNode& node, const std::vector<T>& t)
+template <typename T>
+inline typename std::enable_if < serialization::IsSerializableContainer<T>::value && (!serialization::IsSerializableMap<T>::value) &&
+(!std::is_same<T, std::string>::value) &&
+serialization::ContainerSerialization<typename serialization::IsSerializableContainer<T>::tValue>::cXML_SERIALIZABLE, tNode >::type&
+operator<< (tNode& node, const T& t)
 {
-  serialization::ContainerSerialization<T>::Serialize(node, t);
+  static_assert(!std::is_same<std::string, T>::value, "This is not supposed to be used for std::string");
+  serialization::ContainerSerialization<typename serialization::IsSerializableContainer<T>::tValue>::Serialize(node, t);
   return node;
 }
 
-template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
-inline const typename std::enable_if<ENABLE, tNode>::type& operator>> (const tNode& node, std::vector<T>& t)
+template <typename T>
+inline const typename std::enable_if < serialization::IsSerializableContainer<T>::value && (!serialization::IsSerializableMap<T>::value) &&
+(!std::is_same<T, std::string>::value) &&
+serialization::ContainerSerialization<typename serialization::IsSerializableContainer<T>::tValue>::cXML_SERIALIZABLE, tNode >::type&
+operator>> (const tNode& node, T& t)
 {
-  serialization::ContainerSerialization<T>::Deserialize(node, t);
+  static_assert(!std::is_same<std::string, T>::value, "This is not supposed to be used for std::string");
+  serialization::ContainerSerialization<typename serialization::IsSerializableContainer<T>::tValue>::Deserialize(node, t);
   return node;
 }
 
-template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
-inline typename std::enable_if<ENABLE, tNode>::type& operator<< (tNode& node, const std::list<T>& t)
+template <typename T>
+inline typename std::enable_if < serialization::IsSerializableMap<T>::value &&
+serialization::ContainerSerialization<typename serialization::IsSerializableMap<T>::tMapped>::cXML_SERIALIZABLE, tNode >::type&
+operator<< (tNode &node, const T& map)
 {
-  serialization::ContainerSerialization<T>::Serialize(node, t);
+  serialization::ContainerSerialization<typename serialization::IsSerializableMap<T>::tMapped>::SerializeMap(node, map);
   return node;
 }
 
-template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
-inline const typename std::enable_if<ENABLE, tNode>::type& operator>> (const tNode& node, std::list<T>& t)
+template <typename T>
+inline const typename std::enable_if < serialization::IsSerializableMap<T>::value &&
+serialization::ContainerSerialization<typename serialization::IsSerializableMap<T>::tMapped>::cXML_SERIALIZABLE, tNode >::type&
+operator>> (const tNode &node, T& map)
 {
-  serialization::ContainerSerialization<T>::Deserialize(node, t);
-  return node;
-}
-
-template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
-inline typename std::enable_if<ENABLE, tNode>::type& operator<< (tNode& node, const std::deque<T>& t)
-{
-  serialization::ContainerSerialization<T>::Serialize(node, t);
-  return node;
-}
-
-template <typename T, bool ENABLE = serialization::ContainerSerialization<T>::cXML_SERIALIZABLE>
-inline const typename std::enable_if<ENABLE, tNode>::type& operator>> (const tNode& node, std::deque<T>& t)
-{
-  serialization::ContainerSerialization<T>::Deserialize(node, t);
-  return node;
-}
-
-template < typename TKey, typename TValue, bool ENABLE = serialization::IsXMLSerializable<TKey>::value && serialization::ContainerSerialization<TValue>::cMAP_XML_SERIALIZABLE >
-inline const typename std::enable_if<ENABLE, tNode>::type& operator<< (tNode &node, const std::map<TKey, TValue> &map)
-{
-  serialization::ContainerSerialization<TValue>::SerializeMap(node, map);
-  return node;
-}
-
-template < typename TKey, typename TValue, bool ENABLE = serialization::IsXMLSerializable<TKey>::value && serialization::ContainerSerialization<TValue>::cMAP_XML_SERIALIZABLE >
-inline const typename std::enable_if<ENABLE, tNode>::type& operator>> (const tNode &node, std::map<TKey, TValue> &map)
-{
-  serialization::ContainerSerialization<TValue>::DeserializeMap(node, map);
+  serialization::ContainerSerialization<typename serialization::IsSerializableMap<T>::tMapped>::DeserializeMap(node, map);
   return node;
 }
 

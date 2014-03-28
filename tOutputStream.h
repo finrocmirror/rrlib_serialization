@@ -63,11 +63,6 @@
 #include "rrlib/util/tNoncopyable.h"
 #include "rrlib/time/time.h"
 
-#include <vector>
-#include <list>
-#include <deque>
-#include <map>
-
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
@@ -91,6 +86,10 @@ template <typename T>
 struct ContainerSerialization;
 template <typename T>
 class IsBinarySerializable;
+template <typename T>
+class IsSerializableContainer;
+template <typename T>
+class IsSerializableMap;
 
 //----------------------------------------------------------------------
 // Class declaration
@@ -679,29 +678,22 @@ inline tOutputStream& operator<< (tOutputStream& stream, const std::tuple<TArgs.
   return stream;
 }
 
-template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
-inline typename std::enable_if<ENABLE, tOutputStream>::type& operator<< (tOutputStream& stream, const std::vector<T>& t)
+template <typename T>
+inline typename std::enable_if < IsSerializableContainer<T>::value && (!IsSerializableMap<T>::value) &&
+ContainerSerialization<typename IsSerializableContainer<T>::tValue>::cBINARY_SERIALIZABLE, tOutputStream >::type&
+operator<< (tOutputStream& stream, const T& t)
 {
-  ContainerSerialization<T>::Serialize(stream, t);
-  return stream;
-}
-template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
-inline typename std::enable_if<ENABLE, tOutputStream>::type& operator<< (tOutputStream& stream, const std::list<T>& t)
-{
-  ContainerSerialization<T>::Serialize(stream, t);
-  return stream;
-}
-template <typename T, bool ENABLE = ContainerSerialization<T>::cBINARY_SERIALIZABLE>
-inline typename std::enable_if<ENABLE, tOutputStream>::type& operator<< (tOutputStream& stream, const std::deque<T>& t)
-{
-  ContainerSerialization<T>::Serialize(stream, t);
+  static_assert(!std::is_same<std::string, T>::value, "This is not supposed to be used for std::string");
+  ContainerSerialization<typename IsSerializableContainer<T>::tValue>::Serialize(stream, t);
   return stream;
 }
 
-template < typename TKey, typename TValue, bool ENABLE = IsBinarySerializable<TKey>::value && ContainerSerialization<TValue>::cMAP_BINARY_SERIALIZABLE >
-inline typename std::enable_if<ENABLE, tOutputStream>::type& operator<< (tOutputStream& stream, const std::map<TKey, TValue> &map)
+template <typename T>
+inline typename std::enable_if < IsSerializableMap<T>::value &&
+ContainerSerialization<typename IsSerializableContainer<T>::tValue>::cBINARY_SERIALIZABLE, tOutputStream >::type&
+operator<< (tOutputStream& stream, const T& map)
 {
-  ContainerSerialization<TValue>::SerializeMap(stream, map);
+  ContainerSerialization<typename IsSerializableMap<T>::tMapped>::SerializeMap(stream, map);
   return stream;
 }
 
