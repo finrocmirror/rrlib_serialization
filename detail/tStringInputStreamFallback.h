@@ -92,18 +92,15 @@ public:
 template <typename T>
 struct IsStringInputSerializable
 {
+  template <typename U>
+  static U &Make();
+
   template <typename U = T>
-  static int16_t Test(decltype((*(tStringInputStream*)(NULL)) >> (*(U*)(NULL))))
-  {
-    return 0;
-  }
+  static int16_t TestInput(decltype(Make<tStringInputStream>() >> Make<U>()));
 
-  static int32_t Test(...)
-  {
-    return 0;
-  }
+  static int32_t TestInput(...);
 
-  enum { value = sizeof(Test(*(tStringInputStream*)(NULL))) == sizeof(int16_t) };
+  enum { value = sizeof(TestInput(Make<tStringInputStream>())) == sizeof(int16_t) };
 };
 
 //----------------------------------------------------------------------

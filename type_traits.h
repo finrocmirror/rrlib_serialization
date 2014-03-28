@@ -142,14 +142,6 @@ struct DefaultInstantiation : public DefaultImplementation
   }
 };
 
-/*
-// only for debug output of types during compile process
-template <typename T>
-struct TError
-{
-  static_assert(std::is_same<T, void>::value, "");
-};*/
-
 /*!
  * Type trait that defines whether type T is a serializable container type.
  *
@@ -186,8 +178,16 @@ public:
          std::is_same<tBegin, tValue>::value &&
          (!std::is_same<tBegin, void>::value)
        };
-
 };
+
+template <typename TAlloc>
+class IsSerializableContainer<std::vector<bool, TAlloc>>
+{
+public:
+  typedef bool tValue;
+  enum { value = 1 };
+};
+
 
 /*!
  * Type trait that defines whether type T is a serializable map container type.
@@ -207,11 +207,18 @@ public:
   enum { value = (!std::is_same<tMapped, void>::value) && IsSerializableContainer<T>::value };
 };
 
+
+// Some type trait tests
 static_assert(IsSerializableContainer<int>::value == false, "Incorrect trait implementation");
 static_assert(IsSerializableContainer<std::vector<int>>::value == true, "Incorrect trait implementation");
+static_assert(IsSerializableContainer<std::vector<bool>>::value == true, "Incorrect trait implementation");
 static_assert(IsSerializableContainer<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
 static_assert(IsSerializableMap<std::vector<int>>::value == false, "Incorrect trait implementation");
 static_assert(IsSerializableMap<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
+
+static_assert(IsStringSerializable<bool>::value, "Incorrect trait implementation");
+static_assert(!IsStringSerializable<std::vector<bool>>::value, "Incorrect trait implementation");
+static_assert(detail::IsStringInputSerializable<typename std::vector<bool>::reference>::value, "Incorrect trait implementation");
 
 //----------------------------------------------------------------------
 // End of namespace declaration

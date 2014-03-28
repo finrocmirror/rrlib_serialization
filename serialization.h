@@ -347,6 +347,13 @@ inline const xml::tNode& operator>> (const xml::tNode& node, std::string& s)
   return node;
 }
 
+inline const xml::tNode& operator>> (const xml::tNode& node, typename std::vector<bool>::reference bool_reference)
+{
+  serialization::tStringInputStream stream(node.GetTextContent());
+  stream >> bool_reference;
+  return node;
+}
+
 template <typename ... TArgs>
 inline xml::tNode& operator<< (xml::tNode &node, const std::tuple<TArgs...> &tuple)
 {

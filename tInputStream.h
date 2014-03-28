@@ -584,7 +584,7 @@ inline tInputStream& operator>> (tInputStream& stream, bool& t)
   t = stream.ReadBoolean();
   return stream;
 }
-inline tInputStream& operator>> (tInputStream& stream, std::vector<bool>::reference t)  // for std::vector<bool> support
+inline tInputStream& operator>> (tInputStream& stream, typename std::vector<bool>::reference t)  // for std::vector<bool> support
 {
   t = stream.ReadBoolean();
   return stream;

@@ -102,18 +102,15 @@ private:
 template <typename T>
 struct IsStringOutputSerializable
 {
+  template <typename U>
+  static U &Make();
+
   template <typename U = T>
-  static int16_t Test(decltype((*(tStringOutputStream*)(NULL)) << (*(U*)(NULL))))
-  {
-    return 0;
-  }
+  static int16_t TestOutput(decltype(Make<tStringOutputStream>() << Make<U>()));
 
-  static int32_t Test(...)
-  {
-    return 0;
-  }
+  static int32_t TestOutput(...);
 
-  enum { value = sizeof(Test(*(tStringOutputStream*)(NULL))) == sizeof(int16_t) };
+  enum { value = sizeof(TestOutput(Make<tStringOutputStream>())) == sizeof(int16_t) };
 };
 
 //----------------------------------------------------------------------

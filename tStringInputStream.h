@@ -331,7 +331,7 @@ inline tStringInputStream& operator>> (tStringInputStream& stream, bool& t)
   t = tStringInputStream::StringsEqualIgnoreCase(s, "true") || (s.length() == 1 && s[0] == '1');
   return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& stream, std::vector<bool>::reference t)  // for std::vector<bool> support
+inline tStringInputStream& operator>> (tStringInputStream& stream, typename std::vector<bool>::reference t)  // for std::vector<bool> support
 {
   bool b;
   stream >> b;
