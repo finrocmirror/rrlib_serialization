@@ -2,12 +2,15 @@
 <!DOCTYPE targets PUBLIC "-//FINROC//DTD make 14.05" "http://finroc.org/xml/14.05/make.dtd">
 <targets>
 
-  <library>
+  <program name="file_sink_source">
     <sources>
-      *.cpp
-      *.h
-      detail/*.h
+      file_sink_source.cpp
     </sources>
-  </library>
+  </program>
 
+  <program>
+    <sources>
+      serialization.cpp
+    </sources>
+  </program>
 </targets>

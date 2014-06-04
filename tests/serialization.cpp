@@ -19,11 +19,11 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    unit_test_file_sink_source.cpp
+/*!\file    serialization.cpp
  *
  * \author  Michael Arndt
  *
- * \date    2013-09-10
+ * \date    2014-03-17
  *
  */
 //----------------------------------------------------------------------
@@ -36,15 +36,13 @@
 
 #include "rrlib/util/tUnitTestSuite.h"
 
+#include "rrlib/serialization/serialization.h"
+#include "rrlib/serialization/tInputStream.h"
+#include "rrlib/serialization/tOutputStream.h"
+
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-#include "rrlib/serialization/tFileSink.h"
-#include "rrlib/serialization/tFileSource.h"
-#include "rrlib/serialization/tOutputStream.h"
-#include "rrlib/serialization/tInputStream.h"
-
-#include "rrlib/util/sFileIOUtils.h"
 
 //----------------------------------------------------------------------
 // Debugging
@@ -52,12 +50,9 @@
 #include <cassert>
 
 
-
 //----------------------------------------------------------------------
 // Namespace usage
 //----------------------------------------------------------------------
-using namespace rrlib::serialization;
-using rrlib::util::sFileIOUtils;
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
@@ -71,59 +66,69 @@ using rrlib::util::sFileIOUtils;
 // Implementation
 //----------------------------------------------------------------------
 
-class tTestFileSinkSource : public rrlib::util::tUnitTestSuite
+class tTestSerialization : public rrlib::util::tUnitTestSuite
 {
-  RRLIB_UNIT_TESTS_BEGIN_SUITE(tTestFileSinkSource);
-  RRLIB_UNIT_TESTS_ADD_TEST(TestSinkUnwritable);
-  RRLIB_UNIT_TESTS_ADD_TEST(TestSourceUnreadable);
-  RRLIB_UNIT_TESTS_ADD_TEST(TestSinkSource);
+  RRLIB_UNIT_TESTS_BEGIN_SUITE(tTestSerialization);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestXMLMap);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestBinaryMap);
   RRLIB_UNIT_TESTS_END_SUITE;
 
 private:
 
   virtual void InitializeTests() override
   {
-
   }
   virtual void CleanUp() override {}
 
-  void TestSinkUnwritable()
+  void TestXMLMap()
   {
-    tFileSink sink("/hopefully/non-existent/path");
-    RRLIB_UNIT_TESTS_EXCEPTION_MESSAGE("An exception must be thrown when creating the stream", tOutputStream os(sink), std::ios_base::failure);
+    rrlib::xml::tDocument doc;
+    rrlib::xml::tNode &root = doc.AddRootNode("root");
+    std::map<size_t, std::string> map;
+    map[0] = "Zero";
+    map[1] = "One";
+    map[2] = "Two";
+    root << map;
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Pretty print of XML serialization must be correct", std::string("<root>\n  <element>\n    <key>0</key>\n    <value>Zero</value>\n  </element>\n  <element>\n    <key>1</key>\n    <value>One</value>\n  </element>\n  <element>\n    <key>2</key>\n    <value>Two</value>\n  </element>\n</root>"), root.GetXMLDump(true));
+
+    std::map<size_t, std::string> other_map;
+    root >> other_map;
+
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("There must be the correct number of elements in the map", (size_t) 3, other_map.size());
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Zero"), other_map[0]);
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("One"), other_map[1]);
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Two"), other_map[2]);
+
   }
 
-  void TestSourceUnreadable()
+  void TestBinaryMap()
   {
-    tFileSource src("/hopefully/non-existent/path");
-    RRLIB_UNIT_TESTS_EXCEPTION_MESSAGE("An exception must be thrown when creating the stream", tInputStream is(src), std::ios_base::failure);
-  }
+    std::map<size_t, std::string> map;
+    map[0] = "Zero";
+    map[1] = "One";
+    map[2] = "Two";
 
-  void TestSinkSource()
-  {
-    std::string path = rrlib::util::sFileIOUtils::CreateTempfile();
-    int test_int = 42;
-    std::string test_string("This is some string that will be serialized");
+    // serialize to memory
+    rrlib::serialization::tMemoryBuffer mb;
+    rrlib::serialization::tOutputStream os(mb);
 
-    // serialize something
-    tFileSink sink(path);
-    tOutputStream os(sink);
-    os << test_int << test_string;
-    os.Close();
+    os << map;
+    os.Flush();
 
-    int test_int_;
-    std::string test_string_;
+    // de-serialize
+    rrlib::serialization::tInputStream is(mb);
 
-    // read it back
-    tFileSource src(path);
-    tInputStream is(src);
-    is >> test_int_ >> test_string_;
-    is.Close();
+    std::map<size_t, std::string> other_map;
+    is >> other_map;
 
-    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Written and read integer must be equal", test_int, test_int_);
-    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Written and read string must be equal", test_string, test_string_);
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("There must be the correct number of elements in the map", (size_t) 3, other_map.size());
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Zero"), other_map[0]);
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("One"), other_map[1]);
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Two"), other_map[2]);
+
   }
 
 };
 
-RRLIB_UNIT_TESTS_REGISTER_SUITE(tTestFileSinkSource);
+RRLIB_UNIT_TESTS_REGISTER_SUITE(tTestSerialization);
+
