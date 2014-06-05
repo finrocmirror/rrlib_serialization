@@ -56,8 +56,14 @@
 //----------------------------------------------------------------------
 // Namespace usage
 //----------------------------------------------------------------------
-using namespace rrlib::serialization;
-using rrlib::util::sFileIOUtils;
+
+//----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
+namespace rrlib
+{
+namespace serialization
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
@@ -71,21 +77,15 @@ using rrlib::util::sFileIOUtils;
 // Implementation
 //----------------------------------------------------------------------
 
-class tTestFileSinkSource : public rrlib::util::tUnitTestSuite
+class TestFileSinkSource : public util::tUnitTestSuite
 {
-  RRLIB_UNIT_TESTS_BEGIN_SUITE(tTestFileSinkSource);
+  RRLIB_UNIT_TESTS_BEGIN_SUITE(TestFileSinkSource);
   RRLIB_UNIT_TESTS_ADD_TEST(TestSinkUnwritable);
   RRLIB_UNIT_TESTS_ADD_TEST(TestSourceUnreadable);
   RRLIB_UNIT_TESTS_ADD_TEST(TestSinkSource);
   RRLIB_UNIT_TESTS_END_SUITE;
 
 private:
-
-  virtual void InitializeTests() override
-  {
-
-  }
-  virtual void CleanUp() override {}
 
   void TestSinkUnwritable()
   {
@@ -126,4 +126,10 @@ private:
 
 };
 
-RRLIB_UNIT_TESTS_REGISTER_SUITE(tTestFileSinkSource);
+RRLIB_UNIT_TESTS_REGISTER_SUITE(TestFileSinkSource);
+
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}

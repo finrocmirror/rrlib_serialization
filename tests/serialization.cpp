@@ -55,6 +55,14 @@
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
+// Namespace declaration
+//----------------------------------------------------------------------
+namespace rrlib
+{
+namespace serialization
+{
+
+//----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 
@@ -66,19 +74,14 @@
 // Implementation
 //----------------------------------------------------------------------
 
-class tTestSerialization : public rrlib::util::tUnitTestSuite
+class TestSerialization : public util::tUnitTestSuite
 {
-  RRLIB_UNIT_TESTS_BEGIN_SUITE(tTestSerialization);
+  RRLIB_UNIT_TESTS_BEGIN_SUITE(TestSerialization);
   RRLIB_UNIT_TESTS_ADD_TEST(TestXMLMap);
   RRLIB_UNIT_TESTS_ADD_TEST(TestBinaryMap);
   RRLIB_UNIT_TESTS_END_SUITE;
 
 private:
-
-  virtual void InitializeTests() override
-  {
-  }
-  virtual void CleanUp() override {}
 
   void TestXMLMap()
   {
@@ -130,5 +133,10 @@ private:
 
 };
 
-RRLIB_UNIT_TESTS_REGISTER_SUITE(tTestSerialization);
+RRLIB_UNIT_TESTS_REGISTER_SUITE(TestSerialization);
 
+//----------------------------------------------------------------------
+// End of namespace declaration
+//----------------------------------------------------------------------
+}
+}
