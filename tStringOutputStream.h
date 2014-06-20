@@ -148,7 +148,7 @@ inline tStringOutputStream& operator<< (tStringOutputStream& stream, int16_t t)
   stream.GetWrappedStringStream() << t;
   return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& stream, int32_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, int t)
 {
   stream.GetWrappedStringStream() << t;
   return stream;
@@ -173,7 +173,7 @@ inline tStringOutputStream& operator<< (tStringOutputStream& stream, uint16_t t)
   stream.GetWrappedStringStream() << t;
   return stream;
 }
-inline tStringOutputStream& operator<< (tStringOutputStream& stream, uint32_t t)
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, unsigned int t)
 {
   stream.GetWrappedStringStream() << t;
   return stream;

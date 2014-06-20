@@ -529,12 +529,11 @@ inline tInputStream& operator>> (tInputStream& stream, int16_t& t)
   t = stream.ReadNumber<int16_t>();
   return stream;
 }
-inline tInputStream& operator>> (tInputStream& stream, int32_t& t)
+inline tInputStream& operator>> (tInputStream& stream, int& t)
 {
-  t = stream.ReadNumber<int32_t>();
+  t = stream.ReadNumber<int>();
   return stream;
 }
-static_assert(!std::is_same<int32_t, long int>::value, "Type ids must be different");
 inline tInputStream& operator>> (tInputStream& stream, long int& t)
 {
   t = static_cast<long int>(stream.ReadNumber<int64_t>()); /* for 32/64-bit safety */
@@ -555,9 +554,9 @@ inline tInputStream& operator>> (tInputStream& stream, uint16_t& t)
   t = stream.ReadNumber<uint16_t>();
   return stream;
 }
-inline tInputStream& operator>> (tInputStream& stream, uint32_t& t)
+inline tInputStream& operator>> (tInputStream& stream, unsigned int& t)
 {
-  t = stream.ReadNumber<uint32_t>();
+  t = stream.ReadNumber<unsigned int>();
   return stream;
 }
 inline tInputStream& operator>> (tInputStream& stream, long unsigned int& t)

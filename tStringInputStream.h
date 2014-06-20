@@ -275,7 +275,7 @@ inline tStringInputStream& operator>> (tStringInputStream& stream, int16_t& t)
   stream.GetWrappedStringStream() >> t;
   return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& stream, int32_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, int& t)
 {
   stream.GetWrappedStringStream() >> t;
   return stream;
@@ -300,7 +300,7 @@ inline tStringInputStream& operator>> (tStringInputStream& stream, uint16_t& t)
   stream.GetWrappedStringStream() >> t;
   return stream;
 }
-inline tStringInputStream& operator>> (tStringInputStream& stream, uint32_t& t)
+inline tStringInputStream& operator>> (tStringInputStream& stream, unsigned int& t)
 {
   stream.GetWrappedStringStream() >> t;
   return stream;
@@ -343,6 +343,7 @@ inline tStringInputStream& operator>> (tStringInputStream& stream, std::string& 
   t = stream.ReadLine();
   return stream;
 }
+#ifdef RRLIB_TIME_PARSING_AVAILABLE
 template <typename R, typename P>
 inline tStringInputStream& operator>> (tStringInputStream& stream, std::chrono::duration<R, P>& t)
 {
@@ -355,6 +356,7 @@ inline tStringInputStream& operator>> (tStringInputStream& stream, std::chrono::
   t = rrlib::time::ParseIsoTimestamp(stream.ReadLine());
   return stream;
 }
+#endif
 
 template <typename ENUM>
 inline tStringInputStream& operator>> (typename std::enable_if<std::is_enum<ENUM>::value, tStringInputStream&>::type stream, ENUM& t)

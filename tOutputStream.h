@@ -582,7 +582,7 @@ inline tOutputStream& operator<< (tOutputStream& stream, uint16_t t)
   stream.WriteNumber(t);
   return stream;
 }
-inline tOutputStream& operator<< (tOutputStream& stream, uint32_t t)
+inline tOutputStream& operator<< (tOutputStream& stream, unsigned int t)
 {
   stream.WriteNumber(t);
   return stream;
