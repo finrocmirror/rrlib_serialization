@@ -122,6 +122,7 @@ struct tStringSerialization<T, false>
   }
 };
 
+#ifdef _LIB_RRLIB_XML_PRESENT_
 template <typename T, bool XML_SERIALIZABLE = IsXMLSerializable<T>::value>
 struct tXMLSerialization
 {
@@ -151,6 +152,7 @@ struct tXMLSerialization<T, false>
     x.SetContent(tmp);
   }
 };
+#endif
 
 //----------------------------------------------------------------------
 // End of namespace declaration

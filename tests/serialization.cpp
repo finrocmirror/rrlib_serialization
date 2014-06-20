@@ -85,6 +85,7 @@ private:
 
   void TestXMLMap()
   {
+#ifdef _LIB_RRLIB_XML_PRESENT_
     rrlib::xml::tDocument doc;
     rrlib::xml::tNode &root = doc.AddRootNode("root");
     std::map<size_t, std::string> map;
@@ -101,7 +102,7 @@ private:
     RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Zero"), other_map[0]);
     RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("One"), other_map[1]);
     RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Two"), other_map[2]);
-
+#endif
   }
 
   void TestBinaryMap()

@@ -534,6 +534,7 @@ inline tInputStream& operator>> (tInputStream& stream, int32_t& t)
   t = stream.ReadNumber<int32_t>();
   return stream;
 }
+static_assert(!std::is_same<int32_t, long int>::value, "Type ids must be different");
 inline tInputStream& operator>> (tInputStream& stream, long int& t)
 {
   t = static_cast<long int>(stream.ReadNumber<int64_t>()); /* for 32/64-bit safety */

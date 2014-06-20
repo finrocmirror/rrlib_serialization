@@ -41,7 +41,9 @@
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#ifdef _LIB_RRLIB_XML_PRESENT_
 #include "rrlib/xml/tNode.h"
+#endif
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -177,7 +179,7 @@ struct ContainerSerializationDefault
   }
 
   // XML serialization
-
+#ifdef _LIB_RRLIB_XML_PRESENT_
   template <typename TContainer>
   static void Serialize(xml::tNode& node, const TContainer& container)
   {
@@ -259,6 +261,7 @@ struct ContainerSerializationDefault
       }
     }
   }
+#endif
 };
 
 template <typename T>

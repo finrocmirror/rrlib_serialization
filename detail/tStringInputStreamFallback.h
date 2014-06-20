@@ -42,7 +42,9 @@
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#ifdef _LIB_RRLIB_XML_PRESENT_
 #include "rrlib/xml/tNode.h"
+#endif
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -72,6 +74,7 @@ namespace detail
  *
  * This way, string serializable types can seamlessly be deserialized from XML nodes.
  */
+#ifdef _LIB_RRLIB_XML_PRESENT_
 class tStringInputStreamFallback : public tStringInputStream
 {
 
@@ -88,6 +91,7 @@ public:
   {}
 
 };
+#endif
 
 template <typename T>
 struct IsStringInputSerializable
@@ -110,6 +114,7 @@ struct IsStringInputSerializable
 }
 }
 
+#ifdef _LIB_RRLIB_XML_PRESENT_
 template <typename T, bool ENABLE = rrlib::serialization::detail::IsStringInputSerializable<T>::value>
 inline const typename std::enable_if<ENABLE, rrlib::xml::tNode>::type & operator>> (rrlib::serialization::detail::tStringInputStreamFallback && is, T & t)
 {
@@ -117,4 +122,5 @@ inline const typename std::enable_if<ENABLE, rrlib::xml::tNode>::type & operator
   return is.node;
 }
 
+#endif
 #endif

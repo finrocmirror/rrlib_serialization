@@ -99,6 +99,7 @@ struct IsStringSerializable
 template <typename T>
 class IsXMLSerializable
 {
+#ifdef _LIB_RRLIB_XML_PRESENT_
   static xml::tNode &MakeXMLNode();
 
   template <typename U>
@@ -117,6 +118,10 @@ class IsXMLSerializable
 public:
 
   enum { value = sizeof(TestOutput(MakeXMLNode())) == sizeof(int16_t) && sizeof(TestInput(MakeXMLNode())) == sizeof(int16_t) };
+#else
+public:
+  enum { value = 0 };
+#endif
 };
 
 /*! Struct to tag default implementations; used as base class */

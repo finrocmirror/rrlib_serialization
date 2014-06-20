@@ -35,7 +35,9 @@
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#ifdef _LIB_RRLIB_XML_PRESENT_
 #include "rrlib/xml/tDocument.h"
+#endif
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -123,11 +125,13 @@ void Deserialize(tStringInputStream& stream, T& t)
 {
   detail::tStringSerialization<T>::Deserialize(t, stream);
 }
+#ifdef _LIB_RRLIB_XML_PRESENT_
 template <typename T>
 void Deserialize(const xml::tNode& node, T& t)
 {
   detail::tXMLSerialization<T>::Deserialize(t, node);
 }
+#endif
 
 /*!
  * Deserialize data from binary input stream - possibly using non-binary encoding.
@@ -151,10 +155,14 @@ void Deserialize(tInputStream& stream, T& t, tDataEncoding enc)
   }
   else
   {
+#ifdef _LIB_RRLIB_XML_PRESENT_
     std::string s = stream.ReadString();
     xml::tDocument d(s.c_str(), s.length(), false);
     xml::tNode& n = d.RootNode();
     Deserialize(n, t);
+#else
+    throw std::invalid_argument("XML support not available");
+#endif
   }
 }
 
@@ -250,11 +258,13 @@ void Serialize(tStringOutputStream& stream, const T& t)
 {
   detail::tStringSerialization<T>::Serialize(t, stream);
 }
+#ifdef _LIB_RRLIB_XML_PRESENT_
 template <typename T>
 void Serialize(xml::tNode& node, const T& t)
 {
   detail::tXMLSerialization<T>::Serialize(t, node);
 }
+#endif
 
 /**
  * Serialize data to binary output stream - possibly using non-binary encoding.
@@ -280,13 +290,18 @@ void Serialize(tOutputStream& stream, const T& t, tDataEncoding enc)
   }
   else
   {
+#ifdef _LIB_RRLIB_XML_PRESENT_
     xml::tDocument d;
     xml::tNode& n = d.AddRootNode("value");
     Serialize(n, t);
     stream.WriteString(n.GetXMLDump(true));
+#else
+    throw std::invalid_argument("XML support not available");
+#endif
   }
 }
 
+#ifdef _LIB_RRLIB_XML_PRESENT_
 
 namespace internal
 {
@@ -411,6 +426,7 @@ operator>> (const tNode &node, T& map)
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
+#endif
 }
 }
 
