@@ -72,6 +72,9 @@ enum class tTypeEncoding
   CUSTOM       //!< A custom type encoder is used.
 };
 
+#ifndef __BYTE_ORDER__
+#warning __BYTE_ORDER__ not defined
+#endif
 
 //----------------------------------------------------------------------
 // Function declarations

@@ -298,7 +298,7 @@ public:
     T t = cur_buffer->buffer->GetGeneric<T>(cur_buffer->position);
     cur_buffer->position += sizeof(T);
 
-#if __BYTE_ORDER == __ORDER_BIG_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
     T tmp = t;
     char* dest = reinterpret_cast<char*>(&t);
     char* src = reinterpret_cast<char*>(&tmp);
