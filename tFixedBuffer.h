@@ -201,11 +201,12 @@ public:
    * \param t Data to write
    */
   template <typename T>
-  T GetGeneric(size_t offset) const
+  inline T GetGeneric(size_t offset) const
   {
     assert(offset + sizeof(T) <= capacity);
-    T* ptr = (T*)(buffer_memory + offset);
-    return *ptr;
+    T value;
+    memcpy(&value, buffer_memory + offset, sizeof(T));
+    return value;
   }
 
   /*!
@@ -384,8 +385,7 @@ public:
   void PutGeneric(size_t offset, T t)
   {
     assert(offset + sizeof(T) <= capacity);
-    T* ptr = (T*)(buffer_memory + offset);
-    (*ptr) = t;
+    memcpy(buffer_memory + offset, &t, sizeof(T));
   }
 
   /*!
