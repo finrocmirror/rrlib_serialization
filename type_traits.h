@@ -152,6 +152,8 @@ struct DefaultInstantiation : public DefaultImplementation
  *
  * Therefore, it needs begin() and end(), which dereferences have 'value_type'.
  * Furthermore, ContainerResize<T>::Resize(container, size_t) must be valid.
+ *
+ * False for std::string
  */
 template <typename T>
 class IsSerializableContainer
@@ -193,6 +195,13 @@ public:
   enum { value = 1 };
 };
 
+template <>
+class IsSerializableContainer<std::string>
+{
+public:
+  typedef std::string::value_type tValue;
+  enum { value = 0 };
+};
 
 /*!
  * Type trait that defines whether type T is a serializable map container type.
