@@ -27,6 +27,7 @@
  *
  */
 //----------------------------------------------------------------------
+#include "rrlib/serialization/tests/serialization.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -79,6 +80,8 @@ class TestSerialization : public util::tUnitTestSuite
   RRLIB_UNIT_TESTS_BEGIN_SUITE(TestSerialization);
   RRLIB_UNIT_TESTS_ADD_TEST(TestXMLMap);
   RRLIB_UNIT_TESTS_ADD_TEST(TestBinaryMap);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestEnumsBinary);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestEnumsString);
   RRLIB_UNIT_TESTS_END_SUITE;
 
 private:
@@ -129,7 +132,38 @@ private:
     RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Zero"), other_map[0]);
     RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("One"), other_map[1]);
     RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Two"), other_map[2]);
+  }
 
+  void TestEnumsBinary()
+  {
+    // serialize to memory
+    rrlib::serialization::tMemoryBuffer mb;
+    rrlib::serialization::tOutputStream os(mb);
+    os << tEnumSigned::MIN_VALUE << tEnumSigned::MAX_VALUE;
+    os << tEnumUnsigned::MIN_VALUE << tEnumUnsigned::MAX_VALUE;
+    os.Close();
+
+    // deserialize
+    tEnumSigned min_signed, max_signed;
+    tEnumUnsigned min_unsigned, max_unsigned;
+    rrlib::serialization::tInputStream is(mb);
+    is >> min_signed >> max_signed >> min_unsigned >> max_unsigned;
+    RRLIB_UNIT_TESTS_ASSERT(min_signed == tEnumSigned::MIN_VALUE);
+    RRLIB_UNIT_TESTS_ASSERT(max_signed == tEnumSigned::MAX_VALUE);
+    RRLIB_UNIT_TESTS_ASSERT(min_unsigned == tEnumUnsigned::MIN_VALUE);
+    RRLIB_UNIT_TESTS_ASSERT(max_unsigned == tEnumUnsigned::MAX_VALUE);
+  }
+
+  void TestEnumsString()
+  {
+    RRLIB_UNIT_TESTS_ASSERT(tEnumSigned::MIN_VALUE == Deserialize<tEnumSigned>(Serialize(tEnumSigned::MIN_VALUE)));
+    RRLIB_UNIT_TESTS_ASSERT(tEnumSigned::MAX_VALUE == Deserialize<tEnumSigned>(Serialize(tEnumSigned::MAX_VALUE)));
+    RRLIB_UNIT_TESTS_ASSERT(tEnumUnsigned::MIN_VALUE == Deserialize<tEnumUnsigned>(Serialize(tEnumUnsigned::MIN_VALUE)));
+    RRLIB_UNIT_TESTS_ASSERT(tEnumUnsigned::MAX_VALUE == Deserialize<tEnumUnsigned>(Serialize(tEnumUnsigned::MAX_VALUE)));
+
+    // produce warning messages
+    RRLIB_UNIT_TESTS_ASSERT(tEnumSigned::MIN_VALUE == Deserialize<tEnumSigned>("Invalid string for testing ignore warning (" + std::to_string(std::numeric_limits<int64_t>::min()) + ")"));
+    RRLIB_UNIT_TESTS_ASSERT(tEnumUnsigned::MAX_VALUE == Deserialize<tEnumUnsigned>("Invalid string for testing ignore warning (" + std::to_string(std::numeric_limits<uint64_t>::max()) + ")"));
   }
 
 };

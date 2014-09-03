@@ -341,28 +341,54 @@ public:
    * \param e Enum constant to serialize
    */
   template <typename ENUM>
-  inline void WriteEnum(ENUM e)
+  void WriteEnum(ENUM e)
   {
+    // could be added if ever needed
+    /*#ifndef _LIB_ENUM_STRINGS_PRESENT_
+        static_assert(sizeof(ENUM) <= 8, "Unexpected size of enum constants");
+        if (sizeof(ENUM) <= 4)
+        {
+          WriteInt((int)e);
+        }
+        else
+        {
+          WriteLong((int64_t)e);
+        }
+    #endif*/
 
-#ifndef _LIB_ENUM_STRINGS_PRESENT_
-    WriteInt((int)e);
-    return;
-#endif
-
-    size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
+    const make_builder::internal::tEnumStrings& enum_strings = make_builder::internal::GetEnumStrings<ENUM>();
+    size_t enum_strings_dimension = enum_strings.size;
+    size_t enum_index = static_cast<size_t>(e);
+    if (enum_strings.non_standard_values)
+    {
+      bool found = false;
+      for (size_t i = 0; i < enum_strings_dimension; i++)
+      {
+        if (e == static_cast<const ENUM*>(enum_strings.non_standard_values)[i])
+        {
+          enum_index = i;
+          found = true;
+          break;
+        }
+      }
+      if (!found)
+      {
+        throw std::runtime_error("Invalid enum value");
+      }
+    }
 
     if (enum_strings_dimension <= 0x100)
     {
-      WriteByte((int8_t)e);
+      WriteByte((int8_t)enum_index);
     }
-    else if (enum_strings_dimension <= 0x1000)
+    else if (enum_strings_dimension <= 0x10000)
     {
-      WriteShort((int16_t)e);
+      WriteShort((int16_t)enum_index);
     }
     else
     {
-      assert(enum_strings_dimension < 0x7FFFFFFF && "What?");
-      WriteInt((int)e);
+      assert(enum_strings_dimension < 0x7FFFFFFF);
+      WriteInt((int)enum_index);
     }
   }
 
