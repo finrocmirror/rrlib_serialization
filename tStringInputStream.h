@@ -149,7 +149,7 @@ public:
       }
     }
 
-#ifdef _LIB_ENUM_STRINGS_PRESENT_
+//#ifdef _LIB_ENUM_STRINGS_PRESENT_
     // deal with input
     if (enum_string.length() > 0)
     {
@@ -162,20 +162,33 @@ public:
         RRLIB_LOG_PRINTF(WARNING, "Could not find enum constant for string '%s'. Trying number '%s'", enum_string.c_str(), num_string.c_str());
       }
     }
-#endif
+//#endif
 
     if (num_string.length() > 0)
     {
-      int n = atoi(num_string.c_str());
+      uint64_t n = num_string[0] == '-' ? static_cast<uint64_t>(std::stoll(num_string)) : std::stoull(num_string);
 
-#ifdef _LIB_ENUM_STRINGS_PRESENT_
-      size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
-      if (n >= static_cast<int64_t>(enum_strings_dimension))
+//#ifdef _LIB_ENUM_STRINGS_PRESENT_
+      const make_builder::internal::tEnumStrings& enum_strings = make_builder::internal::GetEnumStrings<ENUM>();
+
+      // check whether number is valid
+      if (enum_strings.non_standard_values)
       {
-        RRLIB_LOG_PRINTF(ERROR, "Number %d out of range for enum (%zu)", n, enum_strings_dimension);
+        for (size_t i = 0; i < enum_strings.size; i++)
+        {
+          if (static_cast<ENUM>(n) == static_cast<const ENUM*>(enum_strings.non_standard_values)[i])
+          {
+            return static_cast<ENUM>(n);
+          }
+        }
+        throw std::runtime_error("Number not a valid enum constant");
+      }
+      else if (n >= enum_strings.size)
+      {
+        RRLIB_LOG_PRINT(ERROR, "Number ", n, " out of range for enum (", enum_strings.size, ")");
         throw std::invalid_argument("Number out of range");
       }
-#endif
+//#endif
 
       return static_cast<ENUM>(n);
     }

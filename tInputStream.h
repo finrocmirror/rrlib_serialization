@@ -202,27 +202,46 @@ public:
    * \return Enum value
    */
   template <typename ENUM>
-  inline ENUM ReadEnum()
+  ENUM ReadEnum()
   {
+    // could be added if ever needed
+    /*#ifndef _LIB_ENUM_STRINGS_PRESENT_
+        static_assert(sizeof(ENUM) <= 8, "Unexpected size of enum constants");
+        if (sizeof(ENUM) <= 4)
+        {
+          return static_cast<ENUM>(ReadInt());
+        }
+        else
+        {
+          return static_cast<ENUM>(ReadLong());
+        }
+    #endif*/
 
-#ifndef _LIB_ENUM_STRINGS_PRESENT_
-    return static_cast<ENUM>(ReadInt());
-#endif
-
-    size_t enum_strings_dimension = make_builder::GetEnumStringsDimension<ENUM>();
-
+    const make_builder::internal::tEnumStrings& enum_strings = make_builder::internal::GetEnumStrings<ENUM>();
+    size_t enum_strings_dimension = enum_strings.size;
+    size_t enum_index = 0;
     if (enum_strings_dimension <= 0x100)
     {
-      return static_cast<ENUM>(ReadByte());
+      enum_index = ReadByte();
     }
-
-    if (enum_strings_dimension <= 0x1000)
+    else if (enum_strings_dimension <= 0x10000)
     {
-      return static_cast<ENUM>(ReadShort());
+      enum_index = ReadShort();
     }
-
-    assert(enum_strings_dimension < 0x7FFFFFFF && "What?");
-    return static_cast<ENUM>(ReadInt());
+    else
+    {
+      assert(enum_strings_dimension < 0x7FFFFFFF);
+      enum_index = ReadInt();
+    }
+    if (enum_index > enum_strings.size)
+    {
+      throw std::runtime_error("Received invalid enum value");
+    }
+    if (enum_strings.non_standard_values)
+    {
+      return static_cast<ENUM>(static_cast<const ENUM*>(enum_strings.non_standard_values)[enum_index]);
+    }
+    return static_cast<ENUM>(enum_index);
   }
 
   /*!

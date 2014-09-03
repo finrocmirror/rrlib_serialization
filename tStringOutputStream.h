@@ -237,7 +237,7 @@ inline tStringOutputStream& operator<< (typename std::enable_if<std::is_enum<ENU
   }
 #endif
 
-  stream.GetWrappedStringStream() << "(" << static_cast<int>(t) << ")";
+  stream.GetWrappedStringStream() << "(" << static_cast<typename std::underlying_type<ENUM>::type>(t) << ")";
   return stream;
 }
 

@@ -128,6 +128,10 @@ public:
 struct DefaultImplementation
 {};
 
+/*! Standard implementation of DefaultInstantiation type trait below */
+template <typename T, bool ENUM>
+struct StandardDefaultInstantiation;
+
 /*!
  * Type trait that defines how an object of type T can be instantiated
  * This type trait can be specialized for classes that do not have a default constructor
@@ -135,7 +139,11 @@ struct DefaultImplementation
  * rrlib_rtti can perform generic instantation.
  */
 template <typename T>
-struct DefaultInstantiation : public DefaultImplementation
+struct DefaultInstantiation : public StandardDefaultInstantiation<T, std::is_enum<T>::value>
+{};
+
+template <typename T, bool ENUM>
+struct StandardDefaultInstantiation : public DefaultImplementation
 {
   /*!
    * Creates a new object of type T.
@@ -146,6 +154,25 @@ struct DefaultInstantiation : public DefaultImplementation
     return T();
   }
 };
+
+template <typename T>
+struct StandardDefaultInstantiation<T, true>
+{
+  /*!
+   * Creates a new object of type T.
+   * (More precisely: Returns first constructor argument for creating an object of type T)
+   */
+  static T Create()
+  {
+    const make_builder::internal::tEnumStrings& enum_strings = make_builder::internal::GetEnumStrings<T>();
+    if (enum_strings.non_standard_values)
+    {
+      return static_cast<const T*>(enum_strings.non_standard_values)[0];
+    }
+    return T();
+  }
+};
+
 
 /*!
  * Type trait that defines whether type T is a serializable container type.
