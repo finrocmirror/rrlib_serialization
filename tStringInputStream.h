@@ -166,7 +166,7 @@ public:
 
     if (num_string.length() > 0)
     {
-      uint64_t n = num_string[0] == '-' ? static_cast<uint64_t>(std::stoll(num_string)) : std::stoull(num_string);
+      uint64_t n = num_string[0] == '-' ? static_cast<uint64_t>(std::strtoll(num_string.c_str(), nullptr, 10)) : std::strtoull(num_string.c_str(), nullptr, 10);
 
 //#ifdef _LIB_ENUM_STRINGS_PRESENT_
       const make_builder::internal::tEnumStrings& enum_strings = make_builder::internal::GetEnumStrings<ENUM>();
