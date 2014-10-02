@@ -161,8 +161,8 @@ public:
   virtual void Seek(tInputStream& input_stream, tBufferInfo& buffer, uint64_t position) const = 0;
 
   /*!
-    * \return Does source support seeking?
-    */
+   * \return Does source support seeking?
+   */
   virtual bool SeekSupport() const = 0;
 };
 
