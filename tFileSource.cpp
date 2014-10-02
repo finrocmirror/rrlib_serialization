@@ -164,6 +164,22 @@ void tFileSource::Reset(tInputStream& input_stream, tBufferInfo& buffer)
   buffer.SetRange(0u, 0u);
 
 }
+
+void tFileSource::Seek(tInputStream& input_stream, tBufferInfo& buffer, uint64_t position)
+{
+  ifstream.seekg(position);
+
+  buffer.buffer = &backend;
+  buffer.position = 0u;
+  buffer.SetRange(0u, 0u);
+
+}
+
+bool tFileSource::SeekSupport()
+{
+  return true;
+}
+
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------

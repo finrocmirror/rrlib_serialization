@@ -109,6 +109,7 @@ private:
    *
    * \param input_stream tInputStream that requests fetch operation.
    * \param buffer Buffer to copy data to (buffer provided and managed by client)
+   * \param offset Offset in provided buffer
    * \param len Minimum number of bytes to read
    */
   virtual void DirectRead(tInputStream& input_stream, tFixedBuffer& buffer, size_t offset, size_t len = 0) override;
@@ -154,6 +155,8 @@ private:
    */
   virtual void Reset(tInputStream& input_stream, tBufferInfo& buffer) override;
 
+  virtual void Seek(tInputStream& input_stream, tBufferInfo& buffer, uint64_t position) override;
+  virtual bool SeekSupport() override;
 
 //----------------------------------------------------------------------
 // Private fields and methods

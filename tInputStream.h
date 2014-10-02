@@ -416,6 +416,16 @@ public:
   void Reset(tSource& source);
 
   /*!
+   * Seek to specified absolute position in the stream
+   * If the underlying source does not support seeking,
+   * forward seeks will be emulated using Skip() (which may be very slow)
+   * and backward seeks throw a std::runtime_error.
+   *
+   * \param position the absolute position in the stream
+   */
+  void Seek(int64_t position);
+
+  /*!
    * \param timeout for blocking calls (<= 0 when disabled)
    */
   inline void SetTimeout(const rrlib::time::tDuration& timeout)

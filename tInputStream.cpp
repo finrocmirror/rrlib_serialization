@@ -346,6 +346,36 @@ void tInputStream::Reset(tSource& source)
   Reset();
 }
 
+void tInputStream::Seek(int64_t position)
+{
+  int64_t offset = position - this->absolute_read_pos;
+  if (source->SeekSupport())
+  {
+    if (offset >= 0 && offset < this->cur_buffer->Capacity())
+    {
+      // goal position lies in the current buffer, read it from there
+      this->cur_buffer->position = this->cur_buffer->start + offset;
+    }
+    else
+    {
+      // need to seek the source
+      source->Seek(*this, source_buffer, position);
+      this->cur_buffer = &source_buffer;
+    }
+  }
+  else
+  {
+    if (offset > 0)
+    {
+      this->Skip(offset);
+    }
+    else
+    {
+      throw std::runtime_error("Cannot seek backwards in stream");
+    }
+  }
+}
+
 void tInputStream::Skip(size_t n)
 {
   while (true)

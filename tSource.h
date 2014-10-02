@@ -143,6 +143,20 @@ public:
    */
   virtual void Reset(tInputStream& input_stream, tBufferInfo& buffer) = 0;
 
+  /*!
+   * Seek to specified absolute position in the file
+   *
+   * \param input_stream tInputStream that requests fetch operation.
+   * \param buffer BufferInfo object that contains result of read operation (buffer managed by Source)
+   * \param position the absolute position
+   */
+  virtual void Seek(tInputStream& input_stream, tBufferInfo& buffer, uint64_t position) = 0;
+
+  /*!
+    * \return Does source support seeking?
+    */
+  virtual bool SeekSupport() = 0;
+
 };
 
 //----------------------------------------------------------------------
