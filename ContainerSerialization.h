@@ -109,6 +109,91 @@ struct ContainerResize<T, false>
 };
 
 /*!
+ * Helper class for ContainerSerializationDefault
+ * (allows different deserialization implementation for sets)
+ */
+template <typename T, bool CONTAINER_HAS_CONST_ELEMENTS>
+struct ContainerDeserializationDefaulImplementation
+{
+  template <typename TContainer>
+  static void Deserialize(tInputStream& stream, TContainer& container)
+  {
+    size_t size = stream.ReadInt();
+    bool const_type = stream.ReadBoolean();
+    if (!const_type)
+    {
+      throw std::runtime_error("Only const type deserialization is supported");
+    }
+    ContainerResize<T>::Resize(container, size);
+    for (auto it = container.begin(); it != container.end(); it++)
+    {
+      stream >> *it;
+    }
+  }
+
+#ifdef _LIB_RRLIB_XML_PRESENT_
+  template <typename TContainer>
+  static void Deserialize(const xml::tNode& node, TContainer& container)
+  {
+    // Count elements first and resize (=> possibly less memory allocations)
+    size_t count = 0;
+    for (auto it = node.ChildrenBegin(); it != node.ChildrenEnd(); ++it)
+    {
+      count++;
+    }
+    ContainerResize<T>::Resize(container, count);
+
+    // Deserialize
+    count = 0;
+    for (auto it = node.ChildrenBegin(); it != node.ChildrenEnd(); ++it)
+    {
+      (*it) >> container[count];
+      count++;
+    }
+  }
+#endif
+};
+
+template <typename T>
+struct ContainerDeserializationDefaulImplementation<T, true>
+{
+  template <typename TContainer>
+  static void Deserialize(tInputStream& stream, TContainer& container)
+  {
+    size_t size = stream.ReadInt();
+    bool const_type = stream.ReadBoolean();
+    if (!const_type)
+    {
+      throw std::runtime_error("Only const type deserialization is supported");
+    }
+    container.clear();
+    for (size_t i = 0; i < size; i++)
+    {
+      T next_element(DefaultInstantiation<T>::Create());
+      stream >> next_element;
+      container.emplace(std::move(next_element));
+    }
+  }
+
+#ifdef _LIB_RRLIB_XML_PRESENT_
+  template <typename TContainer>
+  static void Deserialize(const xml::tNode& node, TContainer& container)
+  {
+    container.clear();
+
+    // Deserialize
+    for (auto it = node.ChildrenBegin(); it != node.ChildrenEnd(); ++it)
+    {
+      T next_element(DefaultInstantiation<T>::Create());
+      (*it) >> next_element;
+      container.emplace(std::move(next_element));
+    }
+  }
+#endif
+};
+
+
+/*!
  * Base class with default implementation.
  * Is a base class so that specializations may conveniently reuse parts of it.
  */
@@ -139,17 +224,7 @@ struct ContainerSerializationDefault
   template <typename TContainer>
   static void Deserialize(tInputStream& stream, TContainer& container)
   {
-    size_t size = stream.ReadInt();
-    bool const_type = stream.ReadBoolean();
-    if (!const_type)
-    {
-      throw std::runtime_error("Only const type deserialization is supported");
-    }
-    ContainerResize<T>::Resize(container, size);
-    for (auto it = container.begin(); it != container.end(); it++)
-    {
-      stream >> *it;
-    }
+    ContainerDeserializationDefaulImplementation<T, IsConstElementContainer<TContainer>::value>::Deserialize(stream, container);
   }
 
   template <typename TMap>
@@ -192,21 +267,7 @@ struct ContainerSerializationDefault
   template <typename TContainer>
   static void Deserialize(const xml::tNode& node, TContainer& container)
   {
-    // Count elements first and resize (=> possibly less memory allocations)
-    size_t count = 0;
-    for (auto it = node.ChildrenBegin(); it != node.ChildrenEnd(); ++it)
-    {
-      count++;
-    }
-    ContainerResize<T>::Resize(container, count);
-
-    // Deserialize
-    count = 0;
-    for (auto it = node.ChildrenBegin(); it != node.ChildrenEnd(); ++it)
-    {
-      (*it) >> container[count];
-      count++;
-    }
+    ContainerDeserializationDefaulImplementation<T, IsConstElementContainer<TContainer>::value>::Deserialize(node, container);
   }
 
   template <typename TMap>

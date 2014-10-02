@@ -185,15 +185,16 @@ struct StandardDefaultInstantiation<T, true>
 template <typename T>
 class IsSerializableContainer
 {
+
   template <typename U>
   static U &Make();
 
   template <typename U = T>
-  static typename std::remove_reference<decltype(*Make<U>().begin())>::type TestBegin(void*);
+  static typename std::remove_const<typename std::remove_reference<decltype(*Make<U>().begin())>::type>::type TestBegin(void*);
   static void TestBegin(...);
 
   template <typename U = T>
-  static typename std::remove_reference<decltype(*Make<U>().end())>::type TestEnd(void*);
+  static typename std::remove_const<typename std::remove_reference<decltype(*Make<U>().end())>::type>::type TestEnd(void*);
   static void TestEnd(...);
 
   template <typename U = T>
@@ -248,6 +249,24 @@ public:
   enum { value = (!std::is_same<tMapped, void>::value) && IsSerializableContainer<T>::value };
 };
 
+/*!
+ * Type trait that checks whether T is a container with constant elements (such as std::set)
+ */
+template <typename T>
+class IsConstElementContainer
+{
+  template <typename U>
+  static U &Make();
+
+  template <typename U = T>
+  static typename std::remove_reference<decltype(*Make<U>().begin())>::type TestBegin(void*);
+  static void TestBegin(...);
+
+public:
+
+  enum { value = std::is_const<decltype(TestBegin(nullptr))>::value };
+};
+
 
 // Some type trait tests
 static_assert(IsSerializableContainer<int>::value == false, "Incorrect trait implementation");
@@ -256,6 +275,7 @@ static_assert(IsSerializableContainer<std::vector<bool>>::value == true, "Incorr
 static_assert(IsSerializableContainer<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
 static_assert(IsSerializableMap<std::vector<int>>::value == false, "Incorrect trait implementation");
 static_assert(IsSerializableMap<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
+static_assert(IsConstElementContainer<std::vector<std::string>>::value == false, "Incorrect trait implementation");
 
 static_assert(IsStringSerializable<bool>::value, "Incorrect trait implementation");
 static_assert(!IsStringSerializable<std::vector<bool>>::value, "Incorrect trait implementation");
