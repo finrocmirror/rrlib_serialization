@@ -349,7 +349,7 @@ void tInputStream::Reset(tSource& source)
 void tInputStream::Seek(int64_t position)
 {
   int64_t offset = position - this->absolute_read_pos;
-  if (source->SeekSupport())
+  if ((source && source->SeekSupport()) || (const_source && const_source->SeekSupport()))
   {
     if (offset >= 0 && offset < this->cur_buffer->Capacity())
     {
@@ -359,7 +359,14 @@ void tInputStream::Seek(int64_t position)
     else
     {
       // need to seek the source
-      source->Seek(*this, source_buffer, position);
+      if (source)
+      {
+        source->Seek(*this, source_buffer, position);
+      }
+      else
+      {
+        const_source->Seek(*this, source_buffer, position);
+      }
       this->cur_buffer = &source_buffer;
     }
   }

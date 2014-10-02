@@ -417,9 +417,13 @@ public:
 
   /*!
    * Seek to specified absolute position in the stream
+   *
    * If the underlying source does not support seeking,
    * forward seeks will be emulated using Skip() (which may be very slow)
    * and backward seeks throw a std::runtime_error.
+   *
+   * If seeking fails (e.g. invalid position), the underlying source
+   * throws an exception (the exception type is source-specific).
    *
    * \param position the absolute position in the stream
    */

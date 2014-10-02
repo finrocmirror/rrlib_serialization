@@ -304,6 +304,13 @@ private:
 
   virtual void Reset(tOutputStream& output_stream_buffer, tBufferInfo& buffer) override;
 
+  virtual void Seek(tInputStream& input_stream, tBufferInfo& buffer, uint64_t position) const override;
+
+  virtual bool SeekSupport() const override
+  {
+    return true;
+  }
+
   virtual bool Write(tOutputStream& output_stream_buffer, tBufferInfo& buffer, int hint) override;
 };
 

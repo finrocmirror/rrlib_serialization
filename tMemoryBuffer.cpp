@@ -178,6 +178,12 @@ void tMemoryBuffer::Reset(tOutputStream& output_stream_buffer, tBufferInfo& buff
   buffer.SetRange(0u, backend.Capacity());
 }
 
+void tMemoryBuffer::Seek(tInputStream& input_stream, tBufferInfo& buffer, uint64_t position) const
+{
+  // Since the input stream has the complete buffer, seeking can only occur out of range
+  throw std::out_of_range("Position out of range: " + std::to_string(position));
+}
+
 bool tMemoryBuffer::Write(tOutputStream& output_stream_buffer, tBufferInfo& buffer, int hint)
 {
   // do we need size increase?
