@@ -34,6 +34,7 @@
 //----------------------------------------------------------------------
 #include <cstdlib>
 #include <iostream>
+#include <set>
 
 #include "rrlib/util/tUnitTestSuite.h"
 
@@ -62,6 +63,10 @@ namespace rrlib
 {
 namespace serialization
 {
+
+// We check this here so that not all programs using rrlib_serialization include <set> by default
+static_assert(IsSerializableContainer<std::set<std::string>>::value == true, "Incorrect trait implementation");
+static_assert(IsConstElementContainer<std::set<std::string>>::value == true, "Incorrect trait implementation");
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
