@@ -22,6 +22,7 @@
 /*!\file    serialization.cpp
  *
  * \author  Michael Arndt
+ * \author  Max Reichardt
  *
  * \date    2014-03-17
  *
@@ -85,9 +86,11 @@ class TestSerialization : public util::tUnitTestSuite
   RRLIB_UNIT_TESTS_BEGIN_SUITE(TestSerialization);
   RRLIB_UNIT_TESTS_ADD_TEST(TestXMLMap);
   RRLIB_UNIT_TESTS_ADD_TEST(TestBinaryMap);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestBinarySet);
   RRLIB_UNIT_TESTS_ADD_TEST(TestEnumsBinary);
   RRLIB_UNIT_TESTS_ADD_TEST(TestEnumsString);
   RRLIB_UNIT_TESTS_END_SUITE;
+
 
 private:
 
@@ -139,6 +142,21 @@ private:
     RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Value to key must be correct", std::string("Two"), other_map[2]);
   }
 
+  void TestBinarySet()
+  {
+    std::set<std::string> set;
+    set.emplace("Zero");
+    set.emplace("One");
+    set.emplace("Two");
+
+    std::set<std::string> other_set = TestBinarySerialization(set);
+
+    RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("There must be the correct number of elements in the set", (size_t) 3, other_set.size());
+    RRLIB_UNIT_TESTS_ASSERT_MESSAGE("Set must contain the element", other_set.find("Zero") != other_set.end());
+    RRLIB_UNIT_TESTS_ASSERT_MESSAGE("Set must contain the element", other_set.find("One") != other_set.end());
+    RRLIB_UNIT_TESTS_ASSERT_MESSAGE("Set must contain the element", other_set.find("Two") != other_set.end());
+  }
+
   void TestEnumsBinary()
   {
     // serialize to memory
@@ -169,6 +187,36 @@ private:
     // produce warning messages
     RRLIB_UNIT_TESTS_ASSERT(tEnumSigned::MIN_VALUE == Deserialize<tEnumSigned>("Invalid string for testing ignore warning (" + std::to_string(std::numeric_limits<int64_t>::min()) + ")"));
     RRLIB_UNIT_TESTS_ASSERT(tEnumUnsigned::MAX_VALUE == Deserialize<tEnumUnsigned>("Invalid string for testing ignore warning (" + std::to_string(std::numeric_limits<uint64_t>::max()) + ")"));
+  }
+
+  /*!
+   * Helper method for testing binary serialization for an object of type T
+   *
+   * \param value Object of type T
+   * \return Object created from deserializing the serialized object passed to this function
+   */
+  template <typename T, size_t Texpected_size = 0>
+  T TestBinarySerialization(const T &value)
+  {
+    // serialize to memory
+    rrlib::serialization::tMemoryBuffer mb;
+    rrlib::serialization::tOutputStream os(mb);
+
+    os << value;
+    os.Close();
+
+    if (Texpected_size > 0)
+    {
+      RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Serialized size must be correct", Texpected_size, mb.GetSize());
+    }
+
+    // deserialize to original type
+    rrlib::serialization::tInputStream is(mb);
+    T val;
+    is >> val;
+    RRLIB_UNIT_TESTS_ASSERT_MESSAGE("After de-serializing to original type, value must be correct", value == val);
+    //RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("After de-serializing to original type, value must be correct", value, val);
+    return val;
   }
 
 };
