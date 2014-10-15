@@ -88,8 +88,9 @@ public:
   /**
    * Create a new file source for the specified file
    * \param file_path path to the file
+   * \param buffer_size the size of the internal buffer
    */
-  tFileSource(const std::string &file_path);
+  tFileSource(const std::string &file_path, size_t buffer_size = 8192);
 
 private:
 

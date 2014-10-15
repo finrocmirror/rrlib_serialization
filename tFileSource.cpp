@@ -71,8 +71,8 @@ namespace serialization
 //----------------------------------------------------------------------
 // tFileSource constructors
 //----------------------------------------------------------------------
-tFileSource::tFileSource(const std::string &file_path) : tSource(), file_path(file_path),
-  backend(1024)
+tFileSource::tFileSource(const std::string &file_path, size_t buffer_size) : tSource(), file_path(file_path),
+  backend(buffer_size)
 {
   ifstream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 }
@@ -86,13 +86,27 @@ void tFileSource::Close(tInputStream& input_stream, tBufferInfo& buffer)
   }
 }
 
+/*!
+ * (Optional operation)
+ * Fetch next bytes for reading - and copy them directly to target buffer.
+ *
+ * \param input_stream tInputStream that requests fetch operation.
+ * \param buffer Buffer to copy data to (buffer provided and managed by client)
+ * \param offset Offset in provided buffer
+ * \param len Number of bytes to read
+ */
 void tFileSource::DirectRead(tInputStream& input_stream, tFixedBuffer& buffer, size_t offset, size_t len)
 {
+  // this may block
+  ifstream.read(buffer.GetPointer() + offset, len);
+  std::streamsize read = ifstream.gcount();
+
+  RRLIB_LOG_PRINT(DEBUG_VERBOSE_1, "Read ", read, " bytes (", len, " bytes requested)");
 }
 
 bool tFileSource::DirectReadSupport() const
 {
-  return false;
+  return true;
 }
 
 /*!
@@ -128,13 +142,17 @@ bool tFileSource::MoreDataAvailable(tInputStream& input_stream, tBufferInfo& buf
  */
 void tFileSource::Read(tInputStream& input_stream, tBufferInfo& buffer, size_t len)
 {
-  ifstream.read(backend.GetPointer(), len);
-  std::streamsize read = ifstream.gcount();
+  std::streamsize read = ifstream.readsome(backend.GetPointer(), buffer.buffer->Capacity());
+  while (len > 0 && read < static_cast<std::streamsize>(len))
+  {
+    // this may block
+    ifstream.read(backend.GetPointer() + read, len - read);
+    read += ifstream.gcount();
+  }
   buffer.position = 0;
 
-  buffer.SetRange(0u, read);
-  RRLIB_LOG_PRINT(DEBUG_VERBOSE_1, "Read ", read, " bytes (", len, " bytes requested)");
-
+  buffer.SetRange(0, read);
+  RRLIB_LOG_PRINT(DEBUG_VERBOSE_1, "Read ", read, " bytes (", len, " bytes requested), buffer capacity (max possible): ", buffer.buffer->Capacity());
 }
 
 /*!
