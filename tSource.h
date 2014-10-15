@@ -95,10 +95,11 @@ public:
   /*!
    * (Optional operation)
    * Fetch next bytes for reading - and copy them directly to target buffer.
+   * This operation may block.
    *
    * \param input_stream tInputStream that requests fetch operation.
    * \param buffer Buffer to copy data to (buffer provided and managed by client)
-   * \param len Minimum number of bytes to read
+   * \param len Number of bytes to read
    */
   virtual void DirectRead(tInputStream& input_stream, tFixedBuffer& buffer, size_t offset, size_t len = 0) = 0;
 
