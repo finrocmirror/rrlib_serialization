@@ -159,6 +159,12 @@ private:
 
   void TestEnumsBinary()
   {
+    if (!make_builder::internal::GetEnumStrings<tEnumSigned>().non_standard_values)
+    {
+      RRLIB_LOG_PRINT(WARNING, "No enum values are available. They are only available when using the clang plugin for generating enum strings - instead of doxygen (which is deprecated). Skipping test.");
+      return;
+    }
+
     // serialize to memory
     rrlib::serialization::tMemoryBuffer mb;
     rrlib::serialization::tOutputStream os(mb);
@@ -179,6 +185,12 @@ private:
 
   void TestEnumsString()
   {
+    if (!make_builder::internal::GetEnumStrings<tEnumSigned>().non_standard_values)
+    {
+      RRLIB_LOG_PRINT(WARNING, "No enum values are available. They are only available when using the clang plugin for generating enum strings - instead of doxygen (which is deprecated). Skipping test.");
+      return;
+    }
+
     RRLIB_UNIT_TESTS_ASSERT(tEnumSigned::MIN_VALUE == Deserialize<tEnumSigned>(Serialize(tEnumSigned::MIN_VALUE)));
     RRLIB_UNIT_TESTS_ASSERT(tEnumSigned::MAX_VALUE == Deserialize<tEnumSigned>(Serialize(tEnumSigned::MAX_VALUE)));
     RRLIB_UNIT_TESTS_ASSERT(tEnumUnsigned::MIN_VALUE == Deserialize<tEnumUnsigned>(Serialize(tEnumUnsigned::MIN_VALUE)));
