@@ -80,18 +80,18 @@ const int cSTACK_BUFFERS_SIZE = 65536;
 /*!
  * Converts binary to hex string
  *
- * \param src Input stream that contains binary data
- * \param co Output stream to write hex string to
+ * \param binary_input_stream Input stream that contains binary data
+ * \param string_output_stream Output stream to write hex string to
  */
-void ConvertBinaryToHexString(tInputStream& src, tStringOutputStream& os);
+void ConvertBinaryToHexString(tInputStream& binary_input_stream, tStringOutputStream& string_output_stream);
 
 /*!
  * Converts hex string from StringInputStream to binary
  *
- * \param src Input stream that contains hex string
- * \param co Output stream to write binary data to
+ * \param string_input_stream Input stream that contains hex string
+ * \param binary_output_stream Output stream to write binary data to
  */
-void ConvertHexStringToBinary(tStringInputStream& src, tOutputStream& co);
+void ConvertHexStringToBinary(tStringInputStream& string_input_stream, tOutputStream& binary_output_stream);
 
 /*!
  * Deserializes string stream serializable from string
@@ -137,8 +137,8 @@ void Deserialize(const xml::tNode& node, T& t)
  * Deserialize data from binary input stream - possibly using non-binary encoding.
  * If selected type of serialization is not supported, an error will be printed at runtime.
  *
- * \param is Binary input stream
- * \param s Object to deserialize
+ * \param stream Binary input stream
+ * \param t Object to deserialize
  * \param enc Encoding to use
  */
 template <typename T>
@@ -231,7 +231,7 @@ bool SerializationEquals(const T& o1, const T& o2)
  * Serializes string stream serializable object to string
  * (convenience function)
  *
- * \param cs Serializable
+ * \param t Object to serialize
  * \return String
  */
 template < typename T, bool ENABLE = (!std::is_base_of<rtti::tGenericObject, T>::value) >
@@ -270,8 +270,8 @@ void Serialize(xml::tNode& node, const T& t)
  * Serialize data to binary output stream - possibly using non-binary encoding.
  * If selected type of serialization is not supported, an error will be printed at runtime.
  *
- * \param os Binary output stream
- * \param s Object to serialize
+ * \param stream Binary output stream
+ * \param t Object to serialize
  * \param enc Encoding to use
  */
 template <typename T>

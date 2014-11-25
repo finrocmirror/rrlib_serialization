@@ -132,10 +132,10 @@ struct tBufferInfo
    * \param start Start position (inclusive)
    * \param end End position (exclusive
    */
-  inline void SetRange(size_t start_, size_t end_)
+  inline void SetRange(size_t start, size_t end)
   {
-    this->start = start_;
-    this->end = end_;
+    this->start = start;
+    this->end = end;
   }
 
 };

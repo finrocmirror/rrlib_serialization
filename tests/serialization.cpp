@@ -19,7 +19,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    serialization.cpp
+/*!\file    rrlib/serialization/tests/serialization.cpp
  *
  * \author  Michael Arndt
  * \author  Max Reichardt

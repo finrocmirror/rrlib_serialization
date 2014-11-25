@@ -31,11 +31,13 @@
  *
  * Binary input stream.
  *
- * Reads data from a source.
+ * Reads binary data from a source.
  * This can be a file, memory block, network stream etc.
  * The source manages the memory blocks the stream operates on.
  *
  * Implementation is reasonably efficient and flexible.
+ *
+ * The input stream takes care of endianness for all reads of integral types.
  *
  */
 //----------------------------------------------------------------------
@@ -83,9 +85,7 @@ class IsSerializableMap;
 //----------------------------------------------------------------------
 //! Binary input stream
 /*!
- * Binary input stream.
- *
- * Reads data from a source.
+ * Reads binary data from a source.
  * This can be a file, memory block, network stream etc.
  * The source manages the memory blocks the stream operates on.
  *
@@ -102,30 +102,54 @@ class tInputStream : private util::tNoncopyable
 public:
 
   /*!
-   * \param encoding Encoding to use for data types
-   * \param encoder Custom type encoder to use for data type encoding
-   * \param source Source to read from. If not set, Reset() with a source needs to be called, before data can be read.
+   * \param source Source to read from
+   * \param encoding Data type encoding to use when data types from rrlib::rtti are deserialized (optional)
    */
-  tInputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-  tInputStream(tTypeEncoder& encoder) : tInputStream(tTypeEncoding::CUSTOM)
-  {
-    custom_encoder = &encoder;
-  }
   tInputStream(tSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tInputStream(encoding)
   {
     Reset(source);
   }
+
+  /*!
+   * \param source Source to read from
+   * \param encoder Custom type encoder to use when data types from rrlib::rtti are deserialized
+   */
   tInputStream(tSource& source, tTypeEncoder& encoder) : tInputStream(encoder)
   {
     Reset(source);
   }
+
+  /*!
+   * \copydoc tInputStream::tInputStream(tSource&,tTypeEncoding)
+   */
   tInputStream(const tConstSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tInputStream(encoding)
   {
     Reset(source);
   }
+
+  /*!
+   * \copydoc tInputStream::tInputStream(tSource&,tTypeEncoder&)
+   */
   tInputStream(const tConstSource& source, tTypeEncoder& encoder) : tInputStream(encoder)
   {
     Reset(source);
+  }
+
+  /*!
+   * Note: Reset() with a source needs to be called, before data can be read.
+   *
+   * \param encoding Data type encoding to use when data types from rrlib::rtti are deserialized (optional)
+   */
+  tInputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
+
+  /*!
+   * Note: Reset() with a source needs to be called, before data can be read.
+   *
+   * \param encoder Custom type encoder to use when data types from rrlib::rtti are deserialized
+   */
+  tInputStream(tTypeEncoder& encoder) : tInputStream(tTypeEncoding::CUSTOM)
+  {
+    custom_encoder = &encoder;
   }
 
   ~tInputStream()
@@ -264,21 +288,21 @@ public:
   /*!
    * Fill destination buffer (complete buffer)
    *
-   * \param bb destination buffer
+   * \param buffer destination buffer
    */
-  inline void ReadFully(tFixedBuffer& bb)
+  inline void ReadFully(tFixedBuffer& buffer)
   {
-    ReadFully(bb, 0u, bb.Capacity());
+    ReadFully(buffer, 0u, buffer.Capacity());
   }
 
   /*!
    * Fill destination buffer
    *
-   * \param bb destination buffer
+   * \param buffer destination buffer
    * \param offset offset in buffer
-   * \param len number of bytes to copy
+   * \param length number of bytes to copy
    */
-  void ReadFully(tFixedBuffer& bb, size_t off, size_t len);
+  void ReadFully(tFixedBuffer& buffer, size_t offset, size_t length);
 
   /*!
    * \return 32 bit integer

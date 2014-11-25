@@ -77,7 +77,10 @@ class tOutputStream;
  * When used as sink, it can grow when required.
  * A resize_factor <= 1 indicates that this should not happen.
  *
- * Writing concurrently to reading is not supported - e.g. due to resizing etc..
+ * Writing concurrently to reading is not supported (e.g. due to resizing etc.).
+ *
+ * Notably, a memory buffer has a capacity (allocated memory) and a size (the portion
+ * of memory that is currently used) - similar to e.g. std::vector.
  */
 class tMemoryBuffer : public tConstSource, public tSink, public util::tNoncopyable
 {
@@ -102,7 +105,9 @@ public:
   /*!
    * Wraps existing buffer
    *
-   * \param empty Is this an empty buffer of the specified size?
+   * \param buffer Pointer to start of buffer to wrap
+   * \param size Size (== capacity) of buffer to wrap
+   * \param empty Is this an empty buffer of the specified size? If true, GetSize() returns zero. Otherwise, the buffer's size is equal to its capacity.
    */
   tMemoryBuffer(void* buffer, size_t size, bool empty = false);
 

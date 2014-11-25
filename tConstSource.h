@@ -106,6 +106,7 @@ public:
    *
    * \param input_stream tInputStream that requests fetch operation.
    * \param buffer Buffer to copy data to (buffer provided and managed by client)
+   * \param offset Offset in 'buffer'
    * \param len Minimum number of bytes to read
    */
   virtual void DirectRead(tInputStream& input_stream, tFixedBuffer& buffer, size_t offset, size_t len = 0) const = 0;

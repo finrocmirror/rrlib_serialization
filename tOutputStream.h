@@ -31,7 +31,7 @@
  *
  * Binary output stream.
  *
- * Writes data to a sink.
+ * Writes binary data to a sink.
  * This can be a file, memory block, network stream etc.
  * The sink manages the memory blocks the stream operates on.
  *
@@ -46,7 +46,7 @@
  * Buffers can be forwarded to a sink directly (they don't need to be buffered) -
  * avoiding additional copying operations.
  *
- * The Class is explicitly _not_ thread-safe for writing - meaning multiple threads may
+ * The class is explicitly _not_ thread-safe for writing - meaning multiple threads may
  * not write to the same object at any given point in time.
  *
  * There are two modes of operation with respect to print-methods:
@@ -96,9 +96,7 @@ class IsSerializableMap;
 //----------------------------------------------------------------------
 //! Binary output stream
 /*!
- * Binary output stream.
- *
- * Writes data to a sink.
+ * Writes binary data to a sink.
  * This can be a file, memory block, network stream etc.
  * The sink manages the memory blocks the stream operates on.
  *
@@ -113,7 +111,7 @@ class IsSerializableMap;
  * Buffers can be forwarded to a sink directly (they don't need to be buffered) -
  * avoiding additional copying operations.
  *
- * The Class is explicitly _not_ thread-safe for writing - meaning multiple threads may
+ * The class is explicitly _not_ thread-safe for writing - meaning multiple threads may
  * not write to the same object at any given point in time.
  *
  * There are two modes of operation with respect to print-methods:
@@ -129,22 +127,38 @@ class tOutputStream : private util::tNoncopyable
 public:
 
   /*!
-   * \param encoding Data type encoding that is used
-   * \param encoder Custom type encoder
    * \param sink Sink to write to
+   * \param encoding Data type encoding to use when data types from rrlib::rtti are serialized (optional)
    */
-  tOutputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-  tOutputStream(tTypeEncoder& encoder) : tOutputStream(tTypeEncoding::CUSTOM)
-  {
-    custom_encoder = &encoder;
-  }
   tOutputStream(tSink& sink, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tOutputStream(encoding)
   {
     Reset(sink);
   }
+
+  /*!
+   * \param sink Sink to write to
+   * \param encoder Custom type encoder to use when data types from rrlib::rtti are serialized
+   */
   tOutputStream(tSink& sink, tTypeEncoder& encoder) : tOutputStream(encoder)
   {
     Reset(sink);
+  }
+
+  /*!
+   * Note: Reset() with a sink must be called, before data can be written
+   *
+   * \param encoding Data type encoding to use when data types from rrlib::rtti are serialized (optional)
+   */
+  tOutputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
+
+  /*!
+   * Note: Reset() with a sink must be called, before data can be written
+   *
+   * \param encoder Custom type encoder to use when data types from rrlib::rtti are serialized
+   */
+  tOutputStream(tTypeEncoder& encoder) : tOutputStream(tTypeEncoding::CUSTOM)
+  {
+    custom_encoder = &encoder;
   }
 
   ~tOutputStream()

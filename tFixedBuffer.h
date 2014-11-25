@@ -198,7 +198,7 @@ public:
    * Generic get method...
    *
    * \param offset absolute offset
-   * \param t Data to write
+   * \return Data read at specified offset
    */
   template <typename T>
   inline T GetGeneric(size_t offset) const
