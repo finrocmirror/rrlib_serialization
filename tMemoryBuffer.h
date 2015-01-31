@@ -176,11 +176,11 @@ public:
   /*!
    * \return Returns pointer to buffer backend - with specified offset in bytes
    */
-  inline char* GetBufferPointer(int offset)
+  inline char* GetBufferPointer(int offset = 0)
   {
     return GetBuffer().GetPointer() + offset;
   }
-  inline const char* GetBufferPointer(int offset) const
+  inline const char* GetBufferPointer(int offset = 0) const
   {
     return GetBuffer().GetPointer() + offset;
   }
