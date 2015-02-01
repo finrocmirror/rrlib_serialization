@@ -93,6 +93,7 @@ public:
   inline void Clear()
   {
     wrapped.str(std::string());
+    wrapped.clear();
   }
 
   /*!

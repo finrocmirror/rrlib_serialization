@@ -84,6 +84,7 @@ static_assert(IsConstElementContainer<std::set<std::string>>::value == true, "In
 class TestSerialization : public util::tUnitTestSuite
 {
   RRLIB_UNIT_TESTS_BEGIN_SUITE(TestSerialization);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestStringSerialization);
   RRLIB_UNIT_TESTS_ADD_TEST(TestXMLMap);
   RRLIB_UNIT_TESTS_ADD_TEST(TestBinaryMap);
   RRLIB_UNIT_TESTS_ADD_TEST(TestBinarySet);
@@ -229,6 +230,85 @@ private:
     RRLIB_UNIT_TESTS_ASSERT_MESSAGE("After de-serializing to original type, value must be correct", value == val);
     //RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("After de-serializing to original type, value must be correct", value, val);
     return val;
+  }
+
+  template <size_t MAX_TEST_STRING_LENGTH>
+  void TestStringSerialization(const std::vector<std::string>& test_strings, size_t serialization_count, size_t max_length)
+  {
+    // serialize to memory
+    rrlib::serialization::tMemoryBuffer mb;
+    rrlib::serialization::tOutputStream os(mb);
+    for (size_t i = 0; i < serialization_count; i++)
+    {
+      for (const std::string & string : test_strings)
+      {
+        os << string;
+      }
+    }
+    os.Close();
+
+    // Deserialize in different ways
+    rrlib::serialization::tInputStream input1(mb), input2(mb), input3(mb), input4(mb), input5(mb), input6(mb), input7(mb), input8(mb);
+    std::string string_buffer;
+    std::stringstream string_stream;
+    char char_buffer[MAX_TEST_STRING_LENGTH];
+    for (size_t i = 0; i < serialization_count; i++)
+    {
+      for (const std::string & string : test_strings)
+      {
+        // without max_length
+        input1 >> string_buffer;
+        RRLIB_UNIT_TESTS_EQUALITY(string, string_buffer);
+        string_buffer = input2.ReadString();
+        RRLIB_UNIT_TESTS_EQUALITY(string, string_buffer);
+        string_stream.str(std::string());
+        string_stream.clear(); // reset stream
+        input3.ReadString(string_stream);
+        RRLIB_UNIT_TESTS_EQUALITY(string, string_stream.str());
+        input4.ReadString(char_buffer, true);
+        RRLIB_UNIT_TESTS_EQUALITY(string, std::string(char_buffer));
+        //RRLIB_UNIT_TESTS_ASSERT(string == char_buffer);
+
+        // with max_length < string_length
+        input5.ReadString(string_buffer, max_length);
+        RRLIB_UNIT_TESTS_EQUALITY(string.substr(0, max_length), string_buffer);
+        input5.ReadString(string_buffer);
+        RRLIB_UNIT_TESTS_EQUALITY(string.substr(max_length), string_buffer);
+
+        string_buffer = input6.ReadString(max_length);
+        RRLIB_UNIT_TESTS_EQUALITY(string.substr(0, max_length), string_buffer);
+        string_buffer = input6.ReadString();
+        RRLIB_UNIT_TESTS_EQUALITY(string.substr(max_length), string_buffer);
+
+        string_stream.str(std::string());
+        string_stream.clear(); // reset stream
+        input7.ReadString(string_stream, max_length);
+        RRLIB_UNIT_TESTS_EQUALITY(string.substr(0, max_length), string_stream.str());
+        string_stream.str(std::string());
+        string_stream.clear(); // reset stream
+        input7.ReadString(string_stream);
+        RRLIB_UNIT_TESTS_EQUALITY(string.substr(max_length), string_stream.str());
+
+        char small_char_buffer[max_length + 1];
+        input8.ReadString(small_char_buffer, max_length + 1, true);
+        RRLIB_UNIT_TESTS_ASSERT(string.substr(0, max_length) == small_char_buffer);
+        input8.ReadString(char_buffer, true);
+        RRLIB_UNIT_TESTS_ASSERT(string.substr(max_length) == char_buffer);
+      }
+    }
+  }
+
+  void TestStringSerialization()
+  {
+    TestStringSerialization<7>({ "string", "123456", "qwertz" }, 8192, 4);
+    TestStringSerialization<8>({ "str", "123", "qwe" }, 8192, 2);
+
+    std::ostringstream string_buffer;
+    for (size_t i = 0; i < 8400; i++)
+    {
+      string_buffer << static_cast<char>('a' + (i % 26));
+    }
+    TestStringSerialization<10000>({ string_buffer.str() }, 10, 1070);
   }
 
 };

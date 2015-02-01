@@ -262,54 +262,93 @@ void tInputStream::ReadSkipOffset()
   cur_skip_offset_target += 4;  // from readInt()
 }
 
-std::string tInputStream::ReadString()
+std::string tInputStream::ReadString(size_t max_length)
 {
-  tStringOutputStream sb;  // no shortcut in C++, since String could be in this chunk only partly
-  ReadStringImplementation(sb);
-  return sb.ToString();
+  std::stringstream string_buffer;
+  ReadString(string_buffer, max_length);
+  return string_buffer.str();
 }
 
-void tInputStream::ReadString(tStringOutputStream& sb)
+void tInputStream::ReadString(std::string& string_buffer, size_t max_length)
 {
-  sb.Clear();
-  ReadStringImplementation(sb);
-}
-
-std::string tInputStream::ReadString(size_t length)
-{
-  tStringOutputStream sb;  // no shortcut in C++, since String could be in this chunk only partly
-  ReadString(sb, length);
-  return sb.ToString();
-}
-
-void tInputStream::ReadString(tStringOutputStream& sb, size_t length)
-{
-  // TODO: optimize
-  size_t count = 0u;
-  while (true)
+  if (string_buffer.length())
   {
-    int8_t b = ReadByte();
-    if (b == 0 || count == length)
+    size_t max_length_for_buffer = std::min(string_buffer.length() + 1, max_length);
+    char temp_buffer[max_length_for_buffer + 1];
+    size_t read = ReadString(temp_buffer, max_length_for_buffer, false);
+    bool terminated = (temp_buffer[read - 1] == 0);
+    temp_buffer[read] = 0;
+    if (terminated || read == max_length)
     {
-      break;
+      string_buffer.assign(temp_buffer);
     }
-    sb.Append(static_cast<char>(b));
-    count++;
+    else
+    {
+      std::stringstream string_stream;
+      string_stream << temp_buffer;
+      ReadString(string_stream, max_length - read);
+      string_buffer = string_stream.str();
+    }
+  }
+  else
+  {
+    string_buffer = ReadString(max_length);
   }
 }
 
-void tInputStream::ReadStringImplementation(rrlib::serialization::tStringOutputStream& sb)
+void tInputStream::ReadString(std::stringstream& string_stream, size_t max_length)
 {
-  // TODO: optimize
-  while (true)
+  const size_t BUFFER_LENGTH = 1024;
+  char temp_buffer[BUFFER_LENGTH + 1];
+  while (max_length)
   {
-    int8_t b = ReadByte();
-    if (b == 0)
+    size_t max_length_for_buffer = std::min(BUFFER_LENGTH, max_length);
+    size_t read = ReadString(temp_buffer, max_length_for_buffer, false);
+    bool terminated = (temp_buffer[read - 1] == 0);
+    temp_buffer[read] = 0;
+    if (terminated)
     {
-      break;
+      string_stream << temp_buffer;
+      return;
     }
-    sb.Append(static_cast<char>(b));
+    string_stream << temp_buffer;
+
+    max_length -= read;
   }
+}
+
+size_t tInputStream::ReadString(char* buffer, size_t max_length, bool terminate_if_length_exceeded)
+{
+  size_t read = 0;
+  while (max_length)
+  {
+    EnsureAvailable(1u);
+    if (terminate_if_length_exceeded && max_length == 1)
+    {
+      buffer[read] = 0;
+      if (Peek() == 0)
+      {
+        ReadByte();
+      }
+      return read + 1;;
+    }
+
+    size_t length = std::min(terminate_if_length_exceeded ? (max_length - 1) : max_length, Remaining());
+    char* start_pointer = cur_buffer->buffer->GetPointer() + cur_buffer->position;
+    void* terminator = memchr(start_pointer, 0, length);
+    if (terminator)
+    {
+      length = (static_cast<char*>(terminator) - start_pointer) + 1; // include terminator
+      memcpy(&(buffer[read]), start_pointer, length);
+      cur_buffer->position += length;
+      return read + length;
+    }
+    memcpy(&(buffer[read]), start_pointer, length);
+    max_length -= length;
+    read += length;
+    cur_buffer->position += length;
+  }
+  return read;
 }
 
 void tInputStream::Reset()

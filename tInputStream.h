@@ -363,34 +363,52 @@ public:
   void ReadSkipOffset();
 
   /*!
-   * Read null-terminated string (8 Bit Characters - Suited for ASCII)
+   * Read null-terminated string (8 Bit Characters - Suited for ASCII). Stops at null-termination or specified length.
    *
+   * \param length Maximum length of string to read (including possible termination character)
    * \return String
    */
-  std::string ReadString();
+  std::string ReadString(size_t max_length = std::string::npos);
 
   /*!
-   * Read null-terminated string (8 Bit Characters - Suited for ASCII)
+   * Read null-terminated string (8 Bit Characters - Suited for ASCII). Stops at null-termination or specified length.
    *
-   * \param sb StringOutputStream object to write result to
+   * \param string_stream String buffer to write string to. Is cleared before writing to it.
+   * \param length Maximum length of string to read (including possible termination character)
    */
-  void ReadString(tStringOutputStream& sb);
+  void ReadString(std::string& string_buffer, size_t max_length = std::string::npos);
+
+  /*!
+   * Read null-terminated string (8 Bit Characters - Suited for ASCII). Stops at null-termination or specified length.
+   *
+   * \param string_stream String stream to write string to. Stream is cleared before writing to it.
+   * \param length Maximum length of string to read (including possible termination character)
+   */
+  void ReadString(std::stringstream& string_stream, size_t max_length = std::string::npos);
+
+  /*!
+   * Read string (8 Bit Characters - Suited for ASCII). Stops at null-termination or length BUFFER_SIZE.
+   *
+   * \tparam BUFFER_SIZE Length of string to read (including possible termination)
+   * \param buffer Char array with buffer.
+   * \param terminate_if_length_exceeded Terminate string with null character if max_length is exceeded?
+   * \return Number of chars read (including null-termination character)
+   */
+  template <size_t BUFFER_SIZE>
+  size_t ReadString(char(&buffer)[BUFFER_SIZE], bool terminate_if_length_exceeded)
+  {
+    return ReadString(buffer, BUFFER_SIZE, terminate_if_length_exceeded);
+  }
 
   /*!
    * Read string (8 Bit Characters - Suited for ASCII). Stops at null-termination or specified length.
    *
-   * \param length Length of string to read (including possible termination)
-   * \return String
+   * \param buffer Char array with buffer.
+   * \param max_length Length of string to read (including possible termination)
+   * \param terminate_if_length_exceeded Terminate string with null character if max_length is exceeded?
+   * \return Number of chars read (including null-termination character)
    */
-  std::string ReadString(size_t length);
-
-  /*!
-   * Read string (8 Bit Characters - Suited for ASCII). Stops at null-termination or specified length.
-   *
-   * \param sb StringBuilder object to write result to
-   * \param length Length of string to read (including possible termination)
-   */
-  void ReadString(tStringOutputStream& sb, size_t length);
+  size_t ReadString(char* buffer, size_t max_length, bool terminate_if_length_exceeded);
 
   /*!
    * \return unsigned 1 byte integer
@@ -554,13 +572,6 @@ private:
   void FetchNextBytes(size_t min_required);
 
   /*!
-   * Read null-terminated string (8 Bit Characters - Suited for ASCII)
-   *
-   * \param sb StringBuilder object to write result to
-   */
-  void ReadStringImplementation(rrlib::serialization::tStringOutputStream& sb);
-
-  /*!
    * \return Is current buffer currently set to boundaryBuffer?
    */
   inline bool UsingBoundaryBuffer()
@@ -648,7 +659,7 @@ inline tInputStream& operator>> (tInputStream& stream, typename std::vector<bool
 }
 inline tInputStream& operator>> (tInputStream& stream, std::string& t)
 {
-  t = stream.ReadString();
+  stream.ReadString(t);
   return stream;
 }
 template <typename R, typename P>
