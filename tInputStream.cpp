@@ -390,7 +390,7 @@ void tInputStream::Seek(int64_t position)
   int64_t offset = position - this->absolute_read_pos;
   if ((source && source->SeekSupport()) || (const_source && const_source->SeekSupport()))
   {
-    if (offset >= 0 && static_cast<size_t>(offset) < this->cur_buffer->Capacity())
+    if (offset >= 0 && static_cast<size_t>(offset) < this->cur_buffer->Capacity() && Remaining()) // we need to check Remaining(), because a DirectRead may have modified absolute_read_pos
     {
       // goal position lies in the current buffer, read it from there
       this->cur_buffer->position = this->cur_buffer->start + offset;
