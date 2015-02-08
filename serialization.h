@@ -423,6 +423,38 @@ operator>> (const tNode &node, T& map)
   return node;
 }
 
+template < typename TFirst, typename TSecond, bool Tenable = serialization::IsXMLSerializable<TFirst>::value && serialization::IsXMLSerializable<TSecond>::value >
+inline typename std::enable_if <Tenable, xml::tNode>::type& operator<< (xml::tNode &node, const std::pair<TFirst, TSecond>& pair)
+{
+  node.AddChildNode("first") << pair.first;
+  node.AddChildNode("second") << pair.second;
+  return node;
+}
+
+template < typename TFirst, typename TSecond, bool Tenable = serialization::IsXMLSerializable<TFirst>::value && serialization::IsXMLSerializable<TSecond>::value >
+inline const typename std::enable_if <Tenable, xml::tNode>::type& operator>> (const xml::tNode &node, std::pair<TFirst, TSecond>& pair)
+{
+  bool first = false, second = false;
+  for (auto it = node.ChildrenBegin(); it != node.ChildrenEnd(); ++it)
+  {
+    if (it->Name() == "first")
+    {
+      (*it) >> pair.first;
+      first = true;
+    }
+    if (it->Name() == "second")
+    {
+      (*it) >> pair.second;
+      second = true;
+    }
+  }
+  if (first && second)
+  {
+    return node;
+  }
+  throw std::runtime_error("Node 'first' and/or 'second' missing");
+}
+
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
