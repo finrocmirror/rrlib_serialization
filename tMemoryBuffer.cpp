@@ -113,13 +113,16 @@ void tMemoryBuffer::DirectWrite(tOutputStream& output_stream_buffer, const tFixe
 
 void tMemoryBuffer::EnsureCapacity(size_t new_size, bool keep_contents, size_t old_size)
 {
-  if (resize_reserve_factor <= 1)
+  if (new_size > backend.Capacity())
   {
-    throw std::out_of_range("Attempt to write outside of buffer");
-  }
-  if (resize_reserve_factor <= 1.2)
-  {
-    RRLIB_LOG_PRINT(DEBUG_WARNING, "Small resize_reserve_factor");
+    if (resize_reserve_factor <= 1)
+    {
+      throw std::out_of_range("Attempt to write outside of buffer");
+    }
+    if (resize_reserve_factor <= 1.2)
+    {
+      RRLIB_LOG_PRINT(DEBUG_WARNING, "Small resize_reserve_factor");
+    }
   }
 
   Reallocate(new_size, keep_contents, old_size);
