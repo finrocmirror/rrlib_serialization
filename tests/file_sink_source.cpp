@@ -95,8 +95,7 @@ private:
 
   void TestSourceUnreadable()
   {
-    tFileSource src("/hopefully/non-existent/path");
-    RRLIB_UNIT_TESTS_EXCEPTION_MESSAGE("An exception must be thrown when creating the stream", tInputStream is(src), std::ios_base::failure);
+    RRLIB_UNIT_TESTS_EXCEPTION_MESSAGE("An exception must be thrown when creating the file source", tFileSource src("/hopefully/non-existent/path"), std::runtime_error);
   }
 
   void TestSinkSource()
