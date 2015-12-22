@@ -71,10 +71,17 @@ namespace serialization
 //----------------------------------------------------------------------
 // tFileSource constructors
 //----------------------------------------------------------------------
-tFileSource::tFileSource(const std::string &file_path, size_t buffer_size) : tSource(), file_path(file_path),
+tFileSource::tFileSource(const std::string &file_path, size_t buffer_size) :
+  file_path(file_path),
   backend(buffer_size)
 {
   ifstream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+  std::ifstream file_exists(this->file_path);
+  if (!file_exists)
+  {
+    throw std::runtime_error("File '" + this->file_path + "' does not exist");
+  }
 }
 
 void tFileSource::Close(tInputStream& input_stream, tBufferInfo& buffer)
