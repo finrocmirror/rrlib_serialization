@@ -44,7 +44,7 @@
 #include "rrlib/serialization/tOutputStream.h"
 #include "rrlib/serialization/tInputStream.h"
 
-#include "rrlib/util/sFileIOUtils.h"
+#include "rrlib/util/fileio.h"
 
 //----------------------------------------------------------------------
 // Debugging
@@ -100,7 +100,7 @@ private:
 
   void TestSinkSource()
   {
-    std::string path = rrlib::util::sFileIOUtils::CreateTempfile();
+    std::string path = rrlib::util::fileio::CreateTempFile();
     int test_int = 42;
     std::string test_string("This is some string that will be serialized");
 
