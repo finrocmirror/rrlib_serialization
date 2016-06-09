@@ -203,7 +203,10 @@ bool tMemoryBuffer::Write(tOutputStream& output_stream_buffer, tBufferInfo& buff
 tOutputStream& operator << (tOutputStream& stream, const tMemoryBuffer& buffer)
 {
   stream.WriteLong(buffer.GetSize());
-  stream.Write(buffer.GetBuffer(), 0u, buffer.GetSize());
+  if (buffer.GetSize())
+  {
+    stream.Write(buffer.GetBuffer(), 0u, buffer.GetSize());
+  }
   return stream;
 }
 
@@ -212,7 +215,10 @@ tInputStream& operator >> (tInputStream& stream, tMemoryBuffer& buffer)
   size_t size = stream.ReadLong();
   buffer.cur_size = 0u;
   buffer.Reallocate(size, false, -1u);
-  stream.ReadFully(buffer.backend, 0u, size);
+  if (size)
+  {
+    stream.ReadFully(buffer.backend, 0u, size);
+  }
   buffer.cur_size = size;
   return stream;
 }
