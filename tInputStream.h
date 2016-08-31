@@ -49,6 +49,7 @@
 //----------------------------------------------------------------------
 #include "rrlib/util/tNoncopyable.h"
 #include "rrlib/time/time.h"
+#include "rrlib/util/tEnumBasedFlags.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -682,6 +683,15 @@ inline tInputStream& operator>> (typename std::enable_if<std::is_enum<T>::value,
 {
   tInputStream& stream_reference = stream;
   t = stream_reference.ReadEnum<T>();
+  return stream;
+}
+
+template <typename TFlag, typename TStorage>
+inline tInputStream& operator>> (tInputStream& stream, util::tEnumBasedFlags<TFlag, TStorage>& flags)
+{
+  TStorage raw_value;
+  stream >> raw_value;
+  flags = util::tEnumBasedFlags<TFlag, TStorage>(raw_value);
   return stream;
 }
 
