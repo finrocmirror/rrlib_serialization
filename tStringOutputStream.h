@@ -42,6 +42,7 @@
 //----------------------------------------------------------------------
 #include <sstream>
 #include "rrlib/time/time.h"
+#include "rrlib/util/tEnumBasedFlags.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -240,6 +241,24 @@ inline tStringOutputStream& operator<< (typename std::enable_if<std::is_enum<ENU
   stream.GetWrappedStringStream() << "(" << static_cast<typename std::underlying_type<ENUM>::type>(t) << ")";
   return stream;
 }
+#ifdef _LIB_ENUM_STRINGS_PRESENT_
+template <typename TFlag, typename TStorage>
+inline tStringOutputStream& operator<< (tStringOutputStream& stream, const util::tEnumBasedFlags<TFlag, TStorage>& flags)
+{
+  auto enum_strings = make_builder::GetEnumStrings<TFlag>();
+  uint flag_count = 0;
+  for (size_t i = 0, n = make_builder::GetEnumStringsDimension<TFlag>(); i < n; i++)
+  {
+    if (flags.Get(static_cast<TFlag>(i)))
+    {
+      stream << (flag_count ? ", " : "") << enum_strings[i] << " (" << i << ")";
+      flag_count++;
+    }
+  }
+  return stream;
+}
+#endif
+
 
 } // namespace rrlib
 } // namespace serialization

@@ -43,6 +43,7 @@
 #include <sstream>
 #include "rrlib/logging/messages.h"
 #include "rrlib/util/tNoncopyable.h"
+#include "rrlib/util/tEnumBasedFlags.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -376,6 +377,23 @@ inline tStringInputStream& operator>> (typename std::enable_if<std::is_enum<ENUM
 {
   tStringInputStream& stream_reference = stream;
   t = stream_reference.ReadEnum<ENUM>();
+  return stream;
+}
+
+template <typename TFlag, typename TStorage>
+inline tStringInputStream& operator>> (tStringInputStream& stream, util::tEnumBasedFlags<TFlag, TStorage>& flags)
+{
+  std::string s = stream.ReadWhile(",()", tStringInputStream::cLETTER | tStringInputStream::cDIGIT | tStringInputStream::cWHITESPACE, true);
+  flags = util::tEnumBasedFlags<TFlag, TStorage>();
+  if (s.length())
+  {
+    tStringInputStream stream2(s);
+    while (stream2.Peek() > 0)
+    {
+      flags.Set(stream2.ReadEnum<TFlag>(), true);
+      stream2.ReadWhile(",", tStringInputStream::cWHITESPACE, false);
+    }
+  }
   return stream;
 }
 

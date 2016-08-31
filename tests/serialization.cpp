@@ -169,6 +169,21 @@ private:
     // produce warning messages
     RRLIB_UNIT_TESTS_ASSERT(tEnumSigned::MIN_VALUE == Deserialize<tEnumSigned>("Invalid string for testing ignore warning (" + std::to_string(std::numeric_limits<int64_t>::min()) + ")"));
     RRLIB_UNIT_TESTS_ASSERT(tEnumUnsigned::MAX_VALUE == Deserialize<tEnumUnsigned>("Invalid string for testing ignore warning (" + std::to_string(std::numeric_limits<uint64_t>::max()) + ")"));
+
+    // Enum-based-Flags
+    typedef rrlib::util::tEnumBasedFlags<tStandardEnum> tFlags;
+    tFlags none, one, many, all;
+    one.Set(tStandardEnum::VALUE_3);
+    many.Set(tStandardEnum::ANOTHER_VALUE);
+    many.Set(tStandardEnum::A_VALUE);
+    many.Set(tStandardEnum::WORD);
+    all = many;
+    all.Set(tStandardEnum::VALUE_3);
+
+    RRLIB_UNIT_TESTS_ASSERT(none == Deserialize<tFlags>(Serialize(none)));
+    RRLIB_UNIT_TESTS_ASSERT(one == Deserialize<tFlags>(Serialize(one)));
+    RRLIB_UNIT_TESTS_ASSERT(many == Deserialize<tFlags>(Serialize(many)));
+    RRLIB_UNIT_TESTS_ASSERT(all == Deserialize<tFlags>(Serialize(all)));
   }
 
 };

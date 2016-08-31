@@ -64,6 +64,14 @@ enum class tEnumUnsigned : uint64_t
   MAX_VALUE = std::numeric_limits<uint64_t>::max()
 };
 
+enum class tStandardEnum : int32_t
+{
+  A_VALUE,
+  ANOTHER_VALUE,
+  VALUE_3,
+  WORD
+};
+
 //----------------------------------------------------------------------
 // Function declarations
 //----------------------------------------------------------------------
