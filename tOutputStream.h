@@ -726,6 +726,16 @@ inline tOutputStream& operator<< (tOutputStream& stream, const std::tuple<TArgs.
   return stream;
 }
 
+template <typename T, size_t N>
+inline tOutputStream& operator<< (tOutputStream& stream, const std::array<T, N>& array)
+{
+  for (const T & element : array)
+  {
+    stream << element;
+  }
+  return stream;
+}
+
 template <typename T>
 inline typename std::enable_if < IsSerializableContainer<T>::value && (!IsSerializableMap<T>::value) &&
 ContainerSerialization<typename IsSerializableContainer<T>::tValue>::cBINARY_SERIALIZABLE, tOutputStream >::type&
