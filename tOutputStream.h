@@ -474,9 +474,9 @@ public:
    * (only one such position can be set/remembered at a time)
    *
    * As soon as the stream has reached the position to which a reader might want to skip
-   * call SetSkipTargetHere()
+   * call SkipTargetHere()
    *
-   * (Is equivalent to writing the size of the data until SetSkipTargetHere() to stream)
+   * (Is equivalent to writing the size of the data until SkipTargetHere() to stream)
    *
    * \param short_skip_offset If skip offset will be smaller than 256, can be set to true, to make stream 3 bytes shorter
    */
