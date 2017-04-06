@@ -37,6 +37,7 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "rrlib/serialization/PublishedRegisters.h"
 #include "rrlib/serialization/tStringOutputStream.h"
 
 //----------------------------------------------------------------------
@@ -68,21 +69,19 @@ namespace serialization
 // Implementation
 //----------------------------------------------------------------------
 
-tInputStream::tInputStream(tTypeEncoding encoding) :
+tInputStream::tInputStream() :
   source_buffer(),
   boundary_buffer(),
   boundary_buffer_memory(),
   boundary_buffer_backend(boundary_buffer_memory, 14u),
-  cur_buffer(NULL),
-  source(NULL),
-  const_source(NULL),
+  cur_buffer(nullptr),
+  source(nullptr),
+  const_source(nullptr),
   absolute_read_pos(0),
   cur_skip_offset_target(-1),
   closed(false),
   direct_read_support(false),
-  timeout(rrlib::time::tDuration::zero()),
-  encoding(encoding),
-  custom_encoder(NULL)
+  timeout(rrlib::time::tDuration::zero())
 {
   boundary_buffer.buffer = &(boundary_buffer_backend);
 }
@@ -159,7 +158,10 @@ void tInputStream::FetchNextBytes(size_t min_required2)
   {
     const_source->Read(*this, source_buffer, min_required2);
   }
-  assert((source_buffer.Remaining() >= min_required2));
+  if (source_buffer.Remaining() >= min_required2)
+  {
+    throw std::runtime_error("Could not obtain the minimum number of bytes required from source");
+  }
 
   // (possibly) fill up boundary buffer
   if (remain > 0)
@@ -178,7 +180,7 @@ bool tInputStream::MoreDataAvailable()
     return true;
   }
   //System.out.println("Not here");
-  return source != NULL ? source->MoreDataAvailable(*this, source_buffer) : const_source->MoreDataAvailable(*this, source_buffer);
+  return source ? source->MoreDataAvailable(*this, source_buffer) : const_source->MoreDataAvailable(*this, source_buffer);
 }
 
 int8_t tInputStream::Peek()
@@ -253,6 +255,40 @@ std::string tInputStream::ReadLine()
     sb.Append(static_cast<char>(b));
   }
   return sb.ToString();
+}
+
+void tInputStream::ReadRegisterUpdatesImplementation()
+{
+  tRemoteRegisters& register_array = *shared_serialization_info.remote_registers;
+  if (GetSourceInfo().revision == 0)
+  {
+    if (!register_array[0])
+    {
+      register_array[0].reset(PublishedRegisters::RegisteredRegisters()[0]->CreateRemoteRegister());
+    }
+    static_cast<PublishedRegisters::tRemoteRegisterBase*>(register_array[0].get())->DeserializeEntries(*this);
+  }
+  else
+  {
+    int8_t register_uid = ReadByte();
+    while (true)
+    {
+      if (register_uid >= static_cast<int>(register_array.size()) || register_uid < 0)
+      {
+        throw std::runtime_error("Invalid register uid " + std::to_string(register_uid));
+      }
+      if (!register_array[register_uid])
+      {
+        register_array[register_uid].reset(PublishedRegisters::RegisteredRegisters()[register_uid]->CreateRemoteRegister());
+      }
+      static_cast<PublishedRegisters::tRemoteRegisterBase*>(register_array[register_uid].get())->DeserializeEntries(*this);
+      register_uid = ReadByte();
+      if (register_uid == -1)
+      {
+        break;
+      }
+    }
+  }
 }
 
 void tInputStream::ReadSkipOffset()
@@ -353,13 +389,13 @@ size_t tInputStream::ReadString(char* buffer, size_t max_length, bool terminate_
 
 void tInputStream::Reset()
 {
-  if (source != NULL)
+  if (source != nullptr)
   {
     source->Reset(*this, source_buffer);
     direct_read_support = source->DirectReadSupport();
     closed = false;
   }
-  else if (const_source != NULL)
+  else if (const_source != nullptr)
   {
     const_source->Reset(*this, source_buffer);
     direct_read_support = const_source->DirectReadSupport();
@@ -369,19 +405,19 @@ void tInputStream::Reset()
   absolute_read_pos = 0;
 }
 
-void tInputStream::Reset(const tConstSource& source)
+void tInputStream::ResetSource(const tConstSource& source)
 {
   Close();
-  this->source = NULL;
+  this->source = nullptr;
   this->const_source = &source;
   Reset();
 }
 
-void tInputStream::Reset(tSource& source)
+void tInputStream::ResetSource(tSource& source)
 {
   Close();
   this->source = &source;
-  this->const_source = NULL;
+  this->const_source = nullptr;
   Reset();
 }
 

@@ -91,7 +91,7 @@ public:
    *
    * \param capacity Capacity of this buffer
    */
-  tFixedBuffer(size_t capacity = 0);
+  explicit tFixedBuffer(size_t capacity = 0);
 
   /*! move constructor */
   tFixedBuffer(tFixedBuffer && fb);

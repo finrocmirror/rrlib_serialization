@@ -42,6 +42,7 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "rrlib/serialization/PublishedRegisters.h"
 #include "rrlib/serialization/tInputStream.h"
 #include "rrlib/serialization/tOutputStream.h"
 #include "rrlib/serialization/tStackMemoryBuffer.h"

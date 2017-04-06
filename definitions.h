@@ -62,15 +62,39 @@ enum class tDataEncoding
   XML
 };
 
+
 /*!
- * Type encoding for streams
+ * Specifies encoding of register entries in stream
+ * (including whether registers are published and when they are updated)
  */
-enum class tTypeEncoding
+enum class tRegisterEntryEncoding : uint8_t
 {
-  LOCAL_UIDS,  //!< Type uids (int16_t) of current process are used. Efficient, but not suitable transferring data types to another process nor making data persistent
-  NAMES,       //!< Type names are used. Less efficient, but suitable for transferring data types to another process and making data persistent.
-  CUSTOM       //!< A custom type encoder is used.
+  /*! Type handles of current process are used. Efficient, but not suitable for transferring entries to another process nor making data persistent. */
+  LOCAL_HANDLE,
+
+  /*!
+   * UIDs (e.g. unique names) of register entries are written to stream.
+   * Least efficient option for longer lasting streams: requires more bandwidth per entry and also overhead for lookup at deserialization.
+   */
+  UID,
+
+  /*!
+   * Register entries are encoded and sent to partner once. After that, entries are encoded with their local handle.
+   * Remote register is updated, whenever entries are sent which have not yet been transferred (all entries up to the one are sent -> so sending the last one, will update the whole register).
+   * Increased bandwidth requirements initially for publishing register entries.
+   */
+  PUBLISH_REGISTER_ON_DEMAND,
+
+  /*!
+   * Register entries are encoded and sent to partner once. After that, entries are encoded with their local handle.
+   * Remote register is updated, whenever there are new entries locally and any register entry (possibly from another register) is written to stream.
+   * Increased bandwidth requirements initially for publishing all register entries.
+   */
+  PUBLISH_REGISTER_ON_CHANGE
 };
+
+/*! Maximum number of published registers */
+enum { cMAX_PUBLISHED_REGISTERS = 15 };
 
 #ifndef __BYTE_ORDER__
 #warning __BYTE_ORDER__ not defined

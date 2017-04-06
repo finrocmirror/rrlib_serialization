@@ -19,22 +19,15 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    rrlib/serialization/tTypeEncoder.h
+/*!\file    rrlib/serialization/PublishedRegisters.cpp
  *
  * \author  Max Reichardt
  *
- * \date    2013-05-18
- *
- * \brief   Contains tTypeEncoder
- *
- * \b tTypeEncoder
- *
- * Class to encode and decode types in tInputStream and tOutputStream
+ * \date    2017-02-05
  *
  */
 //----------------------------------------------------------------------
-#ifndef __rrlib__serialization__tTypeEncoder_h__
-#define __rrlib__serialization__tTypeEncoder_h__
+#include "rrlib/serialization/PublishedRegisters.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
@@ -43,61 +36,50 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-#include "rrlib/serialization/definitions.h"
+
+//----------------------------------------------------------------------
+// Debugging
+//----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
+//----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
 // Namespace declaration
 //----------------------------------------------------------------------
 namespace rrlib
 {
+namespace serialization
+{
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
-namespace rtti
+
+//----------------------------------------------------------------------
+// Const values
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
+std::array<std::unique_ptr<PublishedRegisters::tPerRegisterInfo>, cMAX_PUBLISHED_REGISTERS>& PublishedRegisters::RegisteredRegisters()
 {
-class tType;
+  static std::array<std::unique_ptr<PublishedRegisters::tPerRegisterInfo>, cMAX_PUBLISHED_REGISTERS> instance;
+  return instance;
 }
 
-namespace serialization
-{
-class tInputStream;
-class tOutputStream;
+PublishedRegisters::tRemoteRegisterBase::~tRemoteRegisterBase()
+{}
 
-//----------------------------------------------------------------------
-// Class declaration
-//----------------------------------------------------------------------
-//! Type encoder interface
-/*!
- * Class to encode and decode types in tInputStream and tOutputStream
- */
-class tTypeEncoder
-{
-
-//----------------------------------------------------------------------
-// Public methods and typedefs
-//----------------------------------------------------------------------
-public:
-
-  /*!
-   * \param stream Input Stream
-   * \return Type decoded from input stream
-   */
-  virtual rtti::tType ReadType(tInputStream& stream) = 0;
-
-  /*!
-   * \param stream Output stream
-   * \param type Type to encode to output stream
-   */
-  virtual void WriteType(tOutputStream& stream, rtti::tType type) = 0;
-
-};
+PublishedRegisters::tPerRegisterInfo::~tPerRegisterInfo()
+{}
 
 //----------------------------------------------------------------------
 // End of namespace declaration
 //----------------------------------------------------------------------
 }
 }
-
-
-#endif

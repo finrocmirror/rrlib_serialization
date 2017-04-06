@@ -37,6 +37,7 @@
 // Internal includes with ""
 //----------------------------------------------------------------------
 #include "rrlib/serialization/tInputStream.h"
+#include "rrlib/serialization/PublishedRegisters.h"
 
 //----------------------------------------------------------------------
 // Debugging
@@ -62,26 +63,11 @@ namespace serialization
 //----------------------------------------------------------------------
 // Const values
 //----------------------------------------------------------------------
+const double tOutputStream::cBUFFER_COPY_FRACTION = 0.25;
 
 //----------------------------------------------------------------------
 // Implementation
 //----------------------------------------------------------------------
-
-const double tOutputStream::cBUFFER_COPY_FRACTION = 0.25;
-
-tOutputStream::tOutputStream(tTypeEncoding encoding) :
-  sink(NULL),
-  immediate_flush(false),
-  closed(true),
-  buffer(),
-  cur_skip_offset_placeholder(-1),
-  short_skip_offset(false),
-  buffer_copy_fraction(0),
-  direct_write_support(false),
-  encoding(encoding),
-  custom_encoder(NULL)
-{
-}
 
 void tOutputStream::Close()
 {
@@ -113,10 +99,46 @@ void tOutputStream::Println(const std::string& s)
   CheckFlush();
 }
 
-void tOutputStream::Reset(tSink& sink)
+void tOutputStream::Reset(tSink& sink, const tSerializationInfo& serialization_target)
 {
   Close();
   this->sink = &sink;
+  this->shared_serialization_info.serialization_target = serialization_target;
+  // TODO: a possible optimization would be to not remove/add listeners if set of registers to be published on_change did not change (seems negligible currently)
+  if (!this->shared_serialization_info.published_register_status.unique())
+  {
+    this->shared_serialization_info.published_register_status.reset(serialization_target.HasPublishedRegisters() ? new tPublishedRegisterStatus() : nullptr);
+  }
+  else if (serialization_target.HasPublishedRegisters())
+  {
+    this->shared_serialization_info.published_register_status->Reset();
+  }
+  else
+  {
+    this->shared_serialization_info.published_register_status.reset();
+  }
+  if (serialization_target.HasPublishedRegisters())
+  {
+    tPublishedRegisterStatus& status = *shared_serialization_info.published_register_status;
+    std::function<void()> change_function = std::bind(&tPublishedRegisterStatus::OnRegisterUpdate, &status);
+    for (uint i = 0; i < cMAX_PUBLISHED_REGISTERS; i++)
+    {
+      if (serialization_target.GetRegisterEntryEncoding(i) == tRegisterEntryEncoding::PUBLISH_REGISTER_ON_CHANGE)
+      {
+        PublishedRegisters::AddListener(i, change_function, &status);
+        status.OnRegisterUpdate();
+        status.registered_listeners.set(i, true);
+      }
+    }
+  }
+  Reset();
+}
+
+void tOutputStream::Reset(tSink& sink, tOutputStream& shared_serialization_info_from)
+{
+  Close();
+  this->sink = &sink;
+  this->shared_serialization_info = shared_serialization_info_from.shared_serialization_info;
   Reset();
 }
 
@@ -213,11 +235,76 @@ void tOutputStream::WriteSkipOffsetPlaceholder(bool short_skip_offset)
   }
 }
 
+void tOutputStream::WriteRegisterUpdatesImplementation(uint register_uid, uint entry_handle, size_t handle_size)
+{
+  bool escape_signal_written = false;
+  uint escape_signal = 0xFFFFFFFF;
+
+  // Update on_change registers
+  for (size_t i = 0; i < cMAX_PUBLISHED_REGISTERS; i++)
+  {
+    tPublishedRegisterStatus& status = *shared_serialization_info.published_register_status;
+    bool may_require_update = i == register_uid || shared_serialization_info.serialization_target.GetRegisterEntryEncoding(i) == tRegisterEntryEncoding::PUBLISH_REGISTER_ON_CHANGE;
+    if (may_require_update)
+    {
+      size_t current_size = PublishedRegisters::Size(i);
+      if (current_size > status.elements_written[i])
+      {
+        if (!escape_signal_written)
+        {
+          Write(&escape_signal, handle_size);
+          escape_signal_written = true;
+        }
+
+        if (GetTargetInfo().revision == 0)
+        {
+          if (status.elements_written[i] == 0)
+          {
+            WriteShort(40);
+          }
+
+          // compatibility with legacy parts
+          PublishedRegisters::SerializeEntries(*this, register_uid, status.elements_written[i], current_size);
+          WriteShort(-1);
+        }
+        else
+        {
+          WriteByte(i);
+          WriteInt(current_size - status.elements_written[i]);
+          PublishedRegisters::SerializeEntries(*this, register_uid, status.elements_written[i], current_size);
+        }
+        status.elements_written[i] = current_size;
+      }
+    }
+  }
+  if (escape_signal_written && GetTargetInfo().revision) // non-legacy parts require this terminator
+  {
+    WriteByte(-1);
+  }
+}
+
 void tOutputStream::WriteString(const std::string& s, bool terminate)
 {
   size_t len = terminate ? (s.size() + 1) : s.size();
   Write(tFixedBuffer((char*)s.c_str(), len));
 }
+
+void tOutputStream::tPublishedRegisterStatus::Reset()
+{
+  for (int i = 0; i < cMAX_PUBLISHED_REGISTERS; i++)
+  {
+    if (registered_listeners[i])
+    {
+      bool removed __attribute__((unused)) = PublishedRegisters::RemoveListener(i, this);
+      assert(removed);
+    }
+  }
+  registered_listeners.reset();
+  elements_written.fill(0);
+  on_register_change_update_counter = 0;
+  counter_on_last_update = 0;
+}
+
 
 //----------------------------------------------------------------------
 // End of namespace declaration

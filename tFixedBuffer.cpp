@@ -68,7 +68,7 @@ namespace serialization
 //----------------------------------------------------------------------
 
 tFixedBuffer::tFixedBuffer(size_t capacity) :
-  buffer_memory(capacity > 0 ? new char[capacity] : NULL),
+  buffer_memory(capacity > 0 ? new char[capacity] : nullptr),
   capacity(capacity),
   owns_buffer(capacity > 0)
 {

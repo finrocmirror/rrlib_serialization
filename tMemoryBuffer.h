@@ -100,7 +100,7 @@ public:
    * \param size Initial buffer size
    * \param resize_factor When buffer needs to be reallocated, new size is multiplied with this factor to have some bytes in reserve
    */
-  tMemoryBuffer(size_t size = cDEFAULT_SIZE, float resize_factor = cDEFAULT_RESIZE_FACTOR);
+  explicit tMemoryBuffer(size_t size = cDEFAULT_SIZE, float resize_factor = cDEFAULT_RESIZE_FACTOR);
 
   /*!
    * Wraps existing buffer

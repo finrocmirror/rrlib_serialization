@@ -39,10 +39,9 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "rrlib/serialization/serialization.h"
 #include "rrlib/serialization/tFileSink.h"
 #include "rrlib/serialization/tFileSource.h"
-#include "rrlib/serialization/tOutputStream.h"
-#include "rrlib/serialization/tInputStream.h"
 
 #include "rrlib/util/fileio.h"
 

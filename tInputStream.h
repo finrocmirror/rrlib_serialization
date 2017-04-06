@@ -54,11 +54,10 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-#include "rrlib/serialization/definitions.h"
+#include "rrlib/serialization/tSerializationInfo.h"
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tConstSource.h"
 #include "rrlib/serialization/tSource.h"
-#include "rrlib/serialization/tTypeEncoder.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -80,6 +79,7 @@ template <typename T>
 class IsSerializableContainer;
 template <typename T>
 class IsSerializableMap;
+class PublishedRegisters;
 
 //----------------------------------------------------------------------
 // Class declaration
@@ -104,36 +104,38 @@ public:
 
   /*!
    * \param source Source to read from
-   * \param encoding Data type encoding to use when data types from rrlib::rtti are deserialized (optional)
+   * \param source_info Info on source that created data currently read (at least the included revision is required for deserialization)
    */
-  tInputStream(tSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tInputStream(encoding)
+  tInputStream(tSource& source, const tSerializationInfo& source_info = tSerializationInfo()) : tInputStream()
   {
-    Reset(source);
+    Reset(source, source_info);
   }
 
   /*!
    * \param source Source to read from
-   * \param encoder Custom type encoder to use when data types from rrlib::rtti are deserialized
+   * \param source_info Info on source that created data currently read (at least the included revision is required for deserialization)
    */
-  tInputStream(tSource& source, tTypeEncoder& encoder) : tInputStream(encoder)
+  tInputStream(const tConstSource& source, const tSerializationInfo& source_info = tSerializationInfo()) : tInputStream()
   {
-    Reset(source);
+    Reset(source, source_info);
   }
 
   /*!
-   * \copydoc tInputStream::tInputStream(tSource&,tTypeEncoding)
+   * \param source Source to read from
+   * \param shared_serialization_info_from Serialization info (tSerializationInfo and remote registers) is taken from and shared with this input stream.
    */
-  tInputStream(const tConstSource& source, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tInputStream(encoding)
+  tInputStream(tSource& source, tInputStream& shared_serialization_info_from) : tInputStream()
   {
-    Reset(source);
+    Reset(source, shared_serialization_info_from);
   }
 
   /*!
-   * \copydoc tInputStream::tInputStream(tSource&,tTypeEncoder&)
+   * \param source Source to read from
+   * \param shared_serialization_info_from Serialization info (tSerializationInfo and remote registers) is taken from and shared with this input stream.
    */
-  tInputStream(const tConstSource& source, tTypeEncoder& encoder) : tInputStream(encoder)
+  tInputStream(const tConstSource& source, tInputStream& shared_serialization_info_from) : tInputStream()
   {
-    Reset(source);
+    Reset(source, shared_serialization_info_from);
   }
 
   /*!
@@ -141,17 +143,8 @@ public:
    *
    * \param encoding Data type encoding to use when data types from rrlib::rtti are deserialized (optional)
    */
-  tInputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
+  tInputStream();
 
-  /*!
-   * Note: Reset() with a source needs to be called, before data can be read.
-   *
-   * \param encoder Custom type encoder to use when data types from rrlib::rtti are deserialized
-   */
-  tInputStream(tTypeEncoder& encoder) : tInputStream(tTypeEncoding::CUSTOM)
-  {
-    custom_encoder = &encoder;
-  }
 
   ~tInputStream()
   {
@@ -172,11 +165,11 @@ public:
   }
 
   /*!
-   * \return Custom type encoder
+   * \return Info on source that created data currently read (at least the included revision is required for deserialization)
    */
-  tTypeEncoder* GetCustomTypeEncoder() const
+  inline const tSerializationInfo& GetSourceInfo() const
   {
-    return custom_encoder;
+    return shared_serialization_info.serialization_source;
   }
 
   /*!
@@ -185,14 +178,6 @@ public:
   inline rrlib::time::tDuration GetTimeout()
   {
     return timeout;
-  }
-
-  /*!
-   * \return Data type encoding that is used
-   */
-  tTypeEncoding GetTypeEncoding() const
-  {
-    return encoding;
   }
 
   /*!
@@ -326,14 +311,6 @@ public:
     return ReadNumber<int64_t>();
   }
 
-  /*!
-   * \return 2 byte integer
-   */
-  inline int16_t ReadShort()
-  {
-    return ReadNumber<int16_t>();
-  }
-
   // stream operator
   template <typename T>
   T ReadNumber()
@@ -356,6 +333,20 @@ public:
 #endif
 
     return t;
+  }
+
+  /*!
+   * \return Remote register entry of specified type. It is safe to keep a reference/pointer to returned object as long as shared deserialization info exists.
+   */
+  template <typename TRemoteEntry>
+  inline const TRemoteEntry& ReadRegisterEntry();
+
+  /*!
+   * \return 2 byte integer
+   */
+  inline int16_t ReadShort()
+  {
+    return ReadNumber<int16_t>();
   }
 
   /*!
@@ -438,7 +429,7 @@ public:
   }
 
   /*!
-   * Resets buffer for reading - may not be supported by all managers
+   * Resets buffer for reading - may not be supported by all sources
    */
   void Reset();
 
@@ -447,16 +438,36 @@ public:
    * Current source will be closed.
    *
    * \param source New Source
+   * \param source_info Info on source that created data currently read (at least the included revision is required for deserialization)
    */
-  void Reset(const tConstSource& source);
+  void Reset(const tConstSource& source, const tSerializationInfo& source_info = tSerializationInfo())
+  {
+    ResetSource(source);
+    ResetInfo(source_info);
+  }
+  void Reset(tSource& source, const tSerializationInfo& source_info = tSerializationInfo())
+  {
+    ResetSource(source);
+    ResetInfo(source_info);
+  }
 
   /*!
    * Use this object with different source.
    * Current source will be closed.
    *
    * \param source New Source
+   * \param shared_serialization_info_from Serialization info (tSerializationInfo and remote registers) is taken from and shared with this input stream.
    */
-  void Reset(tSource& source);
+  void Reset(const tConstSource& source, tInputStream& shared_serialization_info_from)
+  {
+    ResetSource(source);
+    ResetInfo(shared_serialization_info_from);
+  }
+  void Reset(tSource& source, tInputStream& shared_serialization_info_from)
+  {
+    ResetSource(source);
+    ResetInfo(shared_serialization_info_from);
+  }
 
   /*!
    * Seek to specified absolute position in the stream
@@ -501,7 +512,7 @@ public:
 private:
 
   friend class tOutputStream;
-
+  friend class PublishedRegisters;
 
   /*! Buffer that is managed by source */
   tBufferInfo source_buffer;
@@ -542,11 +553,22 @@ private:
   /*! timeout for blocking calls (<= 0 when disabled) */
   rrlib::time::tDuration timeout;
 
-  /*! Data type encoding that is used */
-  tTypeEncoding encoding;
+  struct tRemoteRegister
+  {
+    virtual ~tRemoteRegister() = default;
+  };
+  typedef std::array<std::unique_ptr<tRemoteRegister>, cMAX_PUBLISHED_REGISTERS> tRemoteRegisters;
 
-  /*! Custom type encoder */
-  tTypeEncoder* custom_encoder;
+  /*! Serialization possibly shared with substreams */
+  struct tSharedSerializationInfo
+  {
+    /*! Info on source that created data currently read (at least the included revision is required for deserialization) */
+    tSerializationInfo serialization_source;
+
+    /*! Replicated remote registers */
+    std::shared_ptr<tRemoteRegisters> remote_registers;
+
+  } shared_serialization_info;
 
 
   /*!
@@ -571,6 +593,53 @@ private:
    * \param min_required Minimum number of bytes to read (depending on source, might block until enough data is available)
    */
   void FetchNextBytes(size_t min_required);
+
+  /*!
+   * Reads any register updates from stream
+   * (counterpart to tOutputStream::WriteRegisterUpdatesImplementation)
+   *
+   */
+  void ReadRegisterUpdatesImplementation();
+
+  /*!
+   * Set shared serialization info
+   *
+   * \param source_info Info on source that created data currently read (at least the included revision is required for deserialization)
+   */
+  void ResetInfo(const tSerializationInfo& source_info)
+  {
+    this->shared_serialization_info.serialization_source = source_info;
+    if (this->shared_serialization_info.remote_registers.unique())
+    {
+      for (auto & entry : (*this->shared_serialization_info.remote_registers))
+      {
+        entry.reset();
+      }
+    }
+    else if (source_info.HasPublishedRegisters())
+    {
+      this->shared_serialization_info.remote_registers.reset(new tRemoteRegisters());
+    }
+  }
+
+  /*!
+   * Set shared serialization info
+   *
+   * \param shared_serialization_info_from Serialization info (tSerializationInfo and remote registers) is taken from and shared with this input stream.
+   */
+  void ResetInfo(tInputStream& shared_serialization_info_from)
+  {
+    this->shared_serialization_info = shared_serialization_info_from.shared_serialization_info;
+  }
+
+  /*!
+   * Use this object with different source.
+   * Current source will be closed.
+   *
+   * \param source New Source
+   */
+  void ResetSource(tSource& source);
+  void ResetSource(const tConstSource& source);
 
   /*!
    * \return Is current buffer currently set to boundaryBuffer?

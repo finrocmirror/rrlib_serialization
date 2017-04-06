@@ -63,14 +63,15 @@
 #include "rrlib/util/tNoncopyable.h"
 #include "rrlib/time/time.h"
 #include "rrlib/util/tEnumBasedFlags.h"
+#include <bitset>
+#include <atomic>
 
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-#include "rrlib/serialization/definitions.h"
+#include "rrlib/serialization/tSerializationInfo.h"
 #include "rrlib/serialization/tBufferInfo.h"
 #include "rrlib/serialization/tSink.h"
-#include "rrlib/serialization/tTypeEncoder.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -91,6 +92,7 @@ template <typename T>
 class IsSerializableContainer;
 template <typename T>
 class IsSerializableMap;
+class tInputStream;
 
 //----------------------------------------------------------------------
 // Class declaration
@@ -129,38 +131,36 @@ public:
 
   /*!
    * \param sink Sink to write to
-   * \param encoding Data type encoding to use when data types from rrlib::rtti are serialized (optional)
+   * \param serialization_target Info on target that serialization is created for
    */
-  tOutputStream(tSink& sink, tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS) : tOutputStream(encoding)
+  tOutputStream(tSink& sink, const tSerializationInfo& serialization_target = tSerializationInfo()) : tOutputStream()
   {
-    Reset(sink);
+    Reset(sink, serialization_target);
   }
 
   /*!
    * \param sink Sink to write to
-   * \param encoder Custom type encoder to use when data types from rrlib::rtti are serialized
+   * \param shared_serialization_info_from Serialization info (tSerializationInfo and published registers) is taken from and shared with this output stream.
    */
-  tOutputStream(tSink& sink, tTypeEncoder& encoder) : tOutputStream(encoder)
+  tOutputStream(tSink& sink, tOutputStream& shared_serialization_info_from) : tOutputStream()
   {
-    Reset(sink);
+    Reset(sink, shared_serialization_info_from);
   }
 
   /*!
-   * Note: Reset() with a sink must be called, before data can be written
-   *
-   * \param encoding Data type encoding to use when data types from rrlib::rtti are serialized (optional)
+   * Creates output stream not attached to any sink.
+   * Reset() with a sink must be called, before data can be written
    */
-  tOutputStream(tTypeEncoding encoding = tTypeEncoding::LOCAL_UIDS);
-
-  /*!
-   * Note: Reset() with a sink must be called, before data can be written
-   *
-   * \param encoder Custom type encoder to use when data types from rrlib::rtti are serialized
-   */
-  tOutputStream(tTypeEncoder& encoder) : tOutputStream(tTypeEncoding::CUSTOM)
-  {
-    custom_encoder = &encoder;
-  }
+  tOutputStream() :
+    sink(nullptr),
+    immediate_flush(false),
+    closed(true),
+    buffer(),
+    cur_skip_offset_placeholder(-1),
+    short_skip_offset(false),
+    buffer_copy_fraction(0),
+    direct_write_support(false)
+  {}
 
   ~tOutputStream()
   {
@@ -198,14 +198,6 @@ public:
   }
 
   /*!
-   * \return Custom type encoder
-   */
-  tTypeEncoder* GetCustomTypeEncoder() const
-  {
-    return custom_encoder;
-  }
-
-  /*!
    * \return Position in current internal buffer provided by the Sink.
    * With a tMemoryBuffer sink, this is the actual position in the tMemoryBuffer
    * (and also the size of the data that was written to it).
@@ -217,11 +209,19 @@ public:
   }
 
   /*!
-   * \return Data type encoding that is used
+   * \return Info on target that serialization is created for
    */
-  tTypeEncoding GetTypeEncoding() const
+  inline const tSerializationInfo& GetTargetInfo() const
   {
-    return encoding;
+    return shared_serialization_info.serialization_target;
+  }
+
+  /*!
+   * \return Whether auto-updated published local registers have more entries than have been transferred (transferring any register entry will cause an update)
+   */
+  bool IsPublishedRegisterUpdatePending() const
+  {
+    return shared_serialization_info.published_register_status ? shared_serialization_info.published_register_status->on_register_change_update_counter > shared_serialization_info.published_register_status->counter_on_last_update : false;
   }
 
   /*!
@@ -243,7 +243,7 @@ public:
   void Println(const std::string& s);
 
   /*!
-   * Resets/clears buffer for writing
+   * Resets/clears buffer for writing (to same sink)
    */
   void Reset();
 
@@ -251,8 +251,17 @@ public:
    * Use buffer with different sink (closes old one)
    *
    * \param sink New Sink to use
+   * \param serialization_target Info on target that serialization is created for
    */
-  void Reset(tSink& sink);
+  void Reset(tSink& sink, const tSerializationInfo& serialization_target = tSerializationInfo());
+
+  /*!
+   * Use buffer with different sink (closes old one)
+   *
+   * \param sink New Sink to use
+   * \param shared_serialization_info_from Serialization info (tSerializationInfo and published registers) is taken from and shared with this output stream.
+   */
+  void Reset(tSink& sink, tOutputStream& shared_serialization_info_from);
 
   /*!
    * Seeks the specified position in the current internal buffer provided by the Sink.
@@ -484,7 +493,7 @@ public:
 
   void WriteString(const char* s)
   {
-    Write(const_cast<char*>(s), strlen(s) + 1);
+    Write(s, strlen(s) + 1);
   }
 
   /*!
@@ -531,17 +540,61 @@ private:
   /*! if true, indicates that only 1 byte has been reserved for skip offset placeholder */
   bool short_skip_offset;
 
-  /*! hole Buffers are only buffered/copied, when they are smaller than this */
+  /*! Whole Buffers are only buffered/copied when they are smaller than this */
   size_t buffer_copy_fraction;
 
   /*! Is direct write support available with this sink? */
   bool direct_write_support;
 
-  /*! Data type encoding that is used */
-  tTypeEncoding encoding;
 
-  /*! Custom type encoder */
-  tTypeEncoder* custom_encoder;
+  template <typename TEntry, size_t Tchunk_count, size_t Tchunk_size, typename THandle, typename TMutex>
+  friend class tRegister;
+
+  /*! Info on a single published registers */
+  struct tPublishedRegisterStatus : util::tNoncopyable
+  {
+    /*! Contains number of entries from register that were already written to stream */
+    std::array<uint, cMAX_PUBLISHED_REGISTERS> elements_written;
+
+    /*! Counts updates to registers that are update on change (for efficient change detection) */
+    std::atomic<uint> on_register_change_update_counter;
+
+    /*! Counter value when registers updated on change were last updated (for efficient change detection) */
+    uint counter_on_last_update;
+
+    /*! Where this object registered as listener */
+    std::bitset<cMAX_PUBLISHED_REGISTERS> registered_listeners;
+
+    tPublishedRegisterStatus() :
+      on_register_change_update_counter(0),
+      counter_on_last_update(0)
+    {
+      elements_written.fill(0);
+    }
+
+    void OnRegisterUpdate()
+    {
+      on_register_change_update_counter++;
+    }
+
+    void Reset();
+
+    ~tPublishedRegisterStatus()
+    {
+      Reset();
+    }
+  };
+
+  /*! Serialization possibly shared with substreams */
+  struct tSharedSerializationInfo
+  {
+    /*! Info on target that serialization is created for */
+    tSerializationInfo serialization_target;
+
+    /*! Info on published registers */
+    std::shared_ptr<tPublishedRegisterStatus> published_register_status;
+
+  } shared_serialization_info;
 
 
   /*!
@@ -579,6 +632,32 @@ private:
   {
     return buffer.Remaining();
   }
+
+  /*!
+   * Writes any required updates to stream
+   *
+   * \param register_uid UID of register whose entry is to be serialized after call
+   * \param entry_handle Handle of entry to be serialized after call
+   * \param handle_size Size of register's handle (in bytes)
+   */
+  void WriteRegisterUpdates(uint register_uid, uint entry_handle, size_t handle_size)
+  {
+    size_t current_counter = shared_serialization_info.published_register_status->on_register_change_update_counter.load();
+    if (entry_handle >= shared_serialization_info.published_register_status->elements_written[register_uid] || current_counter > shared_serialization_info.published_register_status->counter_on_last_update)
+    {
+      shared_serialization_info.published_register_status->counter_on_last_update = current_counter;
+      WriteRegisterUpdatesImplementation(register_uid, entry_handle, handle_size);
+    }
+  }
+
+  /*!
+   * Sends updates on all published registers on-change and possibly the register triggering this call
+   *
+   * \param register_uid UID of register whose entry is to be serialized after call
+   * \param entry_handle Handle of entry to be serialized after call
+   * \param handle_size Size of register's handle (in bytes)
+   */
+  void WriteRegisterUpdatesImplementation(uint register_uid, uint entry_handle, size_t handle_size);
 };
 
 // stream operators for various standard types
@@ -697,6 +776,8 @@ inline tOutputStream& operator<< (tOutputStream& stream, const std::pair<T1, T2>
   stream << pair.first << pair.second;
   return stream;
 }
+
+
 
 namespace internal
 {
