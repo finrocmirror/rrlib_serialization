@@ -69,7 +69,7 @@ struct tSerializationInfo
 {
   /*!
    * Revision of serialization.
-   * The release version is encoded in this number (yymmdd). If revision is zero, this indicates the 14.08 release or earlier.
+   * The release version is encoded in this number (yymm). If revision is zero, this indicates the 14.08 release or earlier.
    *
    * For serialization targets: The release version that is supported by the target.
    * For serialization sources: At least this revision is required for deserialization. This is typically the minimum of the release version that serialization was created with and for.
