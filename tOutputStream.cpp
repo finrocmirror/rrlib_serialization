@@ -264,14 +264,14 @@ void tOutputStream::WriteRegisterUpdatesImplementation(uint register_uid, uint e
           }
 
           // compatibility with legacy parts
-          PublishedRegisters::SerializeEntries(*this, register_uid, status.elements_written[i], current_size);
+          PublishedRegisters::SerializeEntries(*this, i, status.elements_written[i], current_size);
           WriteShort(-1);
         }
         else
         {
           WriteByte(i);
           WriteInt(current_size - status.elements_written[i]);
-          PublishedRegisters::SerializeEntries(*this, register_uid, status.elements_written[i], current_size);
+          PublishedRegisters::SerializeEntries(*this, i, status.elements_written[i], current_size);
         }
         status.elements_written[i] = current_size;
       }
