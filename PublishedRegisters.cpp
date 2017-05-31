@@ -32,6 +32,7 @@
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include "rrlib/logging/messages.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -65,6 +66,18 @@ namespace serialization
 //----------------------------------------------------------------------
 // Implementation
 //----------------------------------------------------------------------
+
+void PublishedRegisters::AddListener(uint uid, const std::function<void()>& callback, const void* address)
+{
+  if (RegisteredRegisters()[uid])
+  {
+    RegisteredRegisters()[uid]->AddListener(callback, address);
+  }
+  else
+  {
+    RRLIB_LOG_PRINT(WARNING, "There is no register with uid ", uid);
+  }
+}
 
 std::array<std::unique_ptr<PublishedRegisters::tPerRegisterInfo>, cMAX_PUBLISHED_REGISTERS>& PublishedRegisters::RegisteredRegisters()
 {

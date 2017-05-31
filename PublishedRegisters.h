@@ -141,10 +141,7 @@ public:
    * \param callback Callback function that will be called whenever a new element is added.
    * \param address Address of listener. Optional: only required for identification when removing listener.
    */
-  static void AddListener(uint uid, const std::function<void()>& callback, const void* address = nullptr)
-  {
-    RegisteredRegisters()[uid]->AddListener(callback, address);
-  }
+  static void AddListener(uint uid, const std::function<void()>& callback, const void* address = nullptr);
 
   /*!
    * \param stream Stream whose (shared) data on remote register to obtain
