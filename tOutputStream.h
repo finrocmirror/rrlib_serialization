@@ -93,6 +93,7 @@ class IsSerializableContainer;
 template <typename T>
 class IsSerializableMap;
 class tInputStream;
+class tRegisterUpdate;
 
 //----------------------------------------------------------------------
 // Class declaration
@@ -549,6 +550,7 @@ private:
 
   template <typename TEntry, size_t Tchunk_count, size_t Tchunk_size, typename THandle, typename TMutex>
   friend class tRegister;
+  friend tOutputStream& operator << (tOutputStream& stream, const tRegisterUpdate& update);
 
   /*! Info on a single published registers */
   struct tPublishedRegisterStatus : util::tNoncopyable
@@ -638,26 +640,28 @@ private:
    *
    * \param register_uid UID of register whose entry is to be serialized after call
    * \param entry_handle Handle of entry to be serialized after call
-   * \param handle_size Size of register's handle (in bytes)
+   * \param handle_size Size of register's handle for escaping (in bytes). Passing zero will not escape updates.
+   * \return Whether any register updates have been written to stream
    */
-  void WriteRegisterUpdates(uint register_uid, uint entry_handle, size_t handle_size)
+  bool WriteRegisterUpdates(uint register_uid, uint entry_handle, size_t handle_size)
   {
     size_t current_counter = shared_serialization_info.published_register_status->on_register_change_update_counter.load();
     if (entry_handle >= shared_serialization_info.published_register_status->elements_written[register_uid] || current_counter > shared_serialization_info.published_register_status->counter_on_last_update)
     {
       shared_serialization_info.published_register_status->counter_on_last_update = current_counter;
-      WriteRegisterUpdatesImplementation(register_uid, entry_handle, handle_size);
+      return WriteRegisterUpdatesImplementation(register_uid, handle_size);
     }
+    return false;
   }
 
   /*!
    * Sends updates on all published registers on-change and possibly the register triggering this call
    *
    * \param register_uid UID of register whose entry is to be serialized after call
-   * \param entry_handle Handle of entry to be serialized after call
-   * \param handle_size Size of register's handle (in bytes)
+   * \param handle_size Size of register's handle for escaping (in bytes). Passing zero will not escape updates.
+   * \return Whether any register updates have been written to stream
    */
-  void WriteRegisterUpdatesImplementation(uint register_uid, uint entry_handle, size_t handle_size);
+  bool WriteRegisterUpdatesImplementation(uint register_uid, size_t handle_size);
 };
 
 // stream operators for various standard types

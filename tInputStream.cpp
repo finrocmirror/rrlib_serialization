@@ -271,7 +271,7 @@ void tInputStream::ReadRegisterUpdatesImplementation()
   else
   {
     int8_t register_uid = ReadByte();
-    while (true)
+    while (register_uid != -1)
     {
       if (register_uid >= static_cast<int>(register_array.size()) || register_uid < 0)
       {
@@ -283,10 +283,6 @@ void tInputStream::ReadRegisterUpdatesImplementation()
       }
       static_cast<PublishedRegisters::tRemoteRegisterBase*>(register_array[register_uid].get())->DeserializeEntries(*this);
       register_uid = ReadByte();
-      if (register_uid == -1)
-      {
-        break;
-      }
     }
   }
 }

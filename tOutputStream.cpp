@@ -235,7 +235,7 @@ void tOutputStream::WriteSkipOffsetPlaceholder(bool short_skip_offset)
   }
 }
 
-void tOutputStream::WriteRegisterUpdatesImplementation(uint register_uid, uint entry_handle, size_t handle_size)
+bool tOutputStream::WriteRegisterUpdatesImplementation(uint register_uid, size_t handle_size)
 {
   bool escape_signal_written = false;
   uint escape_signal = 0xFFFFFFFF;
@@ -281,6 +281,7 @@ void tOutputStream::WriteRegisterUpdatesImplementation(uint register_uid, uint e
   {
     WriteByte(-1);
   }
+  return escape_signal_written;
 }
 
 void tOutputStream::WriteString(const std::string& s, bool terminate)

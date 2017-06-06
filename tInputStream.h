@@ -80,6 +80,7 @@ class IsSerializableContainer;
 template <typename T>
 class IsSerializableMap;
 class PublishedRegisters;
+class tRegisterUpdate;
 
 //----------------------------------------------------------------------
 // Class declaration
@@ -513,6 +514,7 @@ private:
 
   friend class tOutputStream;
   friend class PublishedRegisters;
+  friend tInputStream& operator >> (tInputStream& stream, tRegisterUpdate& update);
 
   /*! Buffer that is managed by source */
   tBufferInfo source_buffer;
