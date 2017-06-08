@@ -165,9 +165,10 @@ public:
    *                      static void SerializeRegisterEntry(tOutputStream& stream, const TEntry& entry);
    *                      (2) an equivalent method for deserializing element as TRemoteEntry (the handle needn't be deserialized)
    *                      void DeserializeRegisterEntry(tInputStream& stream);
+   * \tparam Tempty_element Whether to create an empty element that is returned when -1 is read
    * \throw Throws std::invalid_argument on already occupied uid
    */
-  template <typename TRemoteEntry>
+  template <typename TRemoteEntry, bool Tempty_element = false>
   static void Register(const typename TRemoteEntry::tLocalRegister& r, uint uid);
 
   /*!

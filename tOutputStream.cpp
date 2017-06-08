@@ -238,7 +238,6 @@ void tOutputStream::WriteSkipOffsetPlaceholder(bool short_skip_offset)
 bool tOutputStream::WriteRegisterUpdatesImplementation(uint register_uid, size_t handle_size)
 {
   bool escape_signal_written = false;
-  uint escape_signal = 0xFFFFFFFF;
 
   // Update on_change registers
   for (size_t i = 0; i < cMAX_PUBLISHED_REGISTERS; i++)
@@ -252,7 +251,18 @@ bool tOutputStream::WriteRegisterUpdatesImplementation(uint register_uid, size_t
       {
         if (!escape_signal_written)
         {
-          Write(&escape_signal, handle_size);
+          if (handle_size == 1)
+          {
+            WriteByte(-2);
+          }
+          else if (handle_size == 2)
+          {
+            WriteShort(-2);
+          }
+          else if (handle_size == 4)
+          {
+            WriteInt(-2);
+          }
           escape_signal_written = true;
         }
 

@@ -74,7 +74,7 @@ const TRemoteType& PublishedRegisters::DeserializeRemoteRegisterEntry(tInputStre
   {
     register_array[register_uid].reset(RegisteredRegisters()[register_uid]->CreateRemoteRegister());
   }
-  const typename TRemoteType::tHandle cESCAPE = -1;
+  const typename TRemoteType::tHandle cESCAPE = -2;
   auto handle = stream.ReadNumber<typename TRemoteType::tHandle>();
   if (handle == cESCAPE)
   {
@@ -84,7 +84,14 @@ const TRemoteType& PublishedRegisters::DeserializeRemoteRegisterEntry(tInputStre
   return *reinterpret_cast<const TRemoteType*>(static_cast<tRemoteRegisterBase*>(register_array[register_uid].get())->GetRemoteElement(handle));
 }
 
-template <typename TRemoteEntry>
+template <typename TElement>
+static const TElement& EmptyElement()
+{
+  static const TElement cEMPTY_ELEMENT;
+  return cEMPTY_ELEMENT;
+}
+
+template <typename TRemoteEntry, bool Tempty_element>
 void PublishedRegisters::Register(const typename TRemoteEntry::tLocalRegister& r, uint uid)
 {
   typedef typename TRemoteEntry::tLocalRegister tReg;
@@ -136,6 +143,11 @@ void PublishedRegisters::Register(const typename TRemoteEntry::tLocalRegister& r
 
     virtual const void* GetRemoteElement(size_t index) override
     {
+      tHandle handle = static_cast<tHandle>(index);
+      if (Tempty_element && handle == static_cast<tHandle>(-1))
+      {
+        return &EmptyElement<typename std::conditional<Tempty_element, TRemoteEntry, std::string>::type>();
+      }
       if (index >= this->Size())
       {
         throw std::runtime_error("Read invalid index deserializing remote register entry");
