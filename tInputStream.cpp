@@ -158,7 +158,7 @@ void tInputStream::FetchNextBytes(size_t min_required2)
   {
     const_source->Read(*this, source_buffer, min_required2);
   }
-  if (source_buffer.Remaining() >= min_required2)
+  if (source_buffer.Remaining() < min_required2)
   {
     throw std::runtime_error("Could not obtain the minimum number of bytes required from source");
   }
