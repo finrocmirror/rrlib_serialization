@@ -331,12 +331,15 @@ inline tStringInputStream& operator>> (tStringInputStream& stream, unsigned long
 }
 inline tStringInputStream& operator>> (tStringInputStream& stream, float& t)
 {
-  stream.GetWrappedStringStream() >> t;
+  std::string s = stream.ReadWhile("-.+", tStringInputStream::cLETTER | tStringInputStream::cDIGIT | tStringInputStream::cWHITESPACE, true);
+  char* end;
+  t = strtof(s.c_str(), &end);
   return stream;
 }
 inline tStringInputStream& operator>> (tStringInputStream& stream, double& t)
 {
-  stream.GetWrappedStringStream() >> t;
+  std::string s = stream.ReadWhile("-.+", tStringInputStream::cLETTER | tStringInputStream::cDIGIT | tStringInputStream::cWHITESPACE, true);
+  t = atof(s.c_str());
   return stream;
 }
 inline tStringInputStream& operator>> (tStringInputStream& stream, bool& t)

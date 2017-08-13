@@ -90,6 +90,7 @@ class TestSerialization : public util::tUnitTestSuite
   RRLIB_UNIT_TESTS_ADD_TEST(TestBinarySet);
   RRLIB_UNIT_TESTS_ADD_TEST(TestEnumsBinary);
   RRLIB_UNIT_TESTS_ADD_TEST(TestEnumsString);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestFloatingPointStrings);
   RRLIB_UNIT_TESTS_END_SUITE;
 
 
@@ -326,6 +327,48 @@ private:
     TestStringSerialization<10000>({ string_buffer.str() }, 10, 1070);
   }
 
+  template <typename T>
+  void TestFloatingPointString(T t)
+  {
+    tStringOutputStream output_stream;
+    output_stream << t;
+    T read;
+    //std::cout << std::endl << output_stream.ToString() << std::endl;
+    tStringInputStream input_stream(output_stream.ToString());
+    input_stream >> read;
+    if (std::isnan(t))
+    {
+      RRLIB_UNIT_TESTS_ASSERT(std::isnan(read));
+    }
+    else
+    {
+      RRLIB_UNIT_TESTS_EQUALITY(t, read);
+    }
+  }
+
+  void TestFloatingPointStringPair(double value)
+  {
+    TestFloatingPointString(static_cast<float>(value));
+    TestFloatingPointString(value);
+  }
+
+  void TestFloatingPointStrings()
+  {
+    TestFloatingPointStringPair(4.52);
+    TestFloatingPointStringPair(0.000000000000582956);
+    TestFloatingPointStringPair(0.0000000000005829562352435643);
+    TestFloatingPointStringPair(6091367925921349623646693463463469.0005);
+    TestFloatingPointStringPair(std::numeric_limits<double>::min());
+    TestFloatingPointStringPair(std::numeric_limits<double>::max());
+    TestFloatingPointStringPair(std::numeric_limits<double>::lowest());
+    TestFloatingPointStringPair(std::numeric_limits<double>::infinity());
+    TestFloatingPointStringPair(-std::numeric_limits<double>::infinity());
+    TestFloatingPointStringPair(std::numeric_limits<double>::quiet_NaN());
+    TestFloatingPointStringPair(-std::numeric_limits<double>::quiet_NaN());
+    TestFloatingPointStringPair(1234.000000000000000000555555);
+    TestFloatingPointStringPair(-34.500000000000000000555555);
+    TestFloatingPointStringPair(-550000000000055.00000);
+  }
 };
 
 RRLIB_UNIT_TESTS_REGISTER_SUITE(TestSerialization);

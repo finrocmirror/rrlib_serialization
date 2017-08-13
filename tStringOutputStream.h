@@ -113,6 +113,14 @@ public:
     return wrapped.str();
   }
 
+  /*!
+   * Writes floating point value with the required number of digits to deserialize the exact same value later
+   *
+   * \param d floating point value
+   */
+  void WriteFloatingPoint(double d);
+  void WriteFloatingPoint(float f);
+
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
@@ -192,12 +200,12 @@ inline tStringOutputStream& operator<< (tStringOutputStream& stream, unsigned lo
 }
 inline tStringOutputStream& operator<< (tStringOutputStream& stream, float t)
 {
-  stream.GetWrappedStringStream() << t;
+  stream.WriteFloatingPoint(t);
   return stream;
 }
 inline tStringOutputStream& operator<< (tStringOutputStream& stream, double t)
 {
-  stream.GetWrappedStringStream() << t;
+  stream.WriteFloatingPoint(t);
   return stream;
 }
 inline tStringOutputStream& operator<< (tStringOutputStream& stream, const char* t)
