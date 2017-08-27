@@ -91,6 +91,7 @@ class TestSerialization : public util::tUnitTestSuite
   RRLIB_UNIT_TESTS_ADD_TEST(TestEnumsBinary);
   RRLIB_UNIT_TESTS_ADD_TEST(TestEnumsString);
   RRLIB_UNIT_TESTS_ADD_TEST(TestFloatingPointStrings);
+  RRLIB_UNIT_TESTS_ADD_TEST(TestTuplesPairsArrays);
   RRLIB_UNIT_TESTS_END_SUITE;
 
 
@@ -224,8 +225,8 @@ private:
    * \param value Object of type T
    * \return Object created from deserializing the serialized object passed to this function
    */
-  template <typename T, size_t Texpected_size = 0>
-  T TestBinarySerialization(const T &value)
+  template <typename T>
+  T TestBinarySerialization(const T &value, size_t expected_size = 0)
   {
     // serialize to memory
     rrlib::serialization::tMemoryBuffer mb;
@@ -234,9 +235,9 @@ private:
     os << value;
     os.Close();
 
-    if (Texpected_size > 0)
+    if (expected_size > 0)
     {
-      RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Serialized size must be correct", Texpected_size, mb.GetSize());
+      RRLIB_UNIT_TESTS_EQUALITY_MESSAGE("Serialized size must be correct", expected_size, mb.GetSize());
     }
 
     // deserialize to original type
@@ -368,6 +369,22 @@ private:
     TestFloatingPointStringPair(1234.000000000000000000555555);
     TestFloatingPointStringPair(-34.500000000000000000555555);
     TestFloatingPointStringPair(-550000000000055.00000);
+  }
+
+  void TestTuplesPairsArrays()
+  {
+    std::tuple<std::string, int, std::vector<int>> test_tuple("Test", 4, std::vector<int>(4));
+    TestBinarySerialization(test_tuple);
+
+    std::tuple<std::pair<std::string, int>, double> test_tuple2(std::pair<std::string, int>("Test", 4), -1.4);
+    TestBinarySerialization(test_tuple2);
+
+    std::array<int, 4> test_array = { 1, 5, 15, -2 };
+    TestBinarySerialization(test_array, 4 * sizeof(int));
+
+    std::array<std::pair<double, int>, 3> test_array2;
+    test_array2.fill(std::pair<double, int>(4.555, -1));
+    TestBinarySerialization(test_array2, 3 * (sizeof(double) + sizeof(int)));
   }
 };
 
