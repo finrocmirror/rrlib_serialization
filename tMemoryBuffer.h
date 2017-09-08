@@ -222,6 +222,8 @@ public:
     return Equals(o);
   }
 
+  explicit operator std::vector<uint8_t>() const;
+
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------

@@ -199,6 +199,12 @@ bool tMemoryBuffer::Write(tOutputStream& output_stream_buffer, tBufferInfo& buff
   return false;
 }
 
+tMemoryBuffer::operator std::vector<uint8_t>() const
+{
+  return std::vector<uint8_t>(backend.GetPointer(), backend.GetPointer() + GetSize());
+}
+
+
 tOutputStream& operator << (tOutputStream& stream, const tMemoryBuffer& buffer)
 {
   stream.WriteLong(buffer.GetSize());
