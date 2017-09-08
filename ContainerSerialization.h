@@ -132,8 +132,8 @@ struct ContainerDeserializationDefaulImplementation
   }
 
 #ifdef _LIB_RRLIB_XML_PRESENT_
-  template <typename TContainer>
-  static void Deserialize(const xml::tNode& node, TContainer& container)
+  template <typename TContainer, bool Tarray = IsStdArray<TContainer>::value>
+  static void Deserialize(const typename std::enable_if < !Tarray, xml::tNode >::type& node, TContainer& container)
   {
     // Count elements first and resize (=> possibly less memory allocations)
     size_t count = 0;
@@ -151,6 +151,19 @@ struct ContainerDeserializationDefaulImplementation
       count++;
     }
   }
+
+  template <typename TContainer, bool Tarray = IsStdArray<TContainer>::value>
+  static void Deserialize(const typename std::enable_if<Tarray, xml::tNode>::type& node, TContainer& container)
+  {
+    // Deserialize
+    size_t count = 0;
+    for (auto it = node.ChildrenBegin(); it != node.ChildrenEnd() && count < container.size(); ++it)
+    {
+      (*it) >> container[count];
+      count++;
+    }
+  }
+
 #endif
 };
 

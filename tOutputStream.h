@@ -812,7 +812,7 @@ inline tOutputStream& operator<< (tOutputStream& stream, const std::tuple<TArgs.
 }
 
 template <typename T, size_t N>
-inline tOutputStream& operator<< (tOutputStream& stream, const std::array<T, N>& array)
+inline typename std::enable_if<IsBinarySerializable<T>::value, tOutputStream&>::type operator<< (tOutputStream& stream, const std::array<T, N>& array)
 {
   for (const T & element : array)
   {

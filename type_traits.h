@@ -267,6 +267,18 @@ public:
   enum { value = std::is_const<decltype(TestBegin(nullptr))>::value };
 };
 
+/*! Type trait that returns whether type T is a std::array */
+template <typename T>
+struct IsStdArray
+{
+  enum { value = false };
+};
+template <typename T, size_t N>
+struct IsStdArray<std::array<T, N>>
+{
+  enum { value = true };
+};
+
 
 // Some type trait tests
 static_assert(IsSerializableContainer<int>::value == false, "Incorrect trait implementation");

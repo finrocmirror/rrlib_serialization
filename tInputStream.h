@@ -802,7 +802,7 @@ inline tInputStream& operator>> (tInputStream& stream, std::tuple<TArgs...>& tup
 }
 
 template <typename T, size_t N>
-inline tInputStream& operator>> (tInputStream& stream, std::array<T, N>& array)
+inline typename std::enable_if<IsBinarySerializable<T>::value, tInputStream&>::type operator>> (tInputStream& stream, std::array<T, N>& array)
 {
   for (T & element : array)
   {
