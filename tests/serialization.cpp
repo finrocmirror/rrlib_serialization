@@ -65,7 +65,19 @@ namespace rrlib
 namespace serialization
 {
 
-// We check this here so that not all programs using rrlib_serialization include <set> by default
+// Some type trait tests (checked here instead of header in order to shorten compile times)
+static_assert(IsSerializableContainer<int>::value == false, "Incorrect trait implementation");
+static_assert(IsSerializableContainer<std::vector<int>>::value == true, "Incorrect trait implementation");
+static_assert(IsSerializableContainer<std::vector<bool>>::value == true, "Incorrect trait implementation");
+static_assert(IsSerializableContainer<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
+static_assert(IsSerializableMap<std::vector<int>>::value == false, "Incorrect trait implementation");
+static_assert(IsSerializableMap<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
+static_assert(IsConstElementContainer<std::vector<std::string>>::value == false, "Incorrect trait implementation");
+
+static_assert(IsStringSerializable<bool>::value, "Incorrect trait implementation");
+static_assert(!IsStringSerializable<std::vector<bool>>::value, "Incorrect trait implementation");
+static_assert(detail::IsStringInputSerializable<typename std::vector<bool>::reference>::value, "Incorrect trait implementation");
+
 static_assert(IsSerializableContainer<std::set<std::string>>::value == true, "Incorrect trait implementation");
 static_assert(IsConstElementContainer<std::set<std::string>>::value == true, "Incorrect trait implementation");
 
