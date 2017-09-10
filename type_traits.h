@@ -241,12 +241,19 @@ class IsSerializableMap
   static typename U::mapped_type TestMappedType(void*);
   static void TestMappedType(...);
 
+  template <typename U = T>
+  static typename U::key_type TestKeyType(void*);
+  static void TestKeyType(...);
+
 public:
+
+  /*! Key type of map if T is a map; void otherwise */
+  typedef decltype(TestKeyType(nullptr)) tKey;
 
   /*! Mapped type of map if T is a map; void otherwise */
   typedef decltype(TestMappedType(nullptr)) tMapped;
 
-  enum { value = (!std::is_same<tMapped, void>::value) && IsSerializableContainer<T>::value };
+  enum { value = (!std::is_same<tKey, void>::value) && (!std::is_same<tMapped, void>::value) && IsSerializableContainer<T>::value };
 };
 
 /*!

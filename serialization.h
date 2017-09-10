@@ -371,14 +371,16 @@ inline const xml::tNode& operator>> (const xml::tNode& node, typename std::vecto
 }
 
 template <typename ... TArgs>
-inline xml::tNode& operator<< (xml::tNode &node, const std::tuple<TArgs...> &tuple)
+inline typename std::enable_if < std::is_same < util::tIntegerSequence<serialization::IsXMLSerializable<TArgs>::value...>, util::tIntegerSequence < true | serialization::IsXMLSerializable<TArgs>::value... >>::value, xml::tNode& >::type
+    operator<< (xml::tNode &node, const std::tuple<TArgs...> &tuple)
 {
   serialization::internal::tTupleXmlSerializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::SerializeTuple(node, tuple);
   return node;
 }
 
 template <typename ... TArgs>
-inline const xml::tNode& operator>> (const xml::tNode &node, std::tuple<TArgs...> &tuple)
+inline typename std::enable_if < std::is_same < util::tIntegerSequence<serialization::IsXMLSerializable<TArgs>::value...>, util::tIntegerSequence < true | serialization::IsXMLSerializable<TArgs>::value... >>::value, const xml::tNode& >::type
+    operator>> (const xml::tNode &node, std::tuple<TArgs...> &tuple)
 {
   serialization::internal::tTupleXmlDeserializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::DeserializeTuple(node.FirstChild(), tuple);
   return node;

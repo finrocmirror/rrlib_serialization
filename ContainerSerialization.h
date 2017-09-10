@@ -216,9 +216,7 @@ struct ContainerSerializationDefault
   enum
   {
     cBINARY_SERIALIZABLE = IsBinarySerializable<T>::value,
-    cMAP_BINARY_SERIALIZABLE = cBINARY_SERIALIZABLE,
     cXML_SERIALIZABLE = IsXMLSerializable<T>::value,
-    cMAP_XML_SERIALIZABLE = cXML_SERIALIZABLE
   };
 
   // Binary serialization
@@ -243,7 +241,12 @@ struct ContainerSerializationDefault
   template <typename TMap>
   static void SerializeMap(tOutputStream& stream, const TMap& map)
   {
-    Serialize(stream, map);
+    stream.WriteInt(map.size());
+    stream.WriteBoolean(true); // const type?  (possibly unnecessary; if we remove it, this will break binary compatibility to 13.10 though)
+    for (auto it = map.begin(); it != map.end(); it++)
+    {
+      stream << it->first << it->second;
+    }
   }
 
   template <typename TMap>

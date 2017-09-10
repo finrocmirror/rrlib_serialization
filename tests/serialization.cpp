@@ -65,6 +65,27 @@ namespace rrlib
 namespace serialization
 {
 
+//----------------------------------------------------------------------
+// Forward declarations / typedefs / enums
+//----------------------------------------------------------------------
+
+class tNonSerializable
+{};
+
+//----------------------------------------------------------------------
+// Const values
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+template <typename T>
+constexpr int Test()
+{
+  static_assert(std::is_same<T, bool>::value, "Test");
+  return 0;
+}
+
 // Some type trait tests (checked here instead of header in order to shorten compile times)
 static_assert(IsSerializableContainer<int>::value == false, "Incorrect trait implementation");
 static_assert(IsSerializableContainer<std::vector<int>>::value == true, "Incorrect trait implementation");
@@ -72,6 +93,9 @@ static_assert(IsSerializableContainer<std::vector<bool>>::value == true, "Incorr
 static_assert(IsSerializableContainer<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
 static_assert(IsSerializableMap<std::vector<int>>::value == false, "Incorrect trait implementation");
 static_assert(IsSerializableMap<std::map<int, std::string>>::value == true, "Incorrect trait implementation");
+static_assert(ContainerSerialization<std::pair<size_t, std::string>>::cBINARY_SERIALIZABLE, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<std::map<size_t, std::string>>::value == true, "Incorrect trait implementation");
+static_assert(IsXMLSerializable<std::map<size_t, std::string>>::value == true, "Incorrect trait implementation");
 static_assert(IsConstElementContainer<std::vector<std::string>>::value == false, "Incorrect trait implementation");
 
 static_assert(IsStringSerializable<bool>::value, "Incorrect trait implementation");
@@ -81,17 +105,21 @@ static_assert(detail::IsStringInputSerializable<typename std::vector<bool>::refe
 static_assert(IsSerializableContainer<std::set<std::string>>::value == true, "Incorrect trait implementation");
 static_assert(IsConstElementContainer<std::set<std::string>>::value == true, "Incorrect trait implementation");
 
-//----------------------------------------------------------------------
-// Forward declarations / typedefs / enums
-//----------------------------------------------------------------------
+static_assert(IsBinarySerializable<std::tuple<>>::value == true, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<std::tuple<int, std::array<std::string, 4>, std::vector<tEnumSigned>>>::value == true, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<std::tuple<int, tNonSerializable>>::value == false, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<std::tuple<int, std::array<tNonSerializable, 4>>>::value == false, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<std::pair<int, std::array<std::string, 4>>>::value == true, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<std::pair<tNonSerializable, std::array<tNonSerializable, 4>>>::value == false, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<std::pair<tNonSerializable, std::vector<tNonSerializable>>>::value == false, "Incorrect trait implementation");
 
-//----------------------------------------------------------------------
-// Const values
-//----------------------------------------------------------------------
+static_assert(IsXMLSerializable<std::tuple<>>::value == true, "Incorrect trait implementation");
+static_assert(IsXMLSerializable<std::tuple<int, std::array<std::string, 4>, std::vector<tEnumSigned>>>::value == true, "Incorrect trait implementation");
+static_assert(IsXMLSerializable<std::tuple<tNonSerializable, std::array<tNonSerializable, 4>>>::value == false, "Incorrect trait implementation");
+static_assert(IsXMLSerializable<std::tuple<std::map<int, int>, std::array<std::string, 4>>>::value == true, "Incorrect trait implementation");
+static_assert(IsXMLSerializable<std::pair<int, std::array<std::string, 4>>>::value == true, "Incorrect trait implementation");
+static_assert(IsXMLSerializable<std::pair<tNonSerializable, std::array<tNonSerializable, 4>>>::value == false, "Incorrect trait implementation");
 
-//----------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------
 
 class TestSerialization : public util::tUnitTestSuite
 {
@@ -389,7 +417,7 @@ private:
     TestBinarySerialization(test_tuple);
 
     std::tuple<std::pair<std::string, int>, double> test_tuple2(std::pair<std::string, int>("Test", 4), -1.4);
-    TestBinarySerialization(test_tuple2);
+    TestBinarySerialization(test_tuple2, 5 + sizeof(int) + sizeof(double));
 
     std::array<int, 4> test_array = { 1, 5, 15, -2 };
     TestBinarySerialization(test_array, 4 * sizeof(int));
@@ -397,6 +425,12 @@ private:
     std::array<std::pair<double, int>, 3> test_array2;
     test_array2.fill(std::pair<double, int>(4.555, -1));
     TestBinarySerialization(test_array2, 3 * (sizeof(double) + sizeof(int)));
+
+    std::tuple<std::map<int, int>, std::string> test_tuple3;
+    std::get<0>(test_tuple3)[4] = 5;
+    std::get<0>(test_tuple3)[2] = 7;
+    std::get<1>(test_tuple3) = "Test";
+    TestBinarySerialization(test_tuple3);
   }
 };
 

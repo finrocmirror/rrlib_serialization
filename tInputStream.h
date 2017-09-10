@@ -50,6 +50,7 @@
 #include "rrlib/util/tNoncopyable.h"
 #include "rrlib/time/time.h"
 #include "rrlib/util/tEnumBasedFlags.h"
+#include "rrlib/util/tIntegerSequence.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -767,7 +768,7 @@ inline tInputStream& operator>> (tInputStream& stream, util::tEnumBasedFlags<TFl
 }
 
 template <typename T1, typename T2>
-inline tInputStream& operator>> (tInputStream& stream, std::pair<T1, T2>& pair)
+inline typename std::enable_if < IsBinarySerializable<T1>::value && IsBinarySerializable<T2>::value, tInputStream& >::type operator>> (tInputStream& stream, std::pair<T1, T2>& pair)
 {
   stream >> pair.first >> pair.second;
   return stream;
@@ -795,7 +796,7 @@ struct tTupleDeserializer < -1, TArgs... >
 } // namespace internal
 
 template <typename ... TArgs>
-inline tInputStream& operator>> (tInputStream& stream, std::tuple<TArgs...>& tuple)
+inline typename std::enable_if < std::is_same < util::tIntegerSequence<IsBinarySerializable<TArgs>::value...>, util::tIntegerSequence < true | IsBinarySerializable<TArgs>::value... >>::value, tInputStream& >::type operator>> (tInputStream& stream, std::tuple<TArgs...>& tuple)
 {
   internal::tTupleDeserializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::DeserializeTuple(stream, tuple);
   return stream;
@@ -823,8 +824,7 @@ operator>> (tInputStream& stream, T& t)
 
 
 template <typename T>
-inline typename std::enable_if < IsSerializableMap<T>::value &&
-ContainerSerialization<typename IsSerializableContainer<T>::tValue>::cBINARY_SERIALIZABLE, tInputStream >::type&
+inline typename std::enable_if < IsSerializableMap<T>::value && IsBinarySerializable<typename IsSerializableMap<T>::tKey>::value && IsBinarySerializable<typename IsSerializableMap<T>::tMapped>::value, tInputStream >::type&
 operator>> (tInputStream& stream, T& map)
 {
   ContainerSerialization<typename IsSerializableMap<T>::tMapped>::DeserializeMap(stream, map);
