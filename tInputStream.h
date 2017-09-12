@@ -796,7 +796,7 @@ struct tTupleDeserializer < -1, TArgs... >
 } // namespace internal
 
 template <typename ... TArgs>
-inline typename std::enable_if < std::is_same < util::tIntegerSequence<IsBinarySerializable<TArgs>::value...>, util::tIntegerSequence < true | IsBinarySerializable<TArgs>::value... >>::value, tInputStream& >::type operator>> (tInputStream& stream, std::tuple<TArgs...>& tuple)
+inline typename std::enable_if < std::is_same < util::tIntegerSequence<IsBinarySerializable<TArgs>::value...>, util::tIntegerSequence < true || IsBinarySerializable<TArgs>::value... >>::value, tInputStream& >::type operator>> (tInputStream& stream, std::tuple<TArgs...>& tuple)
 {
   internal::tTupleDeserializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::DeserializeTuple(stream, tuple);
   return stream;

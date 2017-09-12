@@ -371,7 +371,7 @@ inline const xml::tNode& operator>> (const xml::tNode& node, typename std::vecto
 }
 
 template <typename ... TArgs>
-inline typename std::enable_if < std::is_same < util::tIntegerSequence<serialization::IsXMLSerializable<TArgs>::value...>, util::tIntegerSequence < true | serialization::IsXMLSerializable<TArgs>::value... >>::value, xml::tNode& >::type
+inline typename std::enable_if < std::is_same < util::tIntegerSequence<serialization::IsXMLSerializable<typename std::remove_cv<typename std::remove_reference<TArgs>::type>::type>::value...>, util::tIntegerSequence < true || serialization::IsXMLSerializable<typename std::remove_cv<typename std::remove_reference<TArgs>::type>::type>::value... >>::value, xml::tNode& >::type
     operator<< (xml::tNode &node, const std::tuple<TArgs...> &tuple)
 {
   serialization::internal::tTupleXmlSerializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::SerializeTuple(node, tuple);
@@ -379,7 +379,7 @@ inline typename std::enable_if < std::is_same < util::tIntegerSequence<serializa
 }
 
 template <typename ... TArgs>
-inline typename std::enable_if < std::is_same < util::tIntegerSequence<serialization::IsXMLSerializable<TArgs>::value...>, util::tIntegerSequence < true | serialization::IsXMLSerializable<TArgs>::value... >>::value, const xml::tNode& >::type
+inline typename std::enable_if < std::is_same < util::tIntegerSequence<serialization::IsXMLSerializable<TArgs>::value...>, util::tIntegerSequence < true || serialization::IsXMLSerializable<TArgs>::value... >>::value, const xml::tNode& >::type
     operator>> (const xml::tNode &node, std::tuple<TArgs...> &tuple)
 {
   serialization::internal::tTupleXmlDeserializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::DeserializeTuple(node.FirstChild(), tuple);
@@ -426,7 +426,7 @@ operator>> (const tNode &node, T& map)
   return node;
 }
 
-template < typename TFirst, typename TSecond, bool Tenable = serialization::IsXMLSerializable<TFirst>::value && serialization::IsXMLSerializable<TSecond>::value >
+template < typename TFirst, typename TSecond, bool Tenable = serialization::IsXMLSerializable<typename std::remove_cv<typename std::remove_reference<TFirst>::type>::type>::value && serialization::IsXMLSerializable<typename std::remove_cv<typename std::remove_reference<TSecond>::type>::type>::value >
 inline typename std::enable_if <Tenable, xml::tNode>::type& operator<< (xml::tNode &node, const std::pair<TFirst, TSecond>& pair)
 {
   node.AddChildNode("first") << pair.first;

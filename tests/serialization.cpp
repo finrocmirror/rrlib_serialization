@@ -112,6 +112,8 @@ static_assert(IsBinarySerializable<std::tuple<int, std::array<tNonSerializable, 
 static_assert(IsBinarySerializable<std::pair<int, std::array<std::string, 4>>>::value == true, "Incorrect trait implementation");
 static_assert(IsBinarySerializable<std::pair<tNonSerializable, std::array<tNonSerializable, 4>>>::value == false, "Incorrect trait implementation");
 static_assert(IsBinarySerializable<std::pair<tNonSerializable, std::vector<tNonSerializable>>>::value == false, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<int&>::value == true, "Incorrect trait implementation");
+static_assert(IsBinarySerializable<std::tuple<int&, std::string&>>::value == true, "Incorrect trait implementation");
 
 static_assert(IsXMLSerializable<std::tuple<>>::value == true, "Incorrect trait implementation");
 static_assert(IsXMLSerializable<std::tuple<int, std::array<std::string, 4>, std::vector<tEnumSigned>>>::value == true, "Incorrect trait implementation");
@@ -119,6 +121,8 @@ static_assert(IsXMLSerializable<std::tuple<tNonSerializable, std::array<tNonSeri
 static_assert(IsXMLSerializable<std::tuple<std::map<int, int>, std::array<std::string, 4>>>::value == true, "Incorrect trait implementation");
 static_assert(IsXMLSerializable<std::pair<int, std::array<std::string, 4>>>::value == true, "Incorrect trait implementation");
 static_assert(IsXMLSerializable<std::pair<tNonSerializable, std::array<tNonSerializable, 4>>>::value == false, "Incorrect trait implementation");
+static_assert(IsXMLSerializable<int&>::value == true, "Incorrect trait implementation");
+static_assert(IsXMLSerializable<std::tuple<int&, std::string&>>::value == true, "Incorrect trait implementation");
 
 
 class TestSerialization : public util::tUnitTestSuite

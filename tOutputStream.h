@@ -776,7 +776,7 @@ inline tOutputStream& operator<< (tOutputStream& stream, const util::tEnumBasedF
 }
 
 template <typename T1, typename T2>
-inline typename std::enable_if < IsBinarySerializable<T1>::value && IsBinarySerializable<T2>::value, tOutputStream& >::type operator<< (tOutputStream& stream, const std::pair<T1, T2>& pair)
+inline typename std::enable_if < IsBinarySerializable<typename std::remove_cv<typename std::remove_reference<T1>::type>::type>::value && IsBinarySerializable<typename std::remove_cv<typename std::remove_reference<T2>::type>::type>::value, tOutputStream& >::type operator<< (tOutputStream& stream, const std::pair<T1, T2>& pair)
 {
   stream << pair.first << pair.second;
   return stream;
@@ -805,7 +805,7 @@ struct tTupleSerializer < -1, TArgs... >
 } // namespace internal
 
 template <typename ... TArgs>
-inline typename std::enable_if < std::is_same < util::tIntegerSequence<IsBinarySerializable<TArgs>::value...>, util::tIntegerSequence < true | IsBinarySerializable<TArgs>::value... >>::value, tOutputStream& >::type operator<< (tOutputStream& stream, const std::tuple<TArgs...>& tuple)
+inline typename std::enable_if < std::is_same < util::tIntegerSequence<IsBinarySerializable<typename std::remove_cv<typename std::remove_reference<TArgs>::type>::type>::value...>, util::tIntegerSequence < true || IsBinarySerializable<typename std::remove_cv<typename std::remove_reference<TArgs>::type>::type>::value... >>::value, tOutputStream& >::type operator<< (tOutputStream& stream, const std::tuple<TArgs...>& tuple)
 {
   internal::tTupleSerializer < static_cast<int>(std::tuple_size<std::tuple<TArgs...>>::value) - 1, TArgs... >::SerializeTuple(stream, tuple);
   return stream;
