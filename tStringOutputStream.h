@@ -150,7 +150,7 @@ inline tStringOutputStream& operator<< (tStringOutputStream& stream, char t)
 }
 inline tStringOutputStream& operator<< (tStringOutputStream& stream, int8_t t)
 {
-  stream.GetWrappedStringStream() << t;
+  stream.GetWrappedStringStream() << static_cast<int>(t);
   return stream;
 }
 inline tStringOutputStream& operator<< (tStringOutputStream& stream, int16_t t)
@@ -175,7 +175,7 @@ inline tStringOutputStream& operator<< (tStringOutputStream& stream, long long i
 }
 inline tStringOutputStream& operator<< (tStringOutputStream& stream, uint8_t t)
 {
-  stream.GetWrappedStringStream() << t;
+  stream.GetWrappedStringStream() << static_cast<unsigned int>(t);
   return stream;
 }
 inline tStringOutputStream& operator<< (tStringOutputStream& stream, uint16_t t)
