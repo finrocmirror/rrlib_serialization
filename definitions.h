@@ -59,7 +59,9 @@ enum class tDataEncoding
 {
   BINARY,
   STRING,
-  XML
+  XML,
+  UNUSED_LEGACY_VALUE,
+  NONE
 };
 
 
